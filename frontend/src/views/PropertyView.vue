@@ -1,0 +1,1 @@
+<!-- Gerenciamento de patrimônio -->
