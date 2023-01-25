@@ -47,8 +47,9 @@
                         <el-table :data="filterTableData" style="width: 100%">
                             <el-table-column type="selection" width="55" />
                             <el-table-column label="Horário" prop="time" />
-                            <el-table-column label="Nome" prop="name" />
                             <el-table-column label="Matrícula" prop="enroll" />
+                            <el-table-column label="Nome" prop="name" />
+                            <el-table-column label="Sala" prop="classroom" />
                             <el-table-column align="right">
                                 <template #header>
                                     <el-input v-model="search" size="small" placeholder="Digite para buscar" />
