@@ -9,7 +9,7 @@ This project uses Django, Django REST Framework, and MariaDB.
 These instructions assume a working MariaDB server. On GNU/Linux, the server can be installed with the package manager (e.g. `apt`):
 
 ``` sh
-# apt install mariadb-server
+# apt install mariadb-server libmariadb-dev
 ```
 
 Then a database and a user with write access must be created.
@@ -19,6 +19,7 @@ With the database set up, create a `.env` file in this folder (backend) containi
 ``` sh
 SECRET_KEY = 'my-secret-key' # Make something up
 DB_NAME = 'my-database-name'
+DB_USER = 'my-database-user'
 DB_PASS = 'my-database-password'
 DB_HOST = 'network-adress-of-the-database'
 DB_PORT = 'port-to-connect-to-the-database'
@@ -33,7 +34,9 @@ poetry install
 Make the Django migrations and migrate to the database:
 
 ``` sh
-poetry run ./manage.py makemigrations
+poetry run ./manage.py makemigrations controle
+poetry run ./manage.py makemigrations emprestimos
+poetry run ./manage.py makemigrations aulas
 poetry run ./manage.py migrate
 ```
 
