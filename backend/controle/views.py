@@ -7,17 +7,20 @@ from .serializers import PessoaSerializer, SalaSerializer, ControleAcessoSeriali
 from rest_framework.viewsets import ModelViewSet
 
 
-# class PessoaViewSet(ModelViewSet):
-#     queryset = Pessoa.objects.all()
-#     serializer_class = PessoaSerializer
+class PessoaViewSet(ModelViewSet):
+    queryset = Pessoa.objects.all()
+    serializer_class = PessoaSerializer
 
-# class SalaViewSet(ModelViewSet):
-#     queryset = Sala.objects.all()
-#     serializer_class = SalaSerializer
+
+class SalaViewSet(ModelViewSet):
+    queryset = Sala.objects.all()
+    serializer_class = SalaSerializer
+
 
 class ControleAcessoViewSet(ModelViewSet):
     queryset = ControleAcesso.objects.all()
     serializer_class = ControleAcessoSerializer
+
 
 """ def index(request):
 

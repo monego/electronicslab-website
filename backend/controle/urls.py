@@ -5,9 +5,10 @@ from rest_framework import routers
 from . import views
 
 router = routers.DefaultRouter()
-# router.register('pessoas', views.PessoaViewSet)
-# router.register('salas', views.SalaViewSet)
-router.register('registros', views.ControleAcessoViewSet, basename='controleacesso')
+router.register('pessoas', views.PessoaViewSet)
+router.register('salas', views.SalaViewSet)
+router.register('registros', views.ControleAcessoViewSet,
+                basename='controleacesso')
 
 urlpatterns = router.urls
 
