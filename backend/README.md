@@ -34,9 +34,7 @@ poetry install
 Make the Django migrations and migrate to the database:
 
 ``` sh
-poetry run ./manage.py makemigrations controle
-poetry run ./manage.py makemigrations emprestimos
-poetry run ./manage.py makemigrations aulas
+poetry run ./manage.py makemigrations controle emprestimos
 poetry run ./manage.py migrate
 ```
 
