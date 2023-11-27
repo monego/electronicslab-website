@@ -12,16 +12,16 @@ Clone this repository with
 $ git clone https://gitlab.com/nupedee/website
 ```
 
-and `cd` to the frontend directory. To run the frontend, install [PNPM](https://pnpm.io/), and install the dependencies with
+and `cd` to the frontend directory. To run the frontend, install [BUN](https://bun.sh/), and install the dependencies with
 
 ``` sh
-$ pnpm install
+$ bun install
 ```
 
 . Then run the frontend with
 
 ``` sh
-$ pnpm run dev
+$ bun run dev
 ```
 
 .
