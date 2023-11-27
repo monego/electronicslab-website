@@ -14,6 +14,9 @@
         <el-menu-item index="1-2"><el-icon>
             <CreditCard />
           </el-icon>Solicitações de Compra</el-menu-item>
+        <el-menu-item index="1-3"><el-icon>
+            <Calendar />
+          </el-icon>Jornada e Ocorrências</el-menu-item>
       </el-sub-menu>
       <el-sub-menu index="2">
         <template #title>
@@ -28,32 +31,9 @@
         <el-menu-item index="2-2"><a href="/registros"><el-icon>
               <School />
             </el-icon>Sistema de Registros</a></el-menu-item>
-        <el-menu-item index="2-3"><el-icon>
+        <el-menu-item index="2-3"><a href="/equipamentos"><el-icon>
             <Mouse />
-          </el-icon>Gerenciamento de Patrimônios</el-menu-item>
-        <el-menu-item index="2-4"><el-icon>
-            <Mouse />
-          </el-icon>Verificação Patrimonial</el-menu-item>
-        <el-menu-item index="2-5"><el-icon>
-            <Mouse />
-          </el-icon>Relação equip. e componentes</el-menu-item>
-      </el-sub-menu>
-      <el-sub-menu index="3">
-        <template #title>
-          <el-icon>
-            <Calendar />
-          </el-icon>
-          <span>Aulas & Consultas</span>
-        </template>
-        <el-menu-item index="3-1"><el-icon>
-            <DataBoard />
-          </el-icon>Autorizar Aulas Pendentes</el-menu-item>
-        <el-menu-item index="3-2"><el-icon>
-            <DataBoard />
-          </el-icon><a href="/cadastrar-aulas">Cadastrar Aulas</a></el-menu-item>
-        <el-menu-item index="3-3"><el-icon>
-            <Search />
-          </el-icon>Consultar Aulas Marcadas</el-menu-item>
+          </el-icon>Equipamentos e componentes</a></el-menu-item>
       </el-sub-menu>
       <el-menu-item><el-icon>
           <DataLine />

@@ -23,6 +23,10 @@ const router = createRouter({
       component: () => import("../views/LoanView.vue")
     },
     {
+      path: '/equipamentos',
+      component: () => import("../views/EquipmentView.vue")
+    },
+    {
       path: '/registros',
       component: () => import("../views/AccessView.vue")
     },
