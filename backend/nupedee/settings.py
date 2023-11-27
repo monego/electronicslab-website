@@ -117,7 +117,7 @@ LOGGING = {
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'nupedee',
         'USER': config("DB_USER"),
         'PASSWORD': config("DB_PASS"),
