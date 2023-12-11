@@ -15,19 +15,9 @@
                 <input class="px-1 py-2 mb-4 w-full text-gray-500 bg-gray-200 outline-none" type="password" />
                 <input class="mb-4" type="checkbox" />
                 <label for="remember" class="pl-1 text-gray-700">Lembrar</label>
-                <button type="submit" class="py-2 w-full text-gray-100 bg-blue-600 rounded transition-colors hover:bg-blue-600">Login</button>
+                <button type="submit"
+                    class="py-2 w-full text-gray-100 bg-blue-600 rounded transition-colors hover:bg-blue-600">Login</button>
             </div>
         </form>
-    </main> 
+    </main>
 </template>
- 
-<script>
-    import Navbar from "../components/Navbar.vue"
-
-    export default {
-        name: "Login",
-        components: {
-            Navbar,
-        },
-    };
-</script>

@@ -1,5 +1,17 @@
 t<!-- Empréstimos e Devoluções -->
 
+<script lang="ts" setup>
+import Sidebar from "../components/Sidebar.vue"
+import {
+    Check,
+    Delete,
+    Edit,
+    Message,
+    Search,
+    Star,
+} from '@element-plus/icons-vue'
+</script>
+
 <template>
     <div class="bg-[#eff1f5] flex">
         <Sidebar />
@@ -52,8 +64,7 @@ t<!-- Empréstimos e Devoluções -->
                             <el-table-column label="Horário" prop="time" />
                             <el-table-column label="Devolução" prop="return">
                                 <template #default>
-                                    <el-button link type="primary" size="small"
-                                        @click="handleClick">Devolver</el-button>
+                                    <el-button link type="primary" size="small" @click="handleClick">Devolver</el-button>
                                 </template>
                             </el-table-column>
                             <el-table-column align="right">
@@ -72,36 +83,3 @@ t<!-- Empréstimos e Devoluções -->
         </div>
     </div>
 </template>
- 
-<script lang="ts" setup>
-import Sidebar from "../components/Sidebar.vue"
-
-
-import {
-    Check,
-    Delete,
-    Edit,
-    Message,
-    Search,
-    Star,
-} from '@element-plus/icons-vue'
-
-</script>
-
-<script lang="ts">
-export default {
-    data() {
-        return {
-            rows: []
-        }
-    },
-    methods: {
-        addRow() {
-            this.rows.push({});
-        },
-        removeRow(index) {
-            this.rows.splice(index, 1);
-        }
-    }
-}
-</script>

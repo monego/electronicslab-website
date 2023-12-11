@@ -1,73 +1,3 @@
-<template>
-    <div class="flex bg-[#eff1f5]">
-        <Sidebar />
-        <div class="w-screen h-screen">
-            <el-tabs type="border-card" class="demo-tabs">
-                <el-tab-pane label="Controle de Acesso">
-                    <div class="h-screen">
-                        <el-form label-position="right" label-width="100px" style="max-width: 460px">
-                            <el-form-item label="Matrícula">
-                                <el-input />
-                            </el-form-item>
-                        </el-form>
-                        <div class="flex">
-                            <p>Sala</p>
-                            <el-select v-model="value" filterable placeholder="Escolha a sala">
-                                <el-option v-for="item in salas" :key="item.value" :label="item.label"
-                                    :value="item.value" />
-                            </el-select>
-                        </div>
-                        <el-button>Registrar</el-button>
-                    </div>
-                </el-tab-pane>
-                <el-tab-pane label="Bolsistas">
-                    <div class="h-screen">
-                        <el-table :data="filterTableData" style="width: 100%">
-                            <el-table-column type="selection" width="55" />
-                            <el-table-column label="Bolsista" prop="name" />
-                            <el-table-column label="Matrícula" prop="enroll" />
-                            <el-table-column label="Horário" prop="time" />
-                            <el-table-column label="Entrada" prop="entrada">
-                                <template #default="scope">
-                                    <el-button size="small"
-                                        @click="handleDelete(scope.$index, scope.row)">Marcar</el-button>
-                                </template>
-                            </el-table-column>
-                            <el-table-column label="Saída" prop="saida">
-                                <template #default="scope">
-                                    <el-button size="small"
-                                        @click="handleDelete(scope.$index, scope.row)">Marcar</el-button>
-                                </template>
-                            </el-table-column>
-                        </el-table>
-                    </div>
-                </el-tab-pane>
-                <el-tab-pane label="Atualmente registrados">
-                    <div class="h-screen">
-                        <el-table :data="filterTableData" style="width: 100%">
-                            <el-table-column type="selection" width="55" />
-                            <el-table-column label="Horário" prop="time" />
-                            <el-table-column label="Matrícula" prop="enroll" />
-                            <el-table-column label="Nome" prop="name" />
-                            <el-table-column label="Sala" prop="classroom" />
-                            <el-table-column align="right">
-                                <template #header>
-                                    <el-input v-model="search" size="small" placeholder="Digite para buscar" />
-                                </template>
-                                <template #default="scope">
-                                    <el-button size="small"
-                                        @click="handleDelete(scope.$index, scope.row)">Liberar</el-button>
-                                </template>
-                            </el-table-column>
-                        </el-table>
-                        <el-button>Liberar marcados</el-button>
-                    </div>
-                </el-tab-pane>
-            </el-tabs>
-        </div>
-    </div>
-</template>
-
 <script lang="ts" setup>
 import { computed, ref } from 'vue'
 import Sidebar from "../components/Sidebar.vue"
@@ -96,6 +26,7 @@ const toggleSelection = (rows?: User[]) => {
 const handleSelectionChange = (val: User[]) => {
     multipleSelection.value = val
 }
+
 
 interface User {
     date: string
@@ -166,46 +97,73 @@ const tableData: User[] = [
 ]
 </script>
 
-<script lang="ts">
-export default {
-    name: 'Sorting',
-    data() {
-        return {
-            ascending: false,
-            sortColumn: '',
-            fifthTable: [
-                { id: 1, name: "Chandler Bing", phone: '305-917-1301', profession: 'IT Manager' },
-                { id: 2, name: "Ross Geller", phone: '210-684-8953', profession: 'Paleontologist' },
-                { id: 3, name: "Rachel Green", phone: '765-338-0312', profession: 'Waitress' },
-                { id: 4, name: "Monica Geller", phone: '714-541-3336', profession: 'Head Chef' },
-                { id: 5, name: "Joey Tribbiani", phone: '972-297-6037', profession: 'Actor' },
-                { id: 6, name: "Phoebe Buffay", phone: '760-318-8376', profession: 'Masseuse' }
-            ]
-        }
-    },
-    methods: {
-        setAccess() { },
-        getBolsistas() { },
-        getRegistrados() { },
-        filterRegistrados() { },
-    }
-}
-</script>
-
-<style>
-.demo-tabs>.el-tabs__content {
-    padding: 32px;
-    color: #6b778c;
-    font-size: 32px;
-    font-weight: 600;
-}
-
-.demo-tabs .custom-tabs-label .el-icon {
-    vertical-align: middle;
-}
-
-.demo-tabs .custom-tabs-label span {
-    vertical-align: middle;
-    margin-left: 4px;
-}
-</style>
+<template>
+    <div class="flex bg-[#eff1f5]">
+        <Sidebar />
+        <div class="w-screen h-screen">
+            <el-tabs type="border-card" class="demo-tabs">
+                <el-tab-pane label="Controle de Acesso">
+                    <div class="h-screen">
+                        <el-form label-position="right" label-width="100px" style="max-width: 460px">
+                            <el-form-item label="Matrícula">
+                                <el-input v-model="enrollment" />
+                            </el-form-item>
+                            <div class="flex">
+                                <el-form-item label="Sala">
+                                    <el-select v-model="value" filterable placeholder="Escolha a sala">
+                                        <el-option v-for="item in classroom" :key="item.value" :label="item.label"
+                                            :value="item.value" />
+                                    </el-select>
+                                </el-form-item>
+                            </div>
+                            <el-button @click="onSubmit">Registrar</el-button>
+                        </el-form>
+                    </div>
+                </el-tab-pane>
+                <el-tab-pane label="Bolsistas">
+                    <div class="h-screen">
+                        <el-table :data="filterTableData" style="width: 100%">
+                            <el-table-column type="selection" width="55" />
+                            <el-table-column label="Bolsista" prop="name" />
+                            <el-table-column label="Matrícula" prop="enroll" />
+                            <el-table-column label="Horário" prop="time" />
+                            <el-table-column label="Entrada" prop="entrada">
+                                <template #default="scope">
+                                    <el-button size="small"
+                                        @click="handleDelete(scope.$index, scope.row)">Marcar</el-button>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="Saída" prop="saida">
+                                <template #default="scope">
+                                    <el-button size="small"
+                                        @click="handleDelete(scope.$index, scope.row)">Marcar</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </div>
+                </el-tab-pane>
+                <el-tab-pane label="Atualmente registrados">
+                    <div class="h-screen">
+                        <el-table :data="filterTableData" style="width: 100%">
+                            <el-table-column type="selection" width="55" />
+                            <el-table-column label="Horário" prop="time" />
+                            <el-table-column label="Matrícula" prop="enroll" />
+                            <el-table-column label="Nome" prop="name" />
+                            <el-table-column label="Sala" prop="classroom" />
+                            <el-table-column align="right">
+                                <template #header>
+                                    <el-input v-model="search" size="small" placeholder="Digite para buscar" />
+                                </template>
+                                <template #default="scope">
+                                    <el-button size="small"
+                                        @click="handleDelete(scope.$index, scope.row)">Liberar</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                        <el-button>Liberar marcados</el-button>
+                    </div>
+                </el-tab-pane>
+            </el-tabs>
+        </div>
+    </div>
+</template>

@@ -35,16 +35,6 @@ const router = createRouter({
       name: "consulta",
       component: () => import("../views/CalendarView.vue"),
     },
-    {
-      path: "/cadastrar-aulas",
-      name: "cadastrar-aulas",
-      component: () => import("../views/NewClassView.vue"),
-    },
-    {
-      path: "/agendamento",
-      name: "agendamento",
-      component: () => import("../views/ScheduleView.vue"),
-    },
   ],
 });
 
