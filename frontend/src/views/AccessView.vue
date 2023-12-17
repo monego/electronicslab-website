@@ -2,6 +2,90 @@
 import { computed, ref } from 'vue'
 import Sidebar from "../components/Sidebar.vue"
 import { ElTable } from 'element-plus'
+import axios from 'axios';
+
+const matricula = ref('')
+const lab = ref('')
+
+let student = [];
+let selectedStudents = [];
+
+function getLabs() {
+    // List all classrooms for the selector
+
+    axios.get('/api/laboratorio')
+      .then(response => {
+        lab.value = response.data.map(lab => ({ label: lab.nome, value: lab.id }));
+      })
+      .catch(error => {
+        console.error('Erro ao carregar laboratórios:', error);
+      });
+}
+
+function getStudent() {
+
+    axios.get('/api/pessoa', {
+        params: {
+            matricula: matricula
+        }
+    }).then(response => {
+        const { nome, matricula, email, telefone } = response.data;
+        console.log(`Nome: ${nome}, Matrícula: ${matricula}, Email: ${email}, Telefone: ${telefone}`);
+    }).catch(error => {
+        console.error('Ocorreu um erro ao obter as informações do aluno:', error);
+    });
+}
+
+function registerStudent() {
+        async function registerStudent() {
+            try {
+                const laboratorioResponse = await axios.get('/api/laboratorio', {
+                    params: {
+                        nome: lab.value
+                    }
+                });
+                const laboratorioData = laboratorioResponse.data;
+
+                const controleAcessoResponse = await axios.post('/api/controleacesso', {
+                    matricula: matricula.value,
+                    laboratorio: laboratorioData.id, // assuming "id" is the field to link laboratorio
+                    hora_entrada: new Date().toISOString() // sending the current date in ISO format
+                });
+
+                // Handle the response from the ControleAcesso model if necessary
+                console.log('Acesso registrado:', controleAcessoResponse.data);
+            } catch (error) {
+                console.error('Erro ao registrar o estudante no controle de acesso:', error);
+            }
+        }
+}
+
+async function getAcccessList() {
+    // Query the ControleAcesso model for active accesses where horario_saida is null
+    student = await axios.get('/api/controleacesso', {
+        params: {
+            horario_saida: null
+        }
+    }).then(response => response.data)
+    .catch(error => console.error('An error occurred:', error));
+}
+
+function releaseStudents() {
+
+    for (const studentId of Object.keys(selectedStudents)) {
+        axios.patch(`/api/controleacesso/${studentId}`, {
+            hora_saida: new Date().toISOString()
+        })
+        .then(response => {
+            console.log(`Hora de saída registrada para o aluno com ID: ${studentId}`);
+        })
+        .catch(error => {
+            console.error('Erro ao registrar a hora de saída do aluno:', error);
+        });
+    }
+
+    console.log("Aluno liberado!")
+}
 
 interface User {
     date: string
@@ -25,13 +109,6 @@ const toggleSelection = (rows?: User[]) => {
 }
 const handleSelectionChange = (val: User[]) => {
     multipleSelection.value = val
-}
-
-
-interface User {
-    date: string
-    name: string
-    address: string
 }
 
 const search = ref('')
@@ -106,17 +183,17 @@ const tableData: User[] = [
                     <div class="h-screen">
                         <el-form label-position="right" label-width="100px" style="max-width: 460px">
                             <el-form-item label="Matrícula">
-                                <el-input v-model="enrollment" />
+                                <el-input v-model="matricula" />
                             </el-form-item>
                             <div class="flex">
                                 <el-form-item label="Sala">
-                                    <el-select v-model="value" filterable placeholder="Escolha a sala">
-                                        <el-option v-for="item in classroom" :key="item.value" :label="item.label"
+                                    <el-select v-model="lab" filterable placeholder="Escolha a sala">
+                                        <el-option v-for="item in lab" :key="item.value" :label="item.label"
                                             :value="item.value" />
                                     </el-select>
                                 </el-form-item>
                             </div>
-                            <el-button @click="onSubmit">Registrar</el-button>
+                            <el-button @click="registerStudent">Registrar</el-button>
                         </el-form>
                     </div>
                 </el-tab-pane>

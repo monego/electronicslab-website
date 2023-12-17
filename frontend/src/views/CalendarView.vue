@@ -1,9 +1,7 @@
 <!-- Calendário para consulta de horário de aulas -->
 
-<script>
+<script setup>
 import { ref } from 'vue';
-import Datepicker from '@vuepic/vue-datepicker';
-import '@vuepic/vue-datepicker/dist/main.css';
 import VueCal from 'vue-cal'
 import 'vue-cal/dist/vuecal.css'
 

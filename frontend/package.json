@@ -1,43 +1,27 @@
 {
-  "name": "nupedee",
+  "name": "frontend",
+  "private": true,
   "version": "0.0.0",
+  "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview --port 4173",
-    "test:unit": "vitest --environment jsdom",
-    "test:e2e": "start-server-and-test preview http://localhost:4173/ 'cypress open --e2e'",
-    "test:e2e:ci": "start-server-and-test preview http://localhost:4173/ 'cypress run --e2e'",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@element-plus/icons-vue": "^2.1.0",
-    "@vuepic/vue-datepicker": "^3.6.8",
-    "axios": "^1.3.4",
-    "element-plus": "^2.3.1",
-    "pinia": "^2.0.33",
-    "primeicons": "^6.0.1",
-    "sass": "^1.60.0",
-    "vue": "^3.2.47",
+    "@element-plus/icons-vue": "^2.3.1",
+    "autoprefixer": "^10.4.16",
+    "axios": "^1.6.2",
+    "element-plus": "^2.4.4",
+    "tailwindcss": "^3.3.6",
+    "vue": "^3.3.11",
     "vue-cal": "^4.8.1",
-    "vue-router": "^4.1.6"
+    "vue-router": "^4.2.5"
   },
   "devDependencies": {
-    "@rushstack/eslint-patch": "^1.2.0",
-    "@vitejs/plugin-vue": "^3.2.0",
-    "@vue/eslint-config-prettier": "^7.1.0",
-    "@vue/test-utils": "^2.3.2",
-    "autoprefixer": "^10.4.14",
-    "cypress": "^10.11.0",
-    "eslint": "^8.37.0",
-    "eslint-plugin-cypress": "^2.13.2",
-    "eslint-plugin-vue": "^9.10.0",
-    "jsdom": "^20.0.3",
-    "postcss": "^8.4.21",
-    "prettier": "^2.8.7",
-    "start-server-and-test": "^1.15.4",
-    "tailwindcss": "^3.3.0",
-    "vite": "^3.2.5",
-    "vitest": "^0.23.4"
+    "@vitejs/plugin-vue": "^4.5.2",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.8",
+    "vue-tsc": "^1.8.25"
   }
 }

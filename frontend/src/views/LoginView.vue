@@ -1,5 +1,4 @@
 <template>
-    <Navbar />
     <main class="flex justify-center items-center h-screen bg-[#fbfbfb]">
         <form>
             <div class="p-6 w-96 bg-white rounded shadow-sm">

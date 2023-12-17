@@ -1,4 +1,4 @@
-t<!-- Empréstimos e Devoluções -->
+<!-- Empréstimos e Devoluções -->
 
 <script lang="ts" setup>
 import Sidebar from "../components/Sidebar.vue"
