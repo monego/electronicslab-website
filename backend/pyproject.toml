@@ -1,21 +1,36 @@
-[tool.poetry]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
 name = "nupedee"
 version = "0.1.0"
 description = "Site novo do NUPEDEE"
 authors = ["Vinicius Monego <monego@posteo.net>"]
 license = "agpl3+"
+dependencies = [
+"django>=4,<5",
+"djangorestframework>=3.14.0",
+"django-cors-headers>=3.13.0",
+"Pillow>=9.4.0",
+"python-decouple>=3.7",
+"psycopg2>=2.9.9",
+"django-allauth>=0.58.2",
+"ipython>=8.18.1",
+"pandas>=2.1"
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-Django = "^4"
-djangorestframework = "^3.14.0"
-django-cors-headers = "^3.13.0"
-Pillow = "^9.4.0"
-python-decouple = "^3.7"
-psycopg2 = "^2.9.9"
 
-[tool.poetry.dev-dependencies]
+[tool.hatch.version]
+path = "{{ project_name }}/__version__.py"
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+# Default environment
+[tool.hatch.envs.default]
+dependencies = [
+"django-types",
+"ipdb",
+"model-bakery",
+"pytest",
+"pytest-django",
+"pytest-mock",
+]
