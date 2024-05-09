@@ -19,7 +19,9 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('api/controle/', include('controle.urls')),
-    path('api/emprestimos/', include('emprestimos.urls')),
     path('admin/', admin.site.urls),
+    path('api/', include('controle.api.urls', namespace='api')),
+    path('root/', include('root.urls')),
+#    path('api/controle/', include('controle.urls')),
+#    path('api/emprestimos/', include('emprestimos.urls')),
 ]

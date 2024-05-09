@@ -7,11 +7,12 @@ from django.utils import timezone
 class Setores(models.Model):
     nome = models.CharField(max_length=10)
 
+
 class Equipamento(models.Model):
     nome = models.CharField(max_length=50, default="Nome")
     descricao = models.CharField(max_length=200, default="Descrição")
-    foto = models.ImageField(upload_to ='fotos/', null=True)
-    manual = models.FileField(upload_to="manuais/", null=True)
+    foto = models.ImageField(upload_to ='fotos', null=True)
+    manual = models.FileField(upload_to="manuais", null=True)
 
 
 class LocalEquipamento(models.Model):

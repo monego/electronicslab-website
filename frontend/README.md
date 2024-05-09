@@ -1,27 +1,33 @@
-# NUPEDEE Website (frontend)
+# NUPEDEE (frontend)
 
-## Dependencies
+Frontend do site do NUPEDEE
 
-This project uses Vue.js 3, Vite, Element Plus, Tailwind CSS, vue3-datepicker  and vue-cal.
-
-## Instructions
-
-Clone this repository with
-
-``` sh
-$ git clone https://gitlab.com/nupedee/website
+## Install the dependencies
+```bash
+yarn
+# or
+npm install
 ```
 
-and `cd` to the frontend directory. To run the frontend, install [BUN](https://bun.sh/), and install the dependencies with
-
-``` sh
-$ bun install
+### Start the app in development mode (hot-code reloading, error reporting, etc.)
+```bash
+quasar dev
 ```
 
-. Then run the frontend with
 
-``` sh
-$ bun run dev
+### Lint the files
+```bash
+yarn lint
+# or
+npm run lint
 ```
 
-.
+
+
+### Build the app for production
+```bash
+quasar build
+```
+
+### Customize the configuration
+See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).

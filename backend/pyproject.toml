@@ -12,14 +12,14 @@ dependencies = [
 "django>=4,<5",
 "djangorestframework>=3.14.0",
 "django-cors-headers>=3.13.0",
+"django-filter",
 "Pillow>=9.4.0",
 "python-decouple>=3.7",
-"psycopg2>=2.9.9",
-"django-allauth>=0.58.2",
+"psycopg>=3.1.8",
 "ipython>=8.18.1",
-"pandas>=2.1"
+"pandas>=2.1",
+"hypercorn"
 ]
-
 
 [tool.hatch.version]
 path = "{{ project_name }}/__version__.py"
@@ -34,3 +34,7 @@ dependencies = [
 "pytest-django",
 "pytest-mock",
 ]
+
+[tool.hatch.envs.pypy]
+type = "virtual"
+python = "pypy3.10"

@@ -11,8 +11,8 @@ class Pessoa(models.Model):
         PROFESSOR = 'PR'
 
     nome = models.CharField(max_length=100, default="")
-    email = models.CharField(max_length=50, null=True, default="")
-    telefone = models.CharField(max_length=20, null=True, default="")
+    email = models.CharField(max_length=50, null=True)
+    telefone = models.CharField(max_length=20, null=True)
     matricula = models.CharField(max_length=50, default="")
     tipo = models.CharField(
         max_length=2,
