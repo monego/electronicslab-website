@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useQuasar } from 'quasar';
+
 import axios from 'axios';
+
+const $q = useQuasar();
+
+const notifTimeout = 30;
 
 const salaa = ref();
 const connError = ref(false);
@@ -81,9 +87,20 @@ async function registerAccess() {
       },
     );
 
+    $q.notify({
+      type: 'positive',
+      message: 'Acesso registrado com successo',
+      timeout: notifTimeout,
+    });
+
     return response.data;
   } catch (err) {
     if (axios.isAxiosError(err)) {
+      $q.notify({
+        type: 'positive',
+        message: 'Houve algum erro ao registrar ao acesso.',
+        timeout: notifTimeout,
+      });
       console.log(err.message);
       console.log(err.response?.status);
     }
