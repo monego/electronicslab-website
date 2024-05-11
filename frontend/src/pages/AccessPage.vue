@@ -24,7 +24,7 @@ axios.get(`${djangoServer}/api/salas`, {
   },
 })
   .then((response) => {
-    options.value = response.data.map((item: {nome: string, numero: string}) => ({
+    options.value = response.data.map((item: { nome: string, numero: string }) => ({
       label: `[${item.numero}] ${item.nome}`,
       value: item.numero,
     }));
@@ -89,7 +89,7 @@ async function registerAccess() {
 
     $q.notify({
       type: 'positive',
-      message: 'Acesso registrado com successo',
+      message: 'Acesso registrado com successo.',
       timeout: notifTimeout,
     });
 
@@ -97,7 +97,7 @@ async function registerAccess() {
   } catch (err) {
     if (axios.isAxiosError(err)) {
       $q.notify({
-        type: 'positive',
+        type: 'negative',
         message: 'Houve algum erro ao registrar ao acesso.',
         timeout: notifTimeout,
       });
@@ -154,16 +154,11 @@ const rows = [
 </script>
 
 <template>
-  <div class="q-pa-md">
-    <div class="q-gutter-md">
+  <q-page>
+    <div class="q-pa-md">
+
       <q-card>
-        <q-tabs
-          v-model="tab"
-          dense
-          class="text-grey"
-          active-color="primary"
-          indicator-color="primary"
-          align="justify"
+        <q-tabs v-model="tab" dense class="text-grey" active-color="primary" indicator-color="primary" align="justify"
           narrow-indicator>
           <q-tab class="text-purple" name="entrada" icon="mdi-clock-in" label="Entrada" />
           <q-tab class="text-orange" name="saida" icon="mdi-clock-out" label="Saída" />
@@ -189,37 +184,19 @@ const rows = [
               </q-card>
             </q-dialog>
 
-            <div class="flex-container">
-              <div>
-                <q-input outlined v-model="matricula" class="pad" label="Matrícula" />
-                <q-select outlined v-model="salaa" class="pad" :options="options" label="Sala" />
-                <div class="pad">
-                  <q-btn @click="registerAccess" color="white" text-color="black" label="Registrar" />
-                </div>
-              </div>
+            <div class="q-gutter-md">
+              <q-input outlined v-model="matricula" label="Matrícula" />
+              <q-select outlined v-model="salaa" :options="options" label="Sala" />
+              <q-btn @click="registerAccess" color="white" text-color="black" label="Registrar" />
             </div>
+
           </q-tab-panel>
 
           <q-tab-panel name="saida">
-            <q-table
-              title="Registros"
-              selection="multiple"
-              :rows="rows"
-              :columns="columns"
-              row-key="name" />
+            <q-table title="Registros" selection="multiple" :rows="rows" :columns="columns" row-key="name" />
           </q-tab-panel>
         </q-tab-panels>
       </q-card>
     </div>
-  </div>
+  </q-page>
 </template>
-
-<style>
-.flex-container {
-  display: flex;
-}
-
-.pad {
-  padding: 15px;
-}
-</style>
