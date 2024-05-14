@@ -8,7 +8,18 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/admin',
     component: () => import('src/layouts/AdminLayout.vue'),
-    children: [{ path: '', component: () => import('pages/AccessPage.vue') }],
+    children: [
+      { path: '/acesso', component: () => import('pages/AccessPage.vue') },
+      { path: '/emprestimo', component: () => import('pages/LoanPage.vue') },
+      { path: '/equipamentos', component: () => import('pages/EquipmentPage.vue') },
+    ],
+  },
+  {
+    path: '/login',
+    component: () => import('src/layouts/LoginLayout.vue'),
+    children: [
+      { path: '/login', component: () => import('pages/LoginPage.vue') },
+    ],
   },
   {
     path: '/telao',

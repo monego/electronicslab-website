@@ -8,9 +8,9 @@
         </q-toolbar>
     </q-header>
 
-    <q-page-layout>
+    <q-page-container>
         <router-view />
-    </q-page-layout>
+    </q-page-container>
 
   </q-layout>
 </template>

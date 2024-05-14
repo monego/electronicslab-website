@@ -27,8 +27,6 @@ class PessoaViewSet(ModelViewSet):
 class SalaViewSet(ModelViewSet):
     serializer_class = SalaSerializer
     queryset = Sala.objects.all()
-    # authentication_classes = [BasicAuthentication]
-    # permission_classes = [IsAuthenticated]
     def get_queryset(self):
         queryset = Sala.objects.all()
         numero = self.request.query_params.get('numero')
@@ -40,8 +38,6 @@ class SalaViewSet(ModelViewSet):
 class ControleAcessoViewSet(ModelViewSet):
     serializer_class = ControleAcessoSerializer
     queryset = ControleAcesso.objects.all()
-    # authentication_classes = [BasicAuthentication]
-    # permission_classes = [IsAuthenticated]
     def hora_saida_is_null(self):
         queryset = ControleAcesso.objects.filter(hora_saida_isnull=True)
         print(queryset)
