@@ -1,34 +1,43 @@
 from rest_framework import filters
 from rest_framework.serializers import ModelSerializer
+from controle.models import (
+    Atividades,
+    ControleAcesso,
+    Emprestimo,
+    Equipamento,
+    Manutencao,
+)
 
-from root.models import Pessoa, Sala
-from controle.models import ControleAcesso
+class AtividadesSerializer(ModelSerializer):
 
-
-class PessoaSerializer(ModelSerializer):
-    queryset = Pessoa.objects.all()
-    serializer_class = Pessoa
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['matricula']
     class Meta:
-        model = Pessoa
-        fields = ['id', 'nome', 'email', 'telefone', 'matricula', 'tipo']
-
-class SalaSerializer(ModelSerializer):
-    queryset = Sala.objects.all()
-    serializer_class = Sala
-    filter_backends = [filters.SearchFilter]
-    search_fields =  ['numero']
-    class Meta:
-        model = Sala
-        fields = ['id', 'predio', 'nome', 'numero']
-
+        model = Atividades
+        fields = '__all__'
 
 class ControleAcessoSerializer(ModelSerializer):
     queryset = ControleAcesso.objects.all()
     serializer_class = ControleAcesso
     filter_backends = [filters.SearchFilter]
-    search_fields =  ['hora_saida']
+    search_fields =  ['id']
+
     class Meta:
         model = ControleAcesso
-        fields = ['pessoa', 'sala', 'hora_entrada', 'hora_saida']
+        fields = ['id', 'pessoa', 'sala', 'hora_entrada', 'hora_saida']
+
+class EmprestimoSerializer(ModelSerializer):
+
+    class Meta:
+        model = Emprestimo
+        fields = '__all__'
+
+class EquipamentoSerializer(ModelSerializer):
+
+    class Meta:
+        model = Equipamento
+        fields = '__all__'
+
+class ManutencaoSerializer(ModelSerializer):
+
+    class Meta:
+        model = Manutencao
+        fields = '__all__'

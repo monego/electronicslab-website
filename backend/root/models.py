@@ -7,7 +7,6 @@ class Pessoa(models.Model):
     class Tipo(models.TextChoices):
         ALUNO = 'AL'
         BOLSISTA = 'BO'
-        FUNCIONARIO = 'FU'
         PROFESSOR = 'PR'
 
     nome = models.CharField(max_length=100, default="")
@@ -60,14 +59,3 @@ class Laboratorio(models.Model):
         ordering = ["nome"]
         verbose_name = 'Laboratório'
         verbose_name_plural = "Laboratórios"
-
-
-class Professores(models.Model):
-    pessoa = models.ForeignKey(Pessoa, on_delete=models.SET_NULL, null=True,
-                               limit_choices_to={'tipo': 'PR'})
-    apelido = models.CharField(max_length=15)
-
-    class Meta:
-        ordering = ["pessoa"]
-        verbose_name = 'Professor'
-        verbose_name_plural = "Professores"

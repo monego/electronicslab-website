@@ -38,3 +38,8 @@ dependencies = [
 [tool.hatch.envs.pypy]
 type = "virtual"
 python = "pypy3.10"
+
+[tool.ruff]
+line-length = 88
+select = ["E", "W", "F", "C90"]
+exclude = ["__pycache__", ".git", "old", "build", "dist"]
