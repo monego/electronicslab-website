@@ -80,6 +80,7 @@ class Emprestimo(models.Model):
 class Equipamento(models.Model):
     nome = models.CharField(max_length=50, default="Nome", unique=True)
     descricao = models.CharField(max_length=200, default="Descrição")
+    patrimonio = models.CharField(max_length=15, null=True, blank=True)
     foto = models.ImageField(upload_to=image_upload_path, blank=True, null=True)
     manual = models.FileField(upload_to=file_upload_path, blank=True, null=True)
 
