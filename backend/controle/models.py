@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone
 from root.models import Pessoa, Sala
@@ -23,11 +24,11 @@ class Atividades(models.Model):
         ('finished', 'Concluída'),
     ]
 
-    funcionario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    funcionarios = models.ManyToManyField(User, related_name='atividades')
     descricao = models.CharField(max_length=200, default="")
     estado = models.CharField(choices=CHOICES, default="waiting", max_length=15)
     hora_iniciada = models.DateTimeField(default=timezone.now)
-    hora_concluida = models.DateTimeField(null=True)
+    hora_concluida = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = 'Atividade'
@@ -38,7 +39,7 @@ class ControleAcesso(models.Model):
                                limit_choices_to={'tipo': 'AL'})
     sala = models.ForeignKey(Sala, on_delete=models.SET_NULL, null=True)
     hora_entrada = models.DateTimeField(default=timezone.now)
-    hora_saida = models.DateTimeField(null=True)
+    hora_saida = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         verbose_name = 'Registro'
@@ -54,11 +55,14 @@ class Emprestimo(models.Model):
     responsavel = models.ForeignKey(
         Pessoa, on_delete=models.SET_NULL, null=True, related_name="responsavel"
     )
-    funcionario = models.CharField(max_length=50, blank=True, default="")
+    funcionario = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, related_name="funcionario"
+    )
     # equipamento = models.ManyToManyField(Equipamento)
-    local = models.CharField(max_length=20, blank=True, default="")
+    local = models.CharField(max_length=20, default="")
+    items = ArrayField(models.CharField(max_length=20), default=list)
     retirada = models.DateTimeField(default=timezone.now)
-    devolucao = models.DateTimeField(default=timezone.now, null=True)
+    devolucao = models.DateTimeField(default=timezone.now, blank=True, null=True)
 
     class Meta:
         verbose_name = 'Empréstimo'
@@ -91,14 +95,6 @@ class Equipamento(models.Model):
     class Meta:
         verbose_name = 'Equipamento'
         verbose_name_plural = 'Equipamentos'
-
-class Item(models.Model):
-    emprestimo = models.ForeignKey(Emprestimo, on_delete=models.CASCADE)
-    item_name = models.CharField(max_length=50, default="")
-
-    class Meta:
-        verbose_name = 'Item Empréstimo'
-        verbose_name_plural = 'Items Empréstimos'
 
 class Manutencao(models.Model):
     equipamento = models.ForeignKey(Equipamento, on_delete=models.CASCADE)

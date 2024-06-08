@@ -9,13 +9,12 @@ from controle.models import (
 
 class AtividadesAdmin(admin.ModelAdmin):
     list_display = (
-        "funcionario",
         "descricao",
         "estado",
         "hora_iniciada",
         "hora_concluida",
     )
-    search_fields = ('funcionario',)
+    filter_horizontal = ('funcionarios',)
 
 class EquipamentoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'descricao', 'foto', 'manual')

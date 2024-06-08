@@ -1,5 +1,5 @@
 from rest_framework import filters
-from rest_framework.serializers import ModelSerializer
+import rest_framework.serializers as serializers
 from controle.models import (
     Atividades,
     ControleAcesso,
@@ -8,13 +8,13 @@ from controle.models import (
     Manutencao,
 )
 
-class AtividadesSerializer(ModelSerializer):
+class AtividadesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Atividades
         fields = '__all__'
 
-class ControleAcessoSerializer(ModelSerializer):
+class ControleAcessoSerializer(serializers.ModelSerializer):
     queryset = ControleAcesso.objects.all()
     serializer_class = ControleAcesso
     filter_backends = [filters.SearchFilter]
@@ -24,19 +24,23 @@ class ControleAcessoSerializer(ModelSerializer):
         model = ControleAcesso
         fields = ['id', 'pessoa', 'sala', 'hora_entrada', 'hora_saida']
 
-class EmprestimoSerializer(ModelSerializer):
+class EmprestimoSerializer(serializers.ModelSerializer):
+
+    items = serializers.ListField(
+        child=serializers.CharField(max_length=200)
+    )
 
     class Meta:
         model = Emprestimo
         fields = '__all__'
 
-class EquipamentoSerializer(ModelSerializer):
+class EquipamentoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Equipamento
         fields = '__all__'
 
-class ManutencaoSerializer(ModelSerializer):
+class ManutencaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Manutencao
