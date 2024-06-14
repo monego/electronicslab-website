@@ -33,23 +33,19 @@ DB_HOST = 'network-adress-of-the-database'
 DB_PORT = 'port-to-connect-to-the-database' # PostgreSQL defaults to 5432
 ```
 
-Install [Poetry](https://python-poetry.org/) and then install the dependencies in the environment:
-
-``` sh
-poetry install
-```
+Install [Hatch](https://hatch.pypa.io/) and then install the dependencies in the environment:
 
 Make the Django migrations and migrate to the database:
 
 ``` sh
-poetry run ./manage.py makemigrations controle emprestimos
-poetry run ./manage.py migrate
+hatch run python manage.py makemigrations
+hatch run python manage.py migrate
 ```
 
 Lastly, create a Django superuser with:
 
 ``` sh
-poetry run ./manage.py createsuperuser
+hatch run python manage.py createsuperuser
 ```
 
 And log in to the admin interface in `/admin` on the address where the server is running. Some of the models may be managed there.
