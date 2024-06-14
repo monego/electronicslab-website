@@ -19,12 +19,12 @@ from controle.models import (
 
 class AtividadesViewSet(ModelViewSet):
     queryset = Atividades.objects.all()
-    permission_classes = (IsAuthenticated)
+    permission_classes = (IsAuthenticated,)
     serializer_class = AtividadesSerializer
 
 class ControleAcessoViewSet(ModelViewSet):
     queryset = ControleAcesso.objects.all()
-    permission_classes = (IsAuthenticated)
+    permission_classes = (IsAuthenticated,)
     serializer_class = ControleAcessoSerializer
     def hora_saida_is_null(self):
         queryset = ControleAcesso.objects.filter(hora_saida_isnull=True)
@@ -33,16 +33,16 @@ class ControleAcessoViewSet(ModelViewSet):
 
 class EmprestimoViewSet(ModelViewSet):
     queryset = Emprestimo.objects.all()
-    permission_classes = (IsAuthenticated)
+    permission_classes = (IsAuthenticated,)
     serializer_class = EmprestimoSerializer
 
 class EquipamentoViewSet(ModelViewSet):
     queryset = Equipamento.objects.all()
-    permission_classes = (IsAuthenticated)
+    permission_classes = (IsAuthenticated,)
     serializer_class = EquipamentoSerializer
 
 class ManutencaoViewSet(ModelViewSet):
     queryset = Manutencao.objects.all()
-    permission_classes = (IsAuthenticated)
+    permission_classes = (IsAuthenticated,)
     serializer_class = ManutencaoSerializer
 
