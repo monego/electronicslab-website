@@ -6,7 +6,9 @@ build-backend = "hatchling.build"
 name = "nupedee"
 version = "0.1.0"
 description = "Site novo do NUPEDEE"
-authors = ["Vinicius Monego <monego@posteo.net>"]
+authors = [
+{name = "Vinicius Monego", email = "monego@posteo.net"}
+]
 license = "agpl3+"
 dependencies = [
 "django>=4,<5",
