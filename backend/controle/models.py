@@ -20,7 +20,7 @@ class Atividades(models.Model):
 
     CHOICES = [
         ('waiting', 'Aguardando'),
-        ('started', 'Iniciada'),
+        ('started', 'Em andamento'),
         ('finished', 'Concluída'),
     ]
 
@@ -33,6 +33,26 @@ class Atividades(models.Model):
     class Meta:
         verbose_name = 'Atividade'
         verbose_name_plural = 'Atividades'
+
+class AtualizacaoAtividade(models.Model):
+    atividade = models.ForeignKey(Atividades, on_delete=models.CASCADE)
+    descricao = models.CharField(max_length=30, default="")
+    data = models.DateTimeField(default=timezone.now)
+
+class Ausencia(models.Model):
+    funcionario = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="absences"
+    )
+    inicio = models.DateTimeField()
+    fim = models.DateTimeField()
+    motivo = models.CharField(max_length=200)
+
+    def __str__(self):
+        return f"{self.funcionario} - {self.reason} ({self.start_datetime} até {self.end_datetime})"
+
+    class Meta:
+        verbose_name = 'Ausência'
+        verbose_name_plural = 'Ausências'
 
 class ControleAcesso(models.Model):
     pessoa = models.ForeignKey(Pessoa, on_delete=models.SET_NULL, null=True,
@@ -58,7 +78,6 @@ class Emprestimo(models.Model):
     funcionario = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, related_name="funcionario"
     )
-    # equipamento = models.ManyToManyField(Equipamento)
     local = models.CharField(max_length=20, default="")
     items = ArrayField(models.CharField(max_length=20), default=list)
     retirada = models.DateTimeField(default=timezone.now)
@@ -82,9 +101,17 @@ class Emprestimo(models.Model):
         super().save(*args, **kwargs)
 
 class Equipamento(models.Model):
+
+    CHOICES = [
+        ('working', 'Em uso'),
+        ('broken', 'Defeito'),
+    ]
+
     nome = models.CharField(max_length=50, default="Nome", unique=True)
     descricao = models.CharField(max_length=200, default="Descrição")
     patrimonio = models.CharField(max_length=15, null=True, blank=True)
+    sala = models.ForeignKey(Sala, on_delete=models.SET_NULL, null=True)
+    estado = models.CharField(choices=CHOICES, default="working", max_length=15)
     foto = models.ImageField(upload_to=image_upload_path, blank=True, null=True)
     manual = models.FileField(upload_to=file_upload_path, blank=True, null=True)
 
@@ -95,6 +122,30 @@ class Equipamento(models.Model):
     class Meta:
         verbose_name = 'Equipamento'
         verbose_name_plural = 'Equipamentos'
+
+class HorarioTrabalho(models.Model):
+    funcionario = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="work_schedules"
+    )
+    dia_da_semana = models.CharField(max_length=10, choices=[
+        ('segunda', 'Segunda-feira'),
+        ('terca', 'Terça-feira'),
+        ('quarta', 'Quarta-feira'),
+        ('quinta', 'Quinta-feira'),
+        ('sexta', 'Sexta-feira'),
+    ])
+    inicio = models.TimeField()
+    fim = models.TimeField()
+    inicio_intervalo = models.TimeField(null=True, blank=True)
+    fim_intervalo = models.TimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.funcionario} - {self.dia_da_semana}"
+
+    class Meta:
+        verbose_name = 'Horário de Trabalho'
+        verbose_name_plural = 'Horários de Trabalho'
+
 
 class Manutencao(models.Model):
     equipamento = models.ForeignKey(Equipamento, on_delete=models.CASCADE)

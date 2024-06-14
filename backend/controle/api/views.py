@@ -1,8 +1,10 @@
 from controle.api.serializers import (
     AtividadesSerializer,
+    AusenciaSerializer,
     ControleAcessoSerializer,
     EmprestimoSerializer,
     EquipamentoSerializer,
+    HorarioTrabalhoSerializer,
     ManutencaoSerializer,
 )
 from rest_framework.permissions import IsAuthenticated
@@ -10,9 +12,11 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from controle.models import (
     Atividades,
+    Ausencia,
     ControleAcesso,
     Emprestimo,
     Equipamento,
+    HorarioTrabalho,
     Manutencao,
 )
 
@@ -21,6 +25,11 @@ class AtividadesViewSet(ModelViewSet):
     queryset = Atividades.objects.all()
     permission_classes = (IsAuthenticated,)
     serializer_class = AtividadesSerializer
+
+class AusenciaViewSet(ModelViewSet):
+    queryset = Ausencia.objects.all()
+    permission_classes = (IsAuthenticated,)
+    serializer_class = AusenciaSerializer
 
 class ControleAcessoViewSet(ModelViewSet):
     queryset = ControleAcesso.objects.all()
@@ -40,6 +49,11 @@ class EquipamentoViewSet(ModelViewSet):
     queryset = Equipamento.objects.all()
     permission_classes = (IsAuthenticated,)
     serializer_class = EquipamentoSerializer
+
+class HorarioTrabalhoViewSet(ModelViewSet):
+    queryset = HorarioTrabalho.objects.all()
+    permission_classes = (IsAuthenticated,)
+    serializer_class = HorarioTrabalhoSerializer
 
 class ManutencaoViewSet(ModelViewSet):
     queryset = Manutencao.objects.all()

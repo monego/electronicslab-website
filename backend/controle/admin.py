@@ -1,20 +1,26 @@
 from django.contrib import admin
 from controle.models import (
     Atividades,
+    Ausencia,
     ControleAcesso,
     Emprestimo,
     Equipamento,
+    HorarioTrabalho,
     Manutencao,
 )
 
 class AtividadesAdmin(admin.ModelAdmin):
     list_display = (
-        "descricao",
-        "estado",
-        "hora_iniciada",
-        "hora_concluida",
+        'descricao',
+        'estado',
+        'hora_iniciada',
+        'hora_concluida',
     )
     filter_horizontal = ('funcionarios',)
+
+class AusenciaAdmin(admin.ModelAdmin):
+    list_display = ('funcionario', 'inicio', 'fim', 'motivo')
+    search_fields = ('funcionario',)
 
 class EquipamentoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'descricao', 'foto', 'manual')
@@ -23,6 +29,18 @@ class EquipamentoAdmin(admin.ModelAdmin):
 class EmprestimosAdmin(admin.ModelAdmin):
     list_display = ('responsavel', 'funcionario', 'local', 'retirada', 'devolucao')
     search_fields = ('responsavel', 'local')
+
+class HorarioTrabalhoAdmin(admin.ModelAdmin):
+    list_display = (
+        'funcionario',
+        'dia_da_semana',
+        'inicio',
+        'fim',
+        'inicio_intervalo',
+        'fim_intervalo',
+    )
+    search_fields = ('funcionario',)
+
 
 class ManutencaoAdmin(admin.ModelAdmin):
     list_display = ('equipamento', 'funcionario', 'descricao', 'data')
@@ -33,7 +51,9 @@ class ControleAcessoAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Atividades, AtividadesAdmin)
+admin.site.register(Ausencia, AusenciaAdmin)
 admin.site.register(ControleAcesso, ControleAcessoAdmin)
 admin.site.register(Emprestimo, EmprestimosAdmin)
 admin.site.register(Equipamento, EquipamentoAdmin)
+admin.site.register(HorarioTrabalho, HorarioTrabalhoAdmin)
 admin.site.register(Manutencao, ManutencaoAdmin)
