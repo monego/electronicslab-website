@@ -29,7 +29,7 @@ export default configure((ctx) => ({
   // https://github.com/quasarframework/quasar/tree/dev/extras
   extras: [
     // 'ionicons-v4',
-    // 'mdi-v7',
+    'mdi-v7',
     // 'fontawesome-v6',
     // 'eva-icons',
     // 'themify',
@@ -37,7 +37,6 @@ export default configure((ctx) => ({
     // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
     'material-icons',
     'roboto-font', // optional, you are not bound to it
-    'mdi-v7', // optional, you are not bound to it
   ],
 
   // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
