@@ -10,6 +10,7 @@ router.register('emprestimos', views.EmprestimoViewSet, basename='emprestimos')
 router.register('equipamento', views.EquipamentoViewSet, basename='equipamentos')
 router.register('horarios', views.HorarioTrabalhoViewSet, basename='horario_trabalho')
 router.register('manutencao', views.ManutencaoViewSet, basename='manutencao')
+router.register('users', views.UserViewSet)
 
 app_name = 'controle'
 

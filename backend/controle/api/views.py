@@ -7,6 +7,8 @@ from controle.api.serializers import (
     HorarioTrabalhoSerializer,
     ManutencaoSerializer,
 )
+from django.contrib.auth.models import User
+from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
@@ -60,3 +62,12 @@ class ManutencaoViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = ManutencaoSerializer
 
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = User.objects.all()
+
+    def retrieve(self, request, pk=None):
+        try:
+            user = User.objects.get(pk=pk)
+            return Response({'username': user.username})
+        except User.DoesNotExist:
+            return Response({'error': 'Usuário não encontrado'}, status=404)
