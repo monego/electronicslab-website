@@ -20,13 +20,13 @@ class Atividades(models.Model):
 
     CHOICES = [
         ('waiting', 'Aguardando'),
-        ('started', 'Em andamento'),
         ('finished', 'Concluída'),
     ]
 
     funcionarios = models.ManyToManyField(User, related_name='atividades')
     descricao = models.CharField(max_length=200, default="")
     estado = models.CharField(choices=CHOICES, default="waiting", max_length=15)
+    observacao = models.CharField(max_length=150, blank=True)
     hora_iniciada = models.DateTimeField(default=timezone.now)
     hora_concluida = models.DateTimeField(null=True, blank=True)
 
@@ -60,6 +60,9 @@ class ControleAcesso(models.Model):
     sala = models.ForeignKey(Sala, on_delete=models.SET_NULL, null=True)
     hora_entrada = models.DateTimeField(default=timezone.now)
     hora_saida = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.pessoa} - {self.sala}"
 
     class Meta:
         verbose_name = 'Registro'
@@ -115,10 +118,6 @@ class Equipamento(models.Model):
     foto = models.ImageField(upload_to=image_upload_path, blank=True, null=True)
     manual = models.FileField(upload_to=file_upload_path, blank=True, null=True)
 
-    def __str__(self):
-        return self.nome
-
-
     class Meta:
         verbose_name = 'Equipamento'
         verbose_name_plural = 'Equipamentos'
@@ -139,9 +138,6 @@ class HorarioTrabalho(models.Model):
     inicio_intervalo = models.TimeField(null=True, blank=True)
     fim_intervalo = models.TimeField(null=True, blank=True)
 
-    def __str__(self):
-        return f"{self.funcionario} - {self.dia_da_semana}"
-
     class Meta:
         verbose_name = 'Horário de Trabalho'
         verbose_name_plural = 'Horários de Trabalho'
@@ -156,3 +152,41 @@ class Manutencao(models.Model):
     class Meta:
         verbose_name = 'Manutenção'
         verbose_name_plural = 'Manutenções'
+
+class RegistroPreco(models.Model):
+    nome = models.CharField(max_length=50)
+    descricao = models.CharField(max_length=1000)
+    quantidade = models.PositiveIntegerField()
+    data = models.DateTimeField(default=timezone.now)
+    estado = models.CharField(max_length=10, choices=[
+        ('solicitado', 'Solicitado'),
+        ('aprovado', 'Aprovado'),
+        ('tramitado', 'Tramitado'),
+        ('comprado', 'Comprado'),
+        ('recebido', 'Recebido'),
+    ])
+    justificativa = models.CharField(max_length=1000)
+    origem = models.CharField(max_length=20, choices=[
+        ('almoxarifado', 'Almoxarifado'),
+        ('cartaocorporativo', 'Cartão Corporativo'),
+        ('registrodepreco', 'Registro de Preço'),
+    ])
+    tipo = models.CharField(max_length=15, choices=[
+        ('permanente', 'Permanente'),
+        ('consumo', 'Consumo'),
+    ])
+    solicitante = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
+    class Meta:
+        verbose_name = 'Registro de Preço'
+        verbose_name_plural = 'Registros de Preço'
+
+class Orcamento(models.Model):
+    registro = models.ForeignKey(RegistroPreco, on_delete=models.CASCADE)
+    empresa = models.CharField(max_length=50)
+    data = models.DateTimeField(default=timezone.now)
+    preco = models.CharField(max_length=15)
+
+    class Meta:
+        verbose_name = 'Orçamento'
+        verbose_name_plural = 'Orçamentos'
