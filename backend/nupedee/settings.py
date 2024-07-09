@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'controle',
     'nupedee',
     'rest_framework',
-    'rest_framework.authtoken',
     'root',
     'corsheaders',
 ]
@@ -64,9 +63,6 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
-    )
 }
 
 ROOT_URLCONF = 'nupedee.urls'
@@ -89,18 +85,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'nupedee.wsgi.application'
 
-CORS_ORIGIN_ALLOW_ALL = True
-
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:5173",
-# ]
-
-# CORS_ALLOW_CREDENTIALS = True
-
-# CORS_ALLOW_HEADERS = [
-#     'access-control-allow-origin',
-#     'content-type',
-# ]
+CORS_ALLOW_ALL_ORIGINS = True
 
 # settings.py
 LOGGING = {

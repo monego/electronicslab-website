@@ -16,10 +16,12 @@
 import axios from 'axios';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from 'stores/auth';
 
 const username = ref('');
 const password = ref('');
 const router = useRouter();
+const authStore = useAuthStore();
 
 const login = async () => {
   try {
@@ -29,8 +31,7 @@ const login = async () => {
     });
 
     if (response.status === 200) {
-      console.log("Login success");
-      localStorage.setItem('token', response.data.token);
+      authStore.setUsername(response.data.username);
       router.push('/admin');
     }
     else {
