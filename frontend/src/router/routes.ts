@@ -4,14 +4,19 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: () => import('src/layouts/MainLayout.vue'),
+    children: [
+      { path: '/', component: () => import('pages/IndexPage.vue') },
+    ],
   },
   {
     path: '/admin',
     component: () => import('src/layouts/AdminLayout.vue'),
     children: [
       { path: '/acesso', component: () => import('pages/AccessPage.vue') },
+      { path: '/atividades', component: () => import('pages/ActivitiesPage.vue') },
       { path: '/emprestimo', component: () => import('pages/LoanPage.vue') },
       { path: '/equipamentos', component: () => import('pages/EquipmentPage.vue') },
+      { path: '/estatisticas', component: () => import('pages/StatisticsPage.vue') },
     ],
   },
   {
@@ -25,7 +30,7 @@ const routes: RouteRecordRaw[] = [
     path: '/telao',
     component: () => import('layouts/TelaoLayout.vue'),
     children: [
-      { path: 'secretaria', name: 'secretaria', component: () => import('src/pages/TelaoSecretaria.vue') },
+      { path: '/secretaria', name: 'secretaria', component: () => import('src/pages/TelaoSecretaria.vue') },
     ],
   },
 

@@ -1,47 +1,160 @@
-<template>
-  <q-page class="row items-center justify-evenly">
-    <example-component
-      title="Example component"
-      active
-      :todos="todos"
-      :meta="meta"
-    ></example-component>
-  </q-page>
-</template>
-
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Todo, Meta } from 'components/models';
-import ExampleComponent from 'components/ExampleComponent.vue';
+import { ScheduleXCalendar } from '@schedule-x/vue';
+import { createCurrentTimePlugin } from '@schedule-x/current-time';
+import { ref, onMounted } from 'vue';
+import { createEventsServicePlugin } from '@schedule-x/events-service';
+import { createCalendarControlsPlugin } from '@schedule-x/calendar-controls';
+import axios from 'axios';
+import {
+  createCalendar,
+  viewDay,
+  viewWeek,
+} from '@schedule-x/calendar';
+import '@schedule-x/theme-default/dist/index.css';
 
-defineOptions({
-  name: 'IndexPage',
+interface Aula {
+  'id': number,
+  'start': string,
+  'end': string,
+  'title': string,
+  'calendarId': string,
+}
+
+let aulasApi = [];
+
+const stringOptions = [
+  'Informáticas',
+];
+
+const model = ref(null);
+const options = ref(stringOptions);
+
+function filterFn(val, update, abort) {
+  update(() => {
+    const needle = val.toLocaleLowerCase();
+    options.value = stringOptions.filter(v => v.toLocaleLowerCase().indexOf(needle) > -1)
+  });
+}
+
+const calendarControlsPlugin = createCalendarControlsPlugin();
+const eventsServicePlugin = createEventsServicePlugin();
+
+function capitalizeWords(str: string): string {
+  return str
+    .toLowerCase()
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+async function getUserList(range: { 'start': string, 'end': string }) {
+  const rangeStart: string = range.start.split(' ')[0];
+  const rangeEnd: string = range.end.split(' ')[0];
+
+  // It seems that I have to add a day to pick up Friday.
+  const rangeEndDate = new Date(rangeEnd);
+  rangeEndDate.setDate(rangeEndDate.getDate() + 1);
+  const rangeEndPlusOne = rangeEndDate.toISOString().slice(0, 10);
+
+  axios.post('https://oca.ctism.ufsm.br/ensalamento/getFullCalendar', {
+    withCredentials: false,
+    espaco: '3145',
+    inicio: rangeStart,
+    fim: rangeEndPlusOne,
+    apenasDeferidos: true,
+  })
+    .then((response) => {
+      if (response.status === 200) {
+        const aulas: Aula[] = [];
+        aulasApi = response.data;
+        aulasApi.forEach((aula, index) => {
+          const titleSplit = aula.title.split('-');
+          const subject = capitalizeWords(titleSplit[0]);
+          const lecturer = capitalizeWords(titleSplit.at(-1));
+          const filtTitle = `${subject} - ${lecturer}`;
+          const obj = { id: index, start: aula.start.slice(0, -3), end: aula.end.slice(0, -3), title: filtTitle, calendarId: 'work'};
+          aulas.push(obj);
+          eventsServicePlugin.set(aulas);
+        });
+      } else {
+        // Handle error (e.g., not authorized)
+      }
+    })
+    .catch((error) => {
+      // Handle other errors (e.g., network issues)
+    });
+}
+
+const calendarApp = createCalendar({
+  selectedDate: '2024-07-10',
+  views: [viewDay, viewWeek],
+  locale: 'pt-BR',
+  calendars: {
+    work: {
+      colorName: 'work',
+      lightColors: {
+        main: '#f91c45',
+        container: '#ffd2dc',
+        onContainer: '#59000d',
+      },
+      darkColors: {
+        main: '#ffc0cc',
+        onContainer: '#ffdee6',
+        container: '#a24258',
+      },
+    },
+  },
+  callbacks: {
+    onRangeUpdate(range) {
+      getUserList(range);
+    },
+  },
+  dayBoundaries: {
+    start: '07:30',
+    end: '20:30',
+  },
+  weekOptions: {
+    gridHeight: 500,
+    nDays: 5,
+  },
+  defaultView: viewWeek.name,
+  plugins: [createCurrentTimePlugin(),
+    eventsServicePlugin,
+    calendarControlsPlugin],
+  events: [],
 });
 
-const todos = ref<Todo[]>([
-  {
-    id: 1,
-    content: 'ct1',
-  },
-  {
-    id: 2,
-    content: 'ct2',
-  },
-  {
-    id: 3,
-    content: 'ct3',
-  },
-  {
-    id: 4,
-    content: 'ct4',
-  },
-  {
-    id: 5,
-    content: 'ct5',
-  },
-]);
-
-const meta = ref<Meta>({
-  totalCount: 1200,
+onMounted(() => {
+  getUserList(calendarControlsPlugin.getRange());
 });
 </script>
+
+<template>
+  <div class="q-pa-md">
+    <div class="q-gutter-md row">
+      <p class="text-h4">Escolha uma sala:</p>
+      <q-select filled v-model="model" use-input hide-selected fill-input input-debounce="0"
+      :options="options" @filter="filterFn" hint="Basic filtering" style="width: 250px;
+      padding-bottom: 32px">
+        <template v-slot:no-option>
+          <q-item>
+            <q-item-section class="text-grey">
+              Nenhum resultado
+            </q-item-section>
+          </q-item>
+        </template>
+      </q-select>
+    </div>
+  </div>
+  <div>
+    <ScheduleXCalendar :calendar-app="calendarApp" />
+  </div>
+</template>
+
+<style scoped>
+#calendar {
+  width: 50%;
+  height: 400px;
+  max-height: 90vh;
+}
+</style>
