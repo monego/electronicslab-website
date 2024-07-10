@@ -20,6 +20,11 @@ interface Aula {
   'calendarId': string,
 }
 
+interface Range {
+  'start': string,
+  'end': string,
+}
+
 let aulasApi = [];
 
 const stringOptions = [
@@ -47,7 +52,7 @@ function capitalizeWords(str: string): string {
     .join(' ');
 }
 
-async function getUserList(range: { 'start': string, 'end': string }) {
+async function getUserList(range: Range) {
   const rangeStart: string = range.start.split(' ')[0];
   const rangeEnd: string = range.end.split(' ')[0];
 
@@ -56,33 +61,43 @@ async function getUserList(range: { 'start': string, 'end': string }) {
   rangeEndDate.setDate(rangeEndDate.getDate() + 1);
   const rangeEndPlusOne = rangeEndDate.toISOString().slice(0, 10);
 
-  axios.post('https://oca.ctism.ufsm.br/ensalamento/getFullCalendar', {
-    withCredentials: false,
-    espaco: '3145',
-    inicio: rangeStart,
-    fim: rangeEndPlusOne,
-    apenasDeferidos: true,
-  })
-    .then((response) => {
-      if (response.status === 200) {
-        const aulas: Aula[] = [];
-        aulasApi = response.data;
-        aulasApi.forEach((aula, index) => {
-          const titleSplit = aula.title.split('-');
-          const subject = capitalizeWords(titleSplit[0]);
-          const lecturer = capitalizeWords(titleSplit.at(-1));
-          const filtTitle = `${subject} - ${lecturer}`;
-          const obj = { id: index, start: aula.start.slice(0, -3), end: aula.end.slice(0, -3), title: filtTitle, calendarId: 'work'};
-          aulas.push(obj);
-          eventsServicePlugin.set(aulas);
-        });
-      } else {
-        // Handle error (e.g., not authorized)
-      }
-    })
-    .catch((error) => {
-      // Handle other errors (e.g., network issues)
+  try {
+    const response = await axios.post('https://oca.ctism.ufsm.br/ensalamento/getFullCalendar', {
+      withCredentials: false,
+      espaco: '3145',
+      inicio: rangeStart,
+      fim: rangeEndPlusOne,
+      apenasDeferidos: true,
     });
+    if (response.status === 200) {
+      const aulas: Aula[] = [];
+      aulasApi = response.data;
+      aulasApi.forEach((aula, index) => {
+        const titleSplit = aula.title.split('-');
+        const subject = capitalizeWords(titleSplit[0]);
+        const lecturer = capitalizeWords(titleSplit.at(-1));
+        const filtTitle = `${subject} - ${lecturer}`;
+        const obj: Aula = {
+          id: index, start: aula.start.slice(0, -3), end: aula.end.slice(0, -3), title: filtTitle, calendarId: 'work',
+        };
+        aulas.push(obj);
+        eventsServicePlugin.set(aulas);
+      });
+    } else {
+      throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error(`Axios Error: ${error.message}`);
+      if (error.response) {
+        console.error(`Status: ${error.response.status}`);
+        console.error(`Data: ${JSON.stringify(error.response.data, null, 2)}`);
+      }
+    } else {
+      console.error(`Error: ${error}`);
+    }
+    throw error;
+  }
 }
 
 const calendarApp = createCalendar({
