@@ -15,12 +15,25 @@ declare module '@vue/runtime-core' {
 // "export default () => {}" function below (which runs individually
 // for each client)
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000',
+  baseURL: 'http://localhost:8000/api',
+  xsrfCookieName: 'csrftoken',
+  xsrfHeaderName: 'X-CSRFTOKEN',
   withCredentials: true,
 });
 
-axios.defaults.xsrfCookieName = 'csrftoken';
-axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+(async () => {
+  try {
+    const response = await api.get('/auth/csrf/');
+    const csrfToken = response.data.csrftoken;
+    // Configura o interceptador para adicionar o token às requisições
+    api.interceptors.request.use((config) => {
+      config.headers['X-CSRFToken'] = csrfToken;
+      return config;
+    });
+  } catch (error) {
+    console.error('Erro ao obter o token CSRF:', error);
+  }
+})();
 
 export default boot(({ app }) => {
   // for use inside Vue files (Options API) through this.$axios and this.$api
@@ -32,16 +45,6 @@ export default boot(({ app }) => {
   app.config.globalProperties.$api = api;
   // ^ ^ ^ this will allow you to use this.$api (for Vue Options API form)
   //       so you can easily perform requests against your app's API
-
-  const metaElement = document.head.querySelector('meta[name="csrf-token"]');
-  const token = metaElement ? metaElement.getAttribute('content') : null;
-
-  if (token) {
-    // Include the CSRF token in the headers for all Axios requests
-    app.config.globalProperties.$axios.defaults.headers.common['X-CSRFToken'] = token;
-  } else {
-    console.error('CSRF token not found!');
-  }
 });
 
-export { api };
+export { axios, api };

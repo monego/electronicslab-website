@@ -42,7 +42,8 @@
 import { ref } from 'vue';
 import { useAuthStore } from 'stores/auth';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import { AxiosInstance } from 'axios';
+import { axios, api } from 'boot/axios';
 import EssentialLink, { EssentialLinkProps } from 'components/EssentialLink.vue';
 
 defineOptions({
@@ -51,9 +52,6 @@ defineOptions({
 
 const { userName } = useAuthStore();
 const router = useRouter();
-
-axios.defaults.xsrfCookieName = 'csrftoken';
-axios.defaults.xsrfHeaderName = 'X-CSRFToken';
 
 const publicList: EssentialLinkProps[] = [
   {
@@ -93,7 +91,7 @@ function toggleLeftDrawer() {
 
 const logout = async () => {
   try {
-    await axios.post('http://127.0.0.1:8000/api/auth/logout/');
+    await (api as AxiosInstance).post('/auth/logout/');
     router.push('/login');
   } catch (error) {
     console.error("Erro ao fazer logout:", error);

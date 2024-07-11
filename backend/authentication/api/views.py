@@ -1,9 +1,13 @@
 from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from django.middleware.csrf import get_token
 import json
 
-@csrf_exempt
+
+def get_token_view(request):
+    token = get_token(request)
+    return JsonResponse({'csrftoken': token})
+
 def login_view(request):
 
     if request.method == 'POST':
@@ -15,13 +19,19 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
-            return JsonResponse({'success': True, 'username': username})
+            first_name = request.user.first_name
+            last_initial = request.user.last_name[0] if request.user.last_name else ""
+            return JsonResponse(
+                {'success': True,
+                'username': username,
+                'short_name': f'{first_name} {last_initial}.',
+                'is_staff': user.is_staff,
+            })
         else:
             return JsonResponse({'success': False, 'error': 'Credenciais inválidas'})
     else:
         return JsonResponse({'authenticated': False})
 
-@csrf_exempt
 def logout_view(request):
     logout(request)
     return JsonResponse({'authenticated': False})

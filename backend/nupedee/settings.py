@@ -38,18 +38,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Extensions
+    'rest_framework',
+    'corsheaders',
+    # My apps
+    'root',
     'authentication',
     'controle',
     'nupedee',
-    'rest_framework',
-    'root',
-    'corsheaders',
 ]
 
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -62,6 +64,10 @@ REST_FRAMEWORK = {
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+      'rest_framework.authentication.SessionAuthentication',
+      'rest_framework.authentication.BasicAuthentication',
     ),
 }
 
@@ -85,7 +91,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'nupedee.wsgi.application'
 
-CORS_ALLOW_ALL_ORIGINS = True
+CSRF_TRUSTED_ORIGINS = ['http://localhost:9000']
+CSRF_USE_SESSIONS = True
+CORS_ALLOW_CREDENTIALS = True
 
 # settings.py
 LOGGING = {

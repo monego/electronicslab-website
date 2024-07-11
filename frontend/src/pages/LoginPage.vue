@@ -13,7 +13,9 @@
 </template>
 
 <script setup lang="ts">
-import axios from 'axios';
+// import axios from 'axios';
+import { api } from 'boot/axios';
+import { AxiosInstance } from 'axios';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from 'stores/auth';
@@ -25,7 +27,7 @@ const authStore = useAuthStore();
 
 const login = async () => {
   try {
-    const response = await axios.post('http://127.0.0.1:8000/api/auth/login/', {
+    const response = await (api as AxiosInstance).post('/auth/login/', {
       username: username.value,
       password: password.value,
     });
@@ -33,8 +35,7 @@ const login = async () => {
     if (response.status === 200) {
       authStore.setUsername(response.data.username);
       router.push('/admin');
-    }
-    else {
+    } else {
       console.log('Login failed');
     }
   } catch (error) {
