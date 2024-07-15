@@ -1,5 +1,6 @@
 import { boot } from 'quasar/wrappers';
 import axios, { AxiosInstance } from 'axios';
+import Cookies from 'js-cookie';
 
 declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {
@@ -19,21 +20,8 @@ const api = axios.create({
   xsrfCookieName: 'csrftoken',
   xsrfHeaderName: 'X-CSRFTOKEN',
   withCredentials: true,
+  withXSRFToken: true,
 });
-
-(async () => {
-  try {
-    const response = await api.get('/auth/csrf/');
-    const csrfToken = response.data.csrftoken;
-    // Configura o interceptador para adicionar o token às requisições
-    api.interceptors.request.use((config) => {
-      config.headers['X-CSRFToken'] = csrfToken;
-      return config;
-    });
-  } catch (error) {
-    console.error('Erro ao obter o token CSRF:', error);
-  }
-})();
 
 export default boot(({ app }) => {
   // for use inside Vue files (Options API) through this.$axios and this.$api

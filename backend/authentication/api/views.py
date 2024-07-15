@@ -1,12 +1,14 @@
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.middleware.csrf import get_token
 import json
-
-
+@ensure_csrf_cookie
 def get_token_view(request):
     token = get_token(request)
-    return JsonResponse({'csrftoken': token})
+    response = JsonResponse({'csrftoken': token})
+    return response
 
 def login_view(request):
 
@@ -22,7 +24,7 @@ def login_view(request):
             first_name = request.user.first_name
             last_initial = request.user.last_name[0] if request.user.last_name else ""
             return JsonResponse(
-                {'success': True,
+                {'authenticated': True,
                 'username': username,
                 'short_name': f'{first_name} {last_initial}.',
                 'is_staff': user.is_staff,
@@ -35,3 +37,7 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return JsonResponse({'authenticated': False})
+
+@login_required
+def authenticated_view(request):
+    return JsonResponse({'authenticated': True})

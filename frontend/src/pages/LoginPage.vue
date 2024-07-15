@@ -1,25 +1,30 @@
 <template>
-    <q-page class="flex flex-center">
-        <q-card>
-            <q-card-section>
-                <q-form @submit="login">
-                    <q-input v-model="username" label="Nome de usuário" outlined />
-                    <q-input v-model="password" label="Senha" type="password" outlined />
-                    <q-btn type="submit" label="Login" color="primary" class="full-width" />
-                </q-form>
-            </q-card-section>
-        </q-card>
-    </q-page>
+  <q-page class="flex flex-center">
+    <q-card>
+      <q-card-section class="text-center">
+        <q-img src="/icons/logo-extenso.png" width="300px" />
+      </q-card-section>
+      <q-card-section>
+        <q-form @submit="login">
+          <q-input class="q-mt-md q-mb-md" filled v-model="username" label="Nome de usuário" />
+          <q-input class="q-mt-md q-mb-md" filled v-model="password" label="Senha" type="password" />
+          <q-btn class="q-mt-md q-mb-md full-width" type="submit" label="Login" color="primary" />
+	  <p>* para uso somente dos funcionários</p>
+        </q-form>
+      </q-card-section>
+    </q-card>
+  </q-page>
 </template>
 
 <script setup lang="ts">
-// import axios from 'axios';
 import { api } from 'boot/axios';
 import { AxiosInstance } from 'axios';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from 'stores/auth';
+import { useQuasar } from 'quasar';
 
+const $q = useQuasar();
 const username = ref('');
 const password = ref('');
 const router = useRouter();
@@ -27,18 +32,36 @@ const authStore = useAuthStore();
 
 const login = async () => {
   try {
+    const csrfResponse = await (api as AxiosInstance).get('/auth/csrf/');
+    const csrfToken = csrfResponse.data.csrftoken;
+
     const response = await (api as AxiosInstance).post('/auth/login/', {
       username: username.value,
       password: password.value,
+    }, {
+      headers: {
+        'x-csrftoken': csrfToken,
+      },
     });
 
     if (response.status === 200) {
-      authStore.setUsername(response.data.username);
-      router.push('/admin');
+      console.log(response.data);
+      if (response.data.authenticated) {
+        authStore.setUsername(response.data.username);
+        router.push('/admin');
+      }
+      else {
+        $q.notify({
+          type: 'negative',
+          message: 'Login ou senha incorretos. Tente novamente.',
+          timeout: 1500,
+        });
+      }
     } else {
       console.log('Login failed');
     }
   } catch (error) {
+    console.log("Login failed");
     console.log(error);
   }
 };

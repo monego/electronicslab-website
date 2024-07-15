@@ -39,30 +39,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useAuthStore } from 'stores/auth';
 import { useRouter } from 'vue-router';
 import { AxiosInstance } from 'axios';
 import { axios, api } from 'boot/axios';
+import Cookie from 'js-cookie';
 import EssentialLink, { EssentialLinkProps } from 'components/EssentialLink.vue';
 
 defineOptions({
   name: 'AdminLayout',
 });
 
+const authStore = useAuthStore();
 const { userName } = useAuthStore();
 const router = useRouter();
 
 const publicList: EssentialLinkProps[] = [
   {
     title: 'Acesso',
-    caption: 'Registro de acesso',
+    caption: 'Registrar acesso de alunos às salas',
     icon: 'mdi-turnstile',
     link: '/#/acesso',
   },
   {
     title: 'Empréstimos',
-    caption: 'Empréstimos e Devoluções',
+    caption: 'Empréstimos e devoluções',
     icon: 'mdi-arrow-collapse',
     link: '/#/emprestimo',
   },
@@ -81,6 +83,12 @@ const privateList: EssentialLinkProps[] = [
     icon: 'mdi-hammer-screwdriver',
     link: '/#/equipamentos',
   },
+  {
+    title: 'Registro de Preço',
+    caption: 'Aquisição de equipamentos',
+    icon: 'mdi-currency-usd',
+    link: '/#/registrodepreco',
+  },
 ];
 
 const leftDrawerOpen = ref(false);
@@ -91,10 +99,29 @@ function toggleLeftDrawer() {
 
 const logout = async () => {
   try {
-    await (api as AxiosInstance).post('/auth/logout/');
-    router.push('/login');
+    const csrfToken = Cookie.get('csrfToken');
+
+    const response = await (api as AxiosInstance).post('/auth/logout/', {
+    }, {
+      headers: {
+        'x-csrftoken': csrfToken,
+      },
+    });
+
+    if (response.status === 200) {
+      authStore.setUsername('');
+      authStore.isAuthenticated = false;
+      router.push('/login');
+    } else {
+      console.log('Logout failed');
+    }
   } catch (error) {
-    console.error("Erro ao fazer logout:", error);
+    console.log("Logout failed");
+    console.log(error);
   }
 };
+
+onMounted(() => {
+  authStore.getAuthStatus();
+});
 </script>
