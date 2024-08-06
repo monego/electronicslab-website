@@ -2,14 +2,17 @@
   <q-layout view="lHh Lpr lFf">
     <q-header elevated>
         <q-toolbar>
-            <q-toolbar-title>
+          <q-avatar square>
+            <img src="/Icone.ico">
+          </q-avatar>
+          <q-toolbar-title>
                 NUPEDEE
-            </q-toolbar-title>
+          </q-toolbar-title>
         </q-toolbar>
     </q-header>
 
     <q-page-container>
-        <router-view />
+      <router-view />
     </q-page-container>
 
   </q-layout>
@@ -22,3 +25,9 @@ defineOptions({
 });
 
 </script>
+
+<style lang="scss">
+body {
+  background-color: #eeeeee; /* Cinza claro */
+}
+</style>
