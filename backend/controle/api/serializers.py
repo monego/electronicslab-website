@@ -37,7 +37,7 @@ class EmprestimoSerializer(serializers.ModelSerializer):
     queryset = Emprestimo.objects.all()
     serializer_class = Emprestimo
     filter_backends = [filters.SearchFilter]
-    search_fields =  ['responsavel']
+    search_fields =  ['id']
 
     items = serializers.ListField(
         child=serializers.CharField(max_length=200)

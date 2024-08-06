@@ -2,15 +2,16 @@
 import { ref, onMounted } from 'vue';
 import { AxiosInstance } from 'axios';
 import { axios, api } from 'boot/axios';
-import internal from 'stream';
-import { getLeadingCommentRanges } from 'typescript';
-import { getOverlappingDaysInIntervals } from 'date-fns';
+import { format } from 'date-fns';
+import { useQuasar } from 'quasar';
 
 const loanId = ref();
 const matricula = ref();
 const obs = ref();
 const tab = ref('retirada');
 const filter = ref<string>();
+const $q = useQuasar();
+const notifTimeout = 30;
 
 interface Loan {
   identificador: string;
@@ -36,7 +37,7 @@ const columns = [
   { name: 'funcionario', label: 'Funcionário', field: 'funcionario', sortable: true },
   { name: 'local', label: 'Local', field: 'local' },
   { name: 'retirada', label: 'Retirada', field: 'retirada' },
-  { name: 'actions', label: 'Ações' },
+  { name: 'devolucao', label: 'Devolução' },
 ];
 
 interface LoanItem {
@@ -61,7 +62,7 @@ async function getLoans() {
         funcionario: loan.funcionario.username,
         items: loan.items,
         local: loan.local,
-        retirada: loan.retirada,
+        retirada: format(loan.retirada, 'yyyy-MM-dd HH:mm:ss'),
       }));
     } else {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
@@ -91,8 +92,9 @@ async function registerLoan() {
   try {
     const response = await (api as AxiosInstance).post('/controle/emprestimos/', payload);
 
-    if (response.status === 200) {
+    if (response.status === 201) {
       console.log("Sucesso");
+      await getLoans();
     } else {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
@@ -107,6 +109,35 @@ async function registerLoan() {
       console.error(`Error: ${error.message}`);
     }
     throw error; // Rethrow the error
+  }
+}
+
+async function returnLoan(id: string) {
+  try {
+    const response = await (api as AxiosInstance).patch('/controle/emprestimos/byidentifier/', {
+      identificador: id,
+    });
+
+    if (response.status === 200) {
+      $q.notify({
+        type: 'positive',
+        message: 'Devolvido com successo.',
+        timeout: notifTimeout,
+      });
+
+      await getLoans();
+
+      return response.data;
+    }
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        console.error(`Status: ${error.response.status}`);
+        console.error(`Data: ${JSON.stringify(error.response.data, null, 2)}`);
+      }
+    } else {
+      console.log('aaa');
+    }
   }
 }
 
@@ -191,7 +222,14 @@ onMounted(() => {
                       :icon="props.expand ? 'remove' : 'add'" />
                   </q-td>
                   <q-td v-for="col in props.cols" :key="col.name" :props="props">
-                    {{ col.value }}
+                    <template v-if="col.name === 'devolucao'">
+                        <q-btn color="secondary" label="Parcial" />
+                        <q-btn color="primary" label="Total"
+                        @click="returnLoan(props.row.identificador)" />
+                    </template>
+                    <template v-else>
+                      {{ col.value }}
+                    </template>
                   </q-td>
                 </q-tr>
                 <q-tr v-show="props.expand" :props="props">
@@ -199,12 +237,6 @@ onMounted(() => {
                     <div class="text-left">{{ props.row.items }}.</div>
                   </q-td>
                 </q-tr>
-              </template>
-
-              <template v-slot:body-cell-actions="props">
-                <q-td :props="props">
-                  <q-btn color="primary" label="View Details" />
-                </q-td>
               </template>
 
             </q-table>
