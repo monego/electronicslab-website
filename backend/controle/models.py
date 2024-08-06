@@ -75,6 +75,7 @@ class ControleBolsistas(models.Model):
     hora_saida = models.DateTimeField(default=timezone.now)
 
 class Emprestimo(models.Model):
+    identificador = models.CharField(max_length=15, default="", unique=True)
     responsavel = models.ForeignKey(
         Pessoa, on_delete=models.SET_NULL, null=True, related_name="responsavel"
     )
@@ -89,19 +90,6 @@ class Emprestimo(models.Model):
     class Meta:
         verbose_name = 'Empréstimo'
         verbose_name_plural = "Empréstimos"
-
-    def save(self, *args, **kwargs):
-        if not self.created_by:  # Only set if it's not already set
-            user = getattr(self, '_user', None)
-            if user and isinstance(user, User):
-                self.funcionario = (
-                    f"{user.first_name} {user.last_name}"
-                    if user.first_name or user.last_name
-                    else ""
-                )
-            else:
-                self.funcionario = ""
-        super().save(*args, **kwargs)
 
 class Equipamento(models.Model):
 

@@ -34,6 +34,11 @@ class ControleAcessoSerializer(serializers.ModelSerializer):
 
 class EmprestimoSerializer(serializers.ModelSerializer):
 
+    queryset = Emprestimo.objects.all()
+    serializer_class = Emprestimo
+    filter_backends = [filters.SearchFilter]
+    search_fields =  ['responsavel']
+
     items = serializers.ListField(
         child=serializers.CharField(max_length=200)
     )
@@ -41,6 +46,7 @@ class EmprestimoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Emprestimo
         fields = '__all__'
+        depth = 1
 
 class EquipamentoSerializer(serializers.ModelSerializer):
 

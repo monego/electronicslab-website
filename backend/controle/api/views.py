@@ -8,8 +8,9 @@ from controle.api.serializers import (
     ManutencaoSerializer,
 )
 
+from controle.models import Pessoa
 from django.contrib.auth.models import User
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
@@ -47,11 +48,31 @@ class ControleAcessoViewSet(ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-
-class EmprestimoViewSet(ModelViewSet):
+class EmprestimoViewSet(viewsets.ModelViewSet):
     queryset = Emprestimo.objects.all()
     permission_classes = (IsAuthenticated,)
     serializer_class = EmprestimoSerializer
+
+    def create(self, request, *args, **kwargs):
+        identificador = request.data['identificador']
+        matricula = request.data['matricula']
+        obs = request.data['obs']
+        items = request.data['items']
+        username = request.user
+
+        Emprestimo.objects.create(
+            identificador=identificador,
+            responsavel=Pessoa.objects.get(matricula=matricula),
+            funcionario=User.objects.get(username=username),
+            local=obs,
+            items=items,
+            devolucao=None,
+        )
+
+        response_data = {
+        }
+
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
 
 class EquipamentoViewSet(ModelViewSet):
