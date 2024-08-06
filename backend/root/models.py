@@ -12,7 +12,7 @@ class Pessoa(models.Model):
     nome = models.CharField(max_length=100, default="")
     email = models.CharField(max_length=50, null=True)
     telefone = models.CharField(max_length=20, null=True)
-    matricula = models.CharField(max_length=50, default="")
+    matricula = models.CharField(max_length=50, default="", unique=True)
     tipo = models.CharField(
         max_length=2,
         choices=Tipo.choices,

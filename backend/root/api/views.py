@@ -1,16 +1,11 @@
-from django.shortcuts import render
-from django.http import HttpResponse
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.decorators import login_required
 from .serializers import PessoaSerializer, SalaSerializer
 from root.models import Pessoa, Sala
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.response import Response
 
 
 class PessoaViewSet(ModelViewSet):
-    permission_classes = []
+    permission_classes = (IsAuthenticated,)
     serializer_class = PessoaSerializer
 
     def get_queryset(self):
