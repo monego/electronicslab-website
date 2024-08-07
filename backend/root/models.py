@@ -40,8 +40,9 @@ class Predio(models.Model):
 
 class Sala(models.Model):
     predio = models.ForeignKey(Predio, on_delete=models.SET_NULL, null=True)
-    nome = models.CharField(max_length=50)
-    numero = models.CharField(max_length=5)
+    nome = models.CharField(max_length=50, null=True)
+    numero = models.CharField(max_length=5, null=True)
+    codigo = models.CharField(max_length=5, null=True)
 
     def __str__(self):
         return "[" + self.numero + "]" + " " + self.nome
