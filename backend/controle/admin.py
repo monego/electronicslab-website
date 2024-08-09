@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from controle.models import (
     Atividades,
+    AtualizacaoAtividade,
     Ausencia,
     ControleAcesso,
     Emprestimo,
@@ -25,6 +26,9 @@ class AtividadesAdmin(admin.ModelAdmin):
         'hora_concluida',
     )
     filter_horizontal = ('funcionarios',)
+
+class AtualizacaoAtividadeAdmin(admin.ModelAdmin):
+    list_display=('atividade', 'observacao', 'data')
 
 class AusenciaAdmin(admin.ModelAdmin):
     list_display = ('funcionario', 'inicio', 'fim', 'motivo')
@@ -64,6 +68,7 @@ class OrcamentoAdmin(admin.ModelAdmin):
     list_display = ('registro', 'preco')
 
 admin.site.register(Atividades, AtividadesAdmin)
+admin.site.register(AtualizacaoAtividade, AtualizacaoAtividadeAdmin)
 admin.site.register(Ausencia, AusenciaAdmin)
 admin.site.register(ControleAcesso, ControleAcessoAdmin)
 admin.site.register(Emprestimo, EmprestimosAdmin)

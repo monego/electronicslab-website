@@ -30,14 +30,37 @@ class Atividades(models.Model):
     hora_iniciada = models.DateTimeField(default=timezone.now)
     hora_concluida = models.DateTimeField(null=True, blank=True)
 
+    def __str__(self):
+        return f"{self.descricao} - {self.estado}"
+
     class Meta:
         verbose_name = 'Atividade'
         verbose_name_plural = 'Atividades'
 
 class AtualizacaoAtividade(models.Model):
+
+    CHOICES = [
+        ('waiting', 'Aguardando'),
+        ('finished', 'Concluída'),
+    ]
+
     atividade = models.ForeignKey(Atividades, on_delete=models.CASCADE)
-    descricao = models.CharField(max_length=30, default="")
+    observacao = models.CharField(max_length=30, default="")
     data = models.DateTimeField(default=timezone.now)
+    estado = models.CharField(choices=CHOICES, default="waiting", max_length=15)
+
+    def save(self, *args, **kwargs):
+        if self.estado:
+            self.atividade.estado = self.estado
+            if self.estado == 'finished':
+                self.atividade.hora_concluida = timezone.now()
+            self.atividade.save()
+
+        super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = 'Atualização Atividades'
+        verbose_name_plural = 'Atualizações Atividades'
 
 class Ausencia(models.Model):
     funcionario = models.ForeignKey(
@@ -100,11 +123,14 @@ class Equipamento(models.Model):
 
     nome = models.CharField(max_length=50, default="Nome", unique=True)
     descricao = models.CharField(max_length=200, default="Descrição")
-    patrimonio = models.CharField(max_length=15, null=True, blank=True)
+    patrimonio = models.CharField(max_length=15, unique=True, null=True, blank=True)
     sala = models.ForeignKey(Sala, on_delete=models.SET_NULL, null=True)
     estado = models.CharField(choices=CHOICES, default="working", max_length=15)
     foto = models.ImageField(upload_to=image_upload_path, blank=True, null=True)
     manual = models.FileField(upload_to=file_upload_path, blank=True, null=True)
+
+    def __str__(self):
+        return self.nome
 
     class Meta:
         verbose_name = 'Equipamento'
