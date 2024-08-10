@@ -9,6 +9,7 @@ from controle.models import (
     HorarioTrabalho,
     Manutencao,
 )
+from root.models import Pessoa, Sala
 
 class AtividadesSerializer(serializers.ModelSerializer):
 
@@ -23,14 +24,22 @@ class AusenciaSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ControleAcessoSerializer(serializers.ModelSerializer):
-    queryset = ControleAcesso.objects.all()
-    serializer_class = ControleAcesso
-    filter_backends = [filters.SearchFilter]
-    search_fields =  ['id']
+    pessoa_nome = serializers.SerializerMethodField()
+    pessoa_matricula = serializers.SerializerMethodField()
+    sala_numero = serializers.SerializerMethodField()
 
     class Meta:
         model = ControleAcesso
-        fields = ['id', 'pessoa', 'sala', 'hora_entrada', 'hora_saida']
+        fields = '__all__'
+
+    def get_pessoa_nome(self, obj):
+        return obj.pessoa.nome if obj.pessoa else None
+
+    def get_pessoa_matricula(self, obj):
+        return obj.pessoa.matricula if obj.pessoa else None
+
+    def get_sala_numero(self, obj):
+        return obj.sala.numero if obj.sala else None
 
 class EmprestimoSerializer(serializers.ModelSerializer):
 

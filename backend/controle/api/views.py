@@ -27,7 +27,7 @@ from controle.models import (
     HorarioTrabalho,
     Manutencao,
 )
-
+from root.models import Pessoa, Sala
 
 class AtividadesViewSet(ModelViewSet):
     queryset = Atividades.objects.all()
@@ -71,9 +71,98 @@ class ControleAcessoViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = ControleAcessoSerializer
 
-    def hora_saida_is_null(self):
-        queryset = ControleAcesso.objects.filter(hora_saida_isnull=True)
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        primary_key = instance.pk
+        return Response({'id': primary_key})
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        # Filter based on a query parameter: ?all=true
+        all = request.query_params.get('all', None)
+
+        if not all:
+            queryset = queryset.exclude(hora_saida__isnull=False)
+
         serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def create(self, request, *args, **kwargs):
+
+        matricula = request.data.get('matricula')
+        sala = request.data.get('sala')
+
+        try:
+            aluno = Pessoa.objects.get(matricula=matricula)
+        except Pessoa.DoesNotExist:
+            return Response({'detail': 'Não há uma pessoa com essa matrícula'})
+
+        try:
+            sala = Sala.objects.get(numero=sala)
+        except Sala.DoesNotExist:
+            return Response({'detail': 'Não há uma sala correspondente'})
+
+        aluno_registrado = ControleAcesso.objects.filter(
+            pessoa=aluno, hora_saida__isnull=True
+        ).exists()
+
+        if aluno_registrado:
+            return Response(
+                {
+                    'detail': 'O aluno não pode estar em duas salas ao mesmo tempo!'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        data = {
+            'pessoa': aluno.id,
+            'sala': sala.id,
+            'hora_saida': None
+        }
+
+        serializer = self.get_serializer(data=data)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(
+                serializer.data, status=status.HTTP_201_CREATED, headers=headers
+            )
+        except ValidationError as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+    @action(detail=False, methods=['patch'], url_path='bymatricula')
+    def patch_by_matricula(self, request, *args, **kwargs):
+        matricula = request.data.get('matricula', None)
+        if not matricula:
+            return Response({'detail': 'Matrícula do aluno é necessária.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            pessoa = Pessoa.objects.get(matricula=matricula)
+        except Pessoa.DoesNotExist:
+            return Response({'detail': 'Aluno não encontrado.'},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            obj = ControleAcesso.objects.get(pessoa=pessoa, hora_saida__isnull=True)
+        except ControleAcesso.DoesNotExist:
+            return Response({'detail': 'Acesso não encontrado.'},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        obj.hora_saida = timezone.now()
+        obj.save()
+
+        serializer = self.get_serializer(obj, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
         return Response(serializer.data)
 
 class EmprestimoViewSet(viewsets.ModelViewSet):

@@ -9,7 +9,7 @@ const $q = useQuasar();
 
 const notifTimeout = 30;
 
-const salaa = ref();
+const sala = ref();
 const showError = ref(false);
 const errorMessage = ref('');
 
@@ -19,17 +19,11 @@ const options = ref();
 
 const columns = [
   {
-    name: 'accessID',
-    required: true,
-    hidden: true,
-    field: 'id',
-  },
-  {
     name: 'nome',
     required: true,
     label: 'Nome',
     align: 'left',
-    field: (row: { nome: string }) => row.nome,
+    field: (row: { pessoa_nome: string }) => row.pessoa_nome,
     format: (val: string) => `${val}`,
     sortable: true,
   },
@@ -38,16 +32,16 @@ const columns = [
     required: true,
     label: 'Matrícula',
     align: 'left',
-    field: (row: { matricula: string }) => row.matricula,
+    field: (row: { pessoa_matricula: string }) => row.pessoa_matricula,
     format: (val: string) => `${val}`,
     sortable: true,
   },
   {
-    name: 'salaa',
+    name: 'sala',
     required: true,
     label: 'Sala',
     align: 'left',
-    field: (row: { numero: string }) => row.numero,
+    field: (row: { sala_numero: string }) => row.sala_numero,
     format: (val: string) => `${val}`,
     sortable: true,
   },
@@ -62,14 +56,6 @@ const columns = [
   },
 ];
 
-interface Registro {
-  'id': number,
-  'pessoa': number,
-  'sala': number,
-  'hora_entrada': string
-  'hora_saida': string
-}
-
 interface Turnstile {
   nome: string,
   matricula: string,
@@ -79,10 +65,9 @@ interface Turnstile {
 }
 
 interface Row {
-  'id': number,
-  'nome': string,
-  'matricula': string,
-  'numero': string,
+  'pessoa_nome': string,
+  'pessoa_matricula': string,
+  'sala_numero': string,
   'hora_entrada': string,
 }
 
@@ -90,8 +75,8 @@ const selected = ref <Row[]>([]);
 
 const rows = ref<Turnstile[]>([]);
 
-function displayError(error: unknown) {
-  errorMessage.value = (error as Error).message;
+function displayError(message: string) {
+  errorMessage.value = message;
   showError.value = true;
 }
 
@@ -105,64 +90,18 @@ async function getSalas() {
         value: item.numero,
       }));
     } else {
-      // connError.value = !connError.value;
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
-      displayError(error);
       if (error.response) {
-        console.error(`Status: ${error.response.status}`);
-        console.error(`Data: ${JSON.stringify(error.response.data, null, 2)}`);
+        displayError(error.response.data.detail);
       }
     } else {
-      displayError(error);
-    }
-    throw error; // Rethrow the error
-  }
-}
-
-async function getRow(apiUrl: string) {
-  try {
-    const response = await (api as AxiosInstance).get(apiUrl);
-    if (response.status === 200) {
-      return response.data[0].id;
-    }
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      displayError(error);
-      if (error.response) {
-        console.error(`Status: ${error.response.status}`);
-        console.error(`Data: ${JSON.stringify(error.response.data, null, 2)}`);
-      }
-    } else {
-      displayError(error);
+      displayError('Erro desconhecido!');
     }
     throw error;
   }
-  return null;
-}
-
-async function getFromPk(id: number, apiPart: string) {
-  try {
-    const response = await (api as AxiosInstance).get(`/root/${apiPart}/${id}`);
-    if (response.status === 200) {
-      const responseData = response.data;
-      return responseData;
-    }
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      displayError(error);
-      if (error.response) {
-        console.error(`Status: ${error.response.status}`);
-        console.error(`Data: ${JSON.stringify(error.response.data, null, 2)}`);
-      }
-    } else {
-      displayError(error);
-    }
-    throw error;
-  }
-  return null;
 }
 
 async function getRegistered() {
@@ -171,52 +110,33 @@ async function getRegistered() {
 
     if (response.status === 200) {
       const accessList = response.data
-        .filter((item: Registro) => item.hora_saida == null)
-        .map(async (item: Registro) => {
-          const studentData = await getFromPk(item.pessoa, 'pessoas');
-          const salaData = await getFromPk(item.sala, 'salas');
-          return {
-            id: item.id,
-            nome: studentData.nome,
-            matricula: studentData.matricula,
-            numero: salaData.numero,
-            hora_entrada: format(item.hora_entrada, 'yyyy-MM-dd HH:mm:ss'),
-          };
-        });
+        .map(async (item: Row) => ({
+          pessoa_nome: item.pessoa_nome,
+          pessoa_matricula: item.pessoa_matricula,
+          sala_numero: item.sala_numero,
+          hora_entrada: format(item.hora_entrada, 'yyyy-MM-dd HH:mm:ss'),
+        }));
       rows.value = await Promise.all(accessList);
     }
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
-      displayError(error);
       if (error.response) {
-        console.error(`Status: ${error.response.status}`);
-        console.error(`Data: ${JSON.stringify(error.response.data, null, 2)}`);
+        displayError(error.response.data.detail);
       }
     } else {
-      displayError(error);
+      displayError('Erro desconhecido!');
     }
     throw error;
   }
 }
 async function registerAccess() {
-  try {
-    const now = new Date();
-    const isoString = now.toISOString();
-    const requestBody = {
-      pessoa: await getRow(`/root/pessoas/?matricula=${matricula.value}`),
-      sala: await getRow(`/root/salas/?numero=${salaa.value.value}`),
-      hora_entrada: isoString,
-    };
+  const payload = {
+    matricula: matricula.value,
+    sala: sala.value.value,
+  };
 
-    const response = await (api as AxiosInstance).post(
-      '/controle/registros/',
-      requestBody,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      },
-    );
+  try {
+    const response = await (api as AxiosInstance).post('/controle/registros/', payload);
 
     if (response.status === 201) {
       $q.notify({
@@ -225,38 +145,27 @@ async function registerAccess() {
         timeout: notifTimeout,
       });
 
-      (async () => {
-        try {
-          await getRegistered();
-        } catch (error: unknown) {
-          displayError(error);
-        }
-      })();
+      await getRegistered();
 
       return response.data;
     }
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
-      displayError(error);
       if (error.response) {
-        console.error(`Status: ${error.response.status}`);
-        console.error(`Data: ${JSON.stringify(error.response.data, null, 2)}`);
+        displayError(error.response.data.detail);
       }
     } else {
-      displayError(error);
+      displayError('Erro desconhecido!');
     }
     throw error;
   }
   return null;
 }
 
-async function releaseStudent(rowId: number) {
+async function releaseStudent(numeroMatricula: string) {
   try {
-    const now = new Date();
-    const isoString = now.toISOString();
-
-    const response = await (api as AxiosInstance).patch(`/controle/registros/${rowId}/`, {
-      hora_saida: isoString,
+    const response = await (api as AxiosInstance).patch('/controle/registros/bymatricula/', {
+      matricula: numeroMatricula,
     });
 
     if (response.status === 200) {
@@ -268,25 +177,17 @@ async function releaseStudent(rowId: number) {
 
       selected.value = [];
 
-      (async () => {
-        try {
-          await getRegistered();
-        } catch (error: unknown) {
-          displayError(error);
-        }
-      })();
+      await getRegistered();
 
       return response.data;
     }
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
-      displayError(error);
       if (error.response) {
-        console.error(`Status: ${error.response.status}`);
-        console.error(`Data: ${JSON.stringify(error.response.data, null, 2)}`);
+        displayError(error.response.data.detail);
       }
     } else {
-      displayError(error);
+      displayError('Erro desconhecido!');
     }
     throw error;
   }
@@ -295,7 +196,7 @@ async function releaseStudent(rowId: number) {
 
 function releaseStudents(studentList: Row[]) {
   studentList.forEach((student: Row) => {
-    releaseStudent(student.id);
+    releaseStudent(student.pessoa_matricula);
   });
 }
 
@@ -306,13 +207,11 @@ onMounted(() => {
       await getRegistered();
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        displayError(error);
         if (error.response) {
-          console.error(`Status: ${error.response.status}`);
-          console.error(`Data: ${JSON.stringify(error.response.data, null, 2)}`);
+          displayError(error.response.data.detail);
         }
       } else {
-        displayError(error);
+        displayError('Erro desconhceido!');
       }
       throw error;
     }
@@ -322,7 +221,7 @@ onMounted(() => {
 
 <template>
   <q-page>
-    <div class="q-pa-md">
+    <q-card class="q-pa-md">
       <q-card>
         <q-tabs v-model="tab" dense class="text-grey q-mb-lg" active-color="primary"
         indicator-color="primary" align="justify" narrow-indicator>
@@ -337,7 +236,7 @@ onMounted(() => {
             <q-dialog v-model="showError">
               <q-card>
                 <q-card-section>
-                  <div class="text-h6">Erro</div>
+                  <q-card class="text-h6">Erro</q-card>
                 </q-card-section>
 
                 <q-card-section class="q-pt-none">
@@ -350,29 +249,29 @@ onMounted(() => {
               </q-card>
             </q-dialog>
 
-            <div class="q-gutter-md">
+            <q-card class="q-gutter-md">
               <q-input outlined v-model="matricula" label="Matrícula" />
-              <q-select outlined v-model="salaa" :options="options" label="Sala" />
+              <q-select outlined v-model="sala" :options="options" label="Sala" />
               <q-btn @click="registerAccess" color="white" text-color="black" label="Registrar" />
-            </div>
+            </q-card>
 
           </q-tab-panel>
 
           <q-tab-panel name="saida">
-            <div class="q-gutter-md">
+            <q-card class="q-gutter-md">
               <q-table
               title="Registros"
               selection="multiple"
               :rows="rows"
               :columns="columns"
-              row-key="id"
+              row-key="pessoa_matricula"
               v-model:selected="selected"
               />
               <q-btn @click="releaseStudents(selected)">Liberar</q-btn>
-            </div>
+            </q-card>
           </q-tab-panel>
         </q-tab-panels>
       </q-card>
-    </div>
+    </q-card>
   </q-page>
 </template>
