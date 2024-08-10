@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, Ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import { format } from 'date-fns';
-import { AxiosInstance } from 'axios';
+import { AxiosInstance, AxiosError } from 'axios';
 import { axios, api } from 'boot/axios';
 
 const $q = useQuasar();
@@ -11,20 +11,37 @@ const notifTimeout = 30;
 
 const sala = ref();
 const showError = ref(false);
-const errorMessage = ref('');
+const errorMessage = ref<string>('');
 
 const matricula = ref<string>();
-const tab = ref<string>('entrada');
+const tab: Ref<string> = ref<string>('entrada');
 const options = ref();
 
-const columns = [
+function capitalizeEachWord(str: string): string {
+  return str
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
+type ColumnType = {
+  name: string;
+  label: string;
+  field: string | ((row: Record<string, string>) => string);
+  required?: boolean;
+  align?: 'left' | 'right' | 'center';
+  format: (val: string) => string;
+  sortable?: boolean;
+};
+
+const columns: ColumnType[] = [
   {
     name: 'nome',
     required: true,
     label: 'Nome',
     align: 'left',
-    field: (row: { pessoa_nome: string }) => row.pessoa_nome,
-    format: (val: string) => `${val}`,
+    field: (row: Record<string, string>) => row.pessoa_nome,
+    format: (val: string) => capitalizeEachWord(`${val}`),
     sortable: true,
   },
   {
@@ -32,7 +49,7 @@ const columns = [
     required: true,
     label: 'Matrícula',
     align: 'left',
-    field: (row: { pessoa_matricula: string }) => row.pessoa_matricula,
+    field: (row: Record<string, string>) => row.pessoa_matricula,
     format: (val: string) => `${val}`,
     sortable: true,
   },
@@ -41,7 +58,7 @@ const columns = [
     required: true,
     label: 'Sala',
     align: 'left',
-    field: (row: { sala_numero: string }) => row.sala_numero,
+    field: (row: Record<string, string>) => row.sala_numero,
     format: (val: string) => `${val}`,
     sortable: true,
   },
@@ -50,8 +67,8 @@ const columns = [
     required: true,
     label: 'Entrada',
     align: 'left',
-    field: (row: { hora_entrada: string }) => row.hora_entrada,
-    format: (val: string) => `${val}`,
+    field: (row: Record<string, string>) => row.hora_entrada,
+    format: (val: string) => format(`${val}`, 'yyyy-MM-dd HH:mm:ss'),
     sortable: true,
   },
 ];
@@ -94,8 +111,11 @@ async function getSalas() {
     }
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
-      if (error.response) {
-        displayError(error.response.data.detail);
+      const axiosError = error as AxiosError;
+      if (axiosError.response) {
+        const errorData = axiosError.response.data as { detail?: string };
+        const errorDetail = errorData.detail ?? 'Erro desconhecido!';
+        displayError(errorDetail);
       }
     } else {
       displayError('Erro desconhecido!');
@@ -114,14 +134,17 @@ async function getRegistered() {
           pessoa_nome: item.pessoa_nome,
           pessoa_matricula: item.pessoa_matricula,
           sala_numero: item.sala_numero,
-          hora_entrada: format(item.hora_entrada, 'yyyy-MM-dd HH:mm:ss'),
+          hora_entrada: item.hora_entrada,
         }));
       rows.value = await Promise.all(accessList);
     }
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
-      if (error.response) {
-        displayError(error.response.data.detail);
+      const axiosError = error as AxiosError;
+      if (axiosError.response) {
+        const errorData = axiosError.response.data as { detail?: string };
+        const errorDetail = errorData.detail ?? 'Erro desconhecido!';
+        displayError(errorDetail);
       }
     } else {
       displayError('Erro desconhecido!');
@@ -151,8 +174,11 @@ async function registerAccess() {
     }
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
-      if (error.response) {
-        displayError(error.response.data.detail);
+      const axiosError = error as AxiosError;
+      if (axiosError.response) {
+        const errorData = axiosError.response.data as { detail?: string };
+        const errorDetail = errorData.detail ?? 'Unknown error detail';
+        displayError(errorDetail);
       }
     } else {
       displayError('Erro desconhecido!');
@@ -183,8 +209,11 @@ async function releaseStudent(numeroMatricula: string) {
     }
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
-      if (error.response) {
-        displayError(error.response.data.detail);
+      const axiosError = error as AxiosError;
+      if (axiosError.response) {
+        const errorData = axiosError.response.data as { detail?: string };
+        const errorDetail = errorData.detail ?? 'Unknown error detail';
+        displayError(errorDetail);
       }
     } else {
       displayError('Erro desconhecido!');
@@ -207,8 +236,11 @@ onMounted(() => {
       await getRegistered();
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        if (error.response) {
-          displayError(error.response.data.detail);
+        const axiosError = error as AxiosError;
+        if (axiosError.response) {
+          const errorData = axiosError.response.data as { detail?: string };
+          const errorDetail = errorData.detail ?? 'Unknown error detail';
+          displayError(errorDetail);
         }
       } else {
         displayError('Erro desconhceido!');
