@@ -58,10 +58,16 @@ class EmprestimoSerializer(serializers.ModelSerializer):
         depth = 1
 
 class EquipamentoSerializer(serializers.ModelSerializer):
+    num_manutencao = serializers.IntegerField(read_only=True)
+    sala_numero = serializers.SerializerMethodField()
 
     class Meta:
         model = Equipamento
-        fields = '__all__'
+        fields = ['nome', 'descricao', 'patrimonio', 'sala', 'sala_numero',
+                  'defeito', 'foto', 'manual', 'num_manutencao']
+
+    def get_sala_numero(self, obj):
+        return obj.sala.numero if obj.sala else None
 
 class HorarioTrabalhoSerializer(serializers.ModelSerializer):
 

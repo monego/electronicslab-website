@@ -3,18 +3,6 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone
 from root.models import Pessoa, Sala
-import uuid
-
-
-def image_upload_path(instance, filename):
-    ext = filename.split('.')[-1]
-    fname = f"{uuid.uuid4()}.{ext}"
-    return f"fotos/{fname}"
-
-def file_upload_path(instance, filename):
-    ext = filename.split('.')[-1]
-    fname = f"{uuid.uuid4()}.{ext}"
-    return f"manuais/{fname}"
 
 class Atividades(models.Model):
 
@@ -125,9 +113,9 @@ class Equipamento(models.Model):
     descricao = models.CharField(max_length=200, default="Descrição")
     patrimonio = models.CharField(max_length=15, unique=True, null=True, blank=True)
     sala = models.ForeignKey(Sala, on_delete=models.SET_NULL, null=True)
-    estado = models.CharField(choices=CHOICES, default="working", max_length=15)
-    foto = models.ImageField(upload_to=image_upload_path, blank=True, null=True)
-    manual = models.FileField(upload_to=file_upload_path, blank=True, null=True)
+    defeito = models.BooleanField(default=False)
+    foto = models.ImageField(blank=True, null=True)
+    manual = models.FileField(blank=True, null=True)
 
     def __str__(self):
         return self.nome

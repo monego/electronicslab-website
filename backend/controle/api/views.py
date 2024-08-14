@@ -8,8 +8,8 @@ from controle.api.serializers import (
     ManutencaoSerializer,
 )
 
-from controle.models import Pessoa
 from django.contrib.auth.models import User
+from django.db.models import Count
 from django.utils import timezone
 from rest_framework import viewsets, status
 from rest_framework.authentication import SessionAuthentication
@@ -252,10 +252,29 @@ class EmprestimoViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 class EquipamentoViewSet(ModelViewSet):
-    queryset = Equipamento.objects.all()
     permission_classes = (IsAuthenticated,)
     serializer_class = EquipamentoSerializer
 
+    def get_queryset(self):
+        return Equipamento.objects.annotate(num_manutencao=Count('manutencao'))
+
+    @action(detail=True, methods=['post'])
+    def upload_foto(self, request, pk=None):
+        equipamento = self.get_object()
+        serializer = EquipamentoSerializer(equipamento, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'])
+    def upload_manual(self, request, pk=None):
+        equipamento = self.get_object()
+        serializer = EquipamentoSerializer(equipamento, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class HorarioTrabalhoViewSet(ModelViewSet):
     queryset = HorarioTrabalho.objects.all()
@@ -267,6 +286,7 @@ class ManutencaoViewSet(ModelViewSet):
     queryset = Manutencao.objects.all()
     permission_classes = (IsAuthenticated,)
     serializer_class = ManutencaoSerializer
+
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
