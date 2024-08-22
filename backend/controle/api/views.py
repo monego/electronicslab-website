@@ -287,6 +287,56 @@ class ManutencaoViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = ManutencaoSerializer
 
+    def list(self, request):
+        queryset = self.get_queryset()
+
+        # Filter based on a query parameter: ?all=true
+        nome = request.query_params.get('nome', None)
+
+        try:
+            equipamento = Equipamento.objects.get(nome=nome)
+        except Equipamento.DoesNotExist:
+            return Response({'detail': 'Não há um equipamento com esse nome'})
+
+        if nome:
+            queryset = queryset.filter(equipamento=equipamento).reverse()
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def create(self, request, *args, **kwargs):
+
+        descricao = request.data.get('descricao')
+        equipamento_nome = request.data.get('equipamento_nome')
+
+        try:
+            equipamento = Equipamento.objects.get(nome=equipamento_nome)
+        except Equipamento.DoesNotExist:
+            return Response({'detail': 'Não há um equipamento com esse nome'})
+
+        data = {
+            'descricao': descricao,
+            'funcionario': request.user.id,
+            'equipamento': equipamento.id
+        }
+
+        serializer = self.get_serializer(data=data)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(
+                serializer.data, status=status.HTTP_201_CREATED, headers=headers
+            )
+        except ValidationError as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def perform_create(self, serializer):
+        serializer.save(
+            funcionario=self.request.user
+        )
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()

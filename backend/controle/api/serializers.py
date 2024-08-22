@@ -76,7 +76,18 @@ class HorarioTrabalhoSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ManutencaoSerializer(serializers.ModelSerializer):
+    equipamento_nome = serializers.SerializerMethodField()
+    funcionario_nome = serializers.SerializerMethodField()
 
     class Meta:
         model = Manutencao
         fields = '__all__'
+
+    def get_equipamento_nome(self, obj):
+        return obj.equipamento.nome if obj.equipamento else None
+
+    def get_funcionario_nome(self, obj):
+        if fun := obj.funcionario:
+            return f"{fun.first_name} {fun.last_name}"
+        else:
+            return

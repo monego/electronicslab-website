@@ -2,12 +2,16 @@
 import { AxiosInstance, AxiosError } from 'axios';
 import { api, axios } from 'boot/axios';
 import { ref, onMounted } from 'vue';
+import { format } from 'date-fns';
 
 // Data properties
 const tab = ref('consultar');
 
 const showError = ref(false);
 const errorMessage = ref<string>('');
+const showDialog = ref(false);
+const descManutencao = ref<string>('');
+const equipName = ref();
 
 function displayError(message: string) {
   errorMessage.value = message;
@@ -92,7 +96,16 @@ interface Row {
   manual: string,
 }
 
+interface RowManutencao {
+  id: string,
+  descricao: string,
+  data: string,
+  equipamento_nome: string,
+  funcionario_nome: string,
+}
+
 const rows = ref<Row[]>([]);
+const manutencoes = ref<Row[]>([]);
 
 async function getEquipments() {
   try {
@@ -126,12 +139,71 @@ async function getEquipments() {
   }
 }
 
+async function getManutencao(equip: string) {
+  try {
+    const response = await (api as AxiosInstance).get('/controle/manutencao/', {
+      params: {
+        nome: equip,
+      },
+    });
+
+    if (response.status === 200) {
+      const manutencaoList = response.data
+        .map(async (item: RowManutencao) => ({
+          id: item.id,
+          descricao: item.descricao,
+          data: item.data,
+          equipamento_nome: item.equipamento_nome,
+          funcionario_nome: item.funcionario_nome,
+        }));
+      manutencoes.value = await Promise.all(manutencaoList);
+    }
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response) {
+        const errorData = axiosError.response.data as { detail?: string };
+        const errorDetail = errorData.detail ?? 'Erro desconhecido!';
+        displayError(errorDetail);
+      }
+    } else {
+      displayError('Erro desconhecido!');
+    }
+    throw error;
+  }
+}
+
+async function registerManutencao(desc: string, equip: string) {
+  const payload = {
+    descricao: desc,
+    equipamento_nome: equip,
+  };
+
+  try {
+    const response = await (api as AxiosInstance).post('/controle/manutencao/', payload);
+
+    if (response.status === 201) {
+      console.log('Success');
+    } else {
+      throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
+    }
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response) {
+        const errorData = axiosError.response.data as { detail?: string };
+        const errorDetail = errorData.detail ?? 'Erro desconhecido!';
+        displayError(errorDetail);
+      }
+    } else {
+      displayError('Erro desconhecido!');
+    }
+    throw error; // Rethrow the error
+  }
+}
+
 const openImage = (imageUrl: string) => {
   window.open(imageUrl, '_blank');
-};
-
-const openFile = (fileUrl: string) => {
-  window.open(fileUrl, '_blank');
 };
 
 onMounted(() => {
@@ -179,8 +251,7 @@ onMounted(() => {
             <template v-slot:body-cell-manual="props">
               <q-td :props="props">
                 <a v-if="props.row.manual" :href="props.row.manual" target="_blank" class="q-mb-xs">
-                  <q-btn color="primary" label="Ler Manual"
-                  @click="openFile(props.row.manual)" size="sm" />
+                  <q-btn color="primary" label="Ler Manual" size="sm" />
                 </a>
                 <q-btn v-else color="primary" label="Ler Manual" size="sm" :disable=true />
               </q-td>
@@ -188,12 +259,42 @@ onMounted(() => {
 
             <template v-slot:body-cell-acoes="props">
               <q-td :props="props">
-                <q-btn rounded color="primary" size="sm">Manutenção</q-btn>
+                <q-btn rounded color="primary" @click="showDialog = true; getManutencao(props.row.nome);" size="sm">Manutenção</q-btn>
+                <q-dialog v-model="showDialog">
+                  <q-card>
+
+                    <q-card-section>
+                      <div class="text-h6">Adicionar manutenção</div>
+                    </q-card-section>
+
+                    <q-card-section class="q-pt-none">
+                      <q-input dense v-model="descManutencao"
+                      autofocus @keyup.enter="prompt = false" />
+                    </q-card-section>
+
+                    <q-separator />
+
+                    <q-card-section style="max-height: 50vh" class="scroll">
+                      <p v-for="manutencao in manutencoes" :key="manutencao.id">
+                        [{{ format(manutencao.data, 'yyyy-MM-dd HH:mm:ss') }}]
+                        [{{ manutencao.funcionario_nome }}] {{ manutencao.descricao }}
+                      </p>
+                    </q-card-section>
+
+                    <q-separator />
+
+                    <q-card-actions align="right">
+                      <q-btn flat label="Cancelar" color="primary" v-close-popup />
+                      <q-btn flat label="Adicionar" color="primary"
+                      @click="registerManutencao(descManutencao, props.row.nome)" v-close-popup />
+                    </q-card-actions>
+                  </q-card>
+                </q-dialog>
               </q-td>
             </template>
           </q-table>
         </q-tab-panel>
       </q-tab-panels>
     </q-card>
-  </div>
+</div>
 </template>
