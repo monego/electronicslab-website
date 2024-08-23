@@ -28,8 +28,8 @@
 </template>
 
 <script setup lang="ts">
-import { api } from 'boot/axios';
-import { AxiosInstance } from 'axios';
+import { api, axios } from 'boot/axios';
+import { AxiosInstance, AxiosError } from 'axios';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from 'stores/auth';
@@ -40,6 +40,14 @@ const username = ref('');
 const password = ref('');
 const router = useRouter();
 const authStore = useAuthStore();
+
+const showError = ref(false);
+const errorMessage = ref<string>('');
+
+function displayError(message: string) {
+  errorMessage.value = message;
+  showError.value = true;
+}
 
 const login = async () => {
   try {
@@ -56,7 +64,6 @@ const login = async () => {
     });
 
     if (response.status === 200) {
-      console.log(response.data);
       if (response.data.authenticated) {
         authStore.setUsername(response.data.username);
         router.push('/admin');
@@ -67,12 +74,19 @@ const login = async () => {
           timeout: 1500,
         });
       }
-    } else {
-      console.log('Login failed');
     }
-  } catch (error) {
-    console.log("Login failed");
-    console.log(error);
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response) {
+        const errorData = axiosError.response.data as { detail?: string };
+        const errorDetail = errorData.detail ?? 'Erro desconhecido!';
+        displayError(errorDetail);
+      }
+    } else {
+      displayError('Erro desconhecido!');
+    }
+    throw error;
   }
 };
 </script>
