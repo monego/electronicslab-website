@@ -42,8 +42,8 @@
 import { ref, onMounted } from 'vue';
 import { useAuthStore } from 'stores/auth';
 import { useRouter } from 'vue-router';
-import { AxiosInstance } from 'axios';
-import { axios, api } from 'boot/axios';
+import { AxiosInstance, AxiosError } from 'axios';
+import { api, axios } from 'boot/axios';
 import Cookie from 'js-cookie';
 import EssentialLink, { EssentialLinkProps } from 'components/EssentialLink.vue';
 
@@ -54,6 +54,14 @@ defineOptions({
 const authStore = useAuthStore();
 const { userName } = useAuthStore();
 const router = useRouter();
+
+const showError = ref(false);
+const errorMessage = ref<string>('');
+
+function displayError(message: string) {
+  errorMessage.value = message;
+  showError.value = true;
+}
 
 const publicList: EssentialLinkProps[] = [
   {
@@ -72,12 +80,6 @@ const publicList: EssentialLinkProps[] = [
 
 const privateList: EssentialLinkProps[] = [
   {
-    title: 'Atividades',
-    caption: 'Criar atividades',
-    icon: 'mdi-calendar-check',
-    link: '/#/atividades',
-  },
-  {
     title: 'Equipamentos',
     caption: 'Cadastrar e consultar equipamentos',
     icon: 'mdi-hammer-screwdriver',
@@ -88,6 +90,12 @@ const privateList: EssentialLinkProps[] = [
     caption: 'Aquisição de equipamentos',
     icon: 'mdi-currency-usd',
     link: '/#/registrodepreco',
+  },
+  {
+    title: 'Estatísticas',
+    caption: 'Estatísticas do banco de dados',
+    icon: 'mdi-chart-line',
+    link: '/#/estatisticas',
   },
 ];
 
@@ -112,12 +120,18 @@ const logout = async () => {
       authStore.setUsername('');
       authStore.isAuthenticated = false;
       router.push('/login');
-    } else {
-      console.log('Logout failed');
     }
-  } catch (error) {
-    console.log("Logout failed");
-    console.log(error);
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response) {
+        const errorData = axiosError.response.data as { detail?: string };
+        const errorDetail = errorData.detail ?? 'Erro desconhecido!';
+        displayError(errorDetail);
+      }
+    } else {
+      displayError('Erro desconhecido!');
+    }
   }
 };
 
