@@ -1,6 +1,6 @@
 // stores/auth.ts
 import { defineStore } from 'pinia';
-import { AxiosInstance } from 'axios';
+import { AxiosInstance, AxiosError } from 'axios';
 import { axios, api } from 'boot/axios';
 
 export const useAuthStore = defineStore('auth', {
@@ -22,7 +22,6 @@ export const useAuthStore = defineStore('auth', {
     async getAuthStatus() {
       try {
         const response = await (api as AxiosInstance).get('/auth/authenticate/');
-        console.log(response);
         if (response.status === 200) {
           if (response.data.authenticated) {
             this.isAuthenticated = true;
@@ -30,15 +29,16 @@ export const useAuthStore = defineStore('auth', {
         } else {
           throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
-          console.error(`Axios Error: ${error.message}`);
-          if (error.response) {
-            console.error(`Status: ${error.response.status}`);
-            console.error(`Data: ${JSON.stringify(error.response.data, null, 2)}`); // Formatted JSON
+          const axiosError = error as AxiosError;
+          if (axiosError.response) {
+            const errorData = axiosError.response.data as { detail?: string };
+            const errorDetail = errorData.detail ?? 'Erro desconhecido!';
+            console.log(errorDetail);
           }
         } else {
-          console.error(`Error: ${error.message}`);
+          console.log('Erro desconhecido!');
         }
         throw error; // Rethrow the error
       }
