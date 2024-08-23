@@ -9,7 +9,6 @@ from controle.models import (
     HorarioTrabalho,
     Manutencao,
 )
-from root.models import Pessoa, Sala
 
 class AtividadesSerializer(serializers.ModelSerializer):
 
@@ -42,11 +41,9 @@ class ControleAcessoSerializer(serializers.ModelSerializer):
         return obj.sala.numero if obj.sala else None
 
 class EmprestimoSerializer(serializers.ModelSerializer):
-
-    queryset = Emprestimo.objects.all()
-    serializer_class = Emprestimo
-    filter_backends = [filters.SearchFilter]
-    search_fields =  ['id']
+    responsavel_nome = serializers.SerializerMethodField()
+    responsavel_matricula = serializers.SerializerMethodField()
+    funcionario_nome = serializers.SerializerMethodField()
 
     items = serializers.ListField(
         child=serializers.CharField(max_length=200)
@@ -55,7 +52,18 @@ class EmprestimoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Emprestimo
         fields = '__all__'
-        depth = 1
+
+    def get_responsavel_nome(self, obj):
+        return obj.responsavel.nome if obj.responsavel else None
+
+    def get_responsavel_matricula(self, obj):
+        return obj.responsavel.matricula if obj.responsavel else None
+
+    def get_funcionario_nome(self, obj):
+        if fun := obj.funcionario:
+            return f"{fun.first_name} {fun.last_name}"
+        else:
+            return
 
 class EquipamentoSerializer(serializers.ModelSerializer):
     num_manutencao = serializers.IntegerField(read_only=True)
