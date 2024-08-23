@@ -112,7 +112,7 @@ class Equipamento(models.Model):
     nome = models.CharField(max_length=50, default="Nome", unique=True)
     descricao = models.CharField(max_length=200, default="Descrição")
     patrimonio = models.CharField(max_length=15, unique=True, null=True, blank=True)
-    sala = models.ForeignKey(Sala, on_delete=models.SET_NULL, null=True)
+    sala = models.ForeignKey(Sala, on_delete=models.SET_NULL, null=True, blank=True)
     defeito = models.BooleanField(default=False)
     foto = models.ImageField(blank=True, null=True)
     manual = models.FileField(blank=True, null=True)
