@@ -1,7 +1,7 @@
-from rest_framework import filters
 import rest_framework.serializers as serializers
 from controle.models import (
     Atividades,
+    AtualizacaoAtividade,
     Ausencia,
     ControleAcesso,
     Emprestimo,
@@ -14,6 +14,12 @@ class AtividadesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Atividades
+        fields = '__all__'
+
+class AtualizacaoAtividadeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = AtualizacaoAtividade
         fields = '__all__'
 
 class AusenciaSerializer(serializers.ModelSerializer):

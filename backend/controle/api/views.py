@@ -1,5 +1,6 @@
 from controle.api.serializers import (
     AtividadesSerializer,
+    AtualizacaoAtividadeSerializer,
     AusenciaSerializer,
     ControleAcessoSerializer,
     EmprestimoSerializer,
@@ -20,6 +21,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from controle.models import (
     Atividades,
+    AtualizacaoAtividade,
     Ausencia,
     ControleAcesso,
     Emprestimo,
@@ -34,31 +36,45 @@ class AtividadesViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = AtividadesSerializer
 
-    def list(self, request, *args, **kwargs):
-        user = request.user
-
-        if user.username == 'paulo':
-            queryset = self.get_queryset()
-        else:
-            queryset = self.get_queryset().filter(funcionarios=user)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response({
-            'data': serializer.data
-        }, status=status.HTTP_200_OK)
-
     def create(self, request, *args, **kwargs):
+
+        funcionarios_username = request.data['funcionarios']
+        funcionarios_id = []
         descricao = request.data['descricao']
         observacao = request.data['observacao']
-        username = request.user
 
-        Atividades.objects.create(
-            funcionario=User.objects.get(username=username),
-            descricao=descricao,
-            observacao=observacao,
-            hora_concluida=None,
-        )
+        try:
+            for funcionario_username in funcionarios_username:
+                funcionarios_id.append(User.objects.get(username=funcionario_username))
+        except User.DoesNotExist:
+            return Response({'detail': 'Não há um usuário com esse nome'})
 
+        data = {
+            'funcionarios': funcionarios_id,
+            'descricao': descricao,
+            'observacao': observacao,
+        }
+
+        serializer = self.get_serializer(data=data)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(
+                serializer.data, status=status.HTTP_201_CREATED, headers=headers
+            )
+        except ValidationError as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class AtualizacaoAtividadeViewSet(ModelViewSet):
+    queryset = AtualizacaoAtividade.objects.all()
+    serializer_class = AtualizacaoAtividadeSerializer
+
+    def perform_create(self, serializer):
+        atualizacao_atividade = serializer.save()
+        if atualizacao_atividade.state:
+            atualizacao_atividade
 
 class AusenciaViewSet(ModelViewSet):
     queryset = Ausencia.objects.all()
@@ -199,8 +215,6 @@ class EmprestimoViewSet(viewsets.ModelViewSet):
             responsavel = Pessoa.objects.get(matricula=matricula)
         except Pessoa.DoesNotExist:
             return Response({'detail': 'Não há uma pessoa com essa matrícula'})
-
-        print(responsavel.id)
 
         data = {
             'identificador': identificador,
@@ -359,4 +373,3 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             return Response({"username": user.username})
         except User.DoesNotExist:
             return Response({"error": "Usuário não encontrado"}, status=404)
-
