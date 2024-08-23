@@ -7,6 +7,7 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: '/', component: () => import('pages/IndexPage.vue') },
       { path: '/calendario', component: () => import('pages/CalendarPage.vue') },
+      { path: '/laboratorios', component: () => import('pages/LaboratoryPage.vue') },
     ],
   },
   {
@@ -14,9 +15,9 @@ const routes: RouteRecordRaw[] = [
     component: () => import('src/layouts/AdminLayout.vue'),
     children: [
       { path: '/acesso', component: () => import('pages/AccessPage.vue') },
-      { path: '/atividades', component: () => import('pages/ActivitiesPage.vue') },
       { path: '/emprestimo', component: () => import('pages/LoanPage.vue') },
       { path: '/equipamentos', component: () => import('pages/EquipmentPage.vue') },
+      { path: '/registrodepreco', component: () => import('pages/PriceRegisterPage.vue') },
       { path: '/estatisticas', component: () => import('pages/StatisticsPage.vue') },
     ],
   },

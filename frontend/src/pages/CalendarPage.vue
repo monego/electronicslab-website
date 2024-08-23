@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ScheduleXCalendar } from '@schedule-x/vue';
 import { createCurrentTimePlugin } from '@schedule-x/current-time';
-import { ref, reactive, watch, onMounted } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { createEventsServicePlugin } from '@schedule-x/events-service';
 import { createCalendarControlsPlugin } from '@schedule-x/calendar-controls';
-import { AxiosInstance } from 'axios';
+import { AxiosInstance, AxiosError } from 'axios';
 import { axios, api } from 'boot/axios';
 import {
   createCalendar,
@@ -29,6 +29,14 @@ interface Range {
 interface Sala {
   'label': string,
   'value': string
+}
+
+const showError = ref(false);
+const errorMessage = ref<string>('');
+
+function displayError(message: string) {
+  errorMessage.value = message;
+  showError.value = true;
 }
 
 let aulasApi = [];
@@ -61,15 +69,16 @@ async function getSalas() {
     } else {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
-      console.error(`Axios Error: ${error.message}`);
-      if (error.response) {
-        console.error(`Status: ${error.response.status}`);
-        console.error(`Data: ${JSON.stringify(error.response.data, null, 2)}`); // Formatted JSON
+      const axiosError = error as AxiosError;
+      if (axiosError.response) {
+        const errorData = axiosError.response.data as { detail?: string };
+        const errorDetail = errorData.detail ?? 'Erro desconhecido!';
+        displayError(errorDetail);
       }
     } else {
-      console.error(`Error: ${error.message}`);
+      displayError('Erro desconhecido!');
     }
     throw error; // Rethrow the error
   }
@@ -116,13 +125,14 @@ async function getUserList(roomId: string, range: Range) {
     }
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error(`Axios Error: ${error.message}`);
-      if (error.response) {
-        console.error(`Status: ${error.response.status}`);
-        console.error(`Data: ${JSON.stringify(error.response.data, null, 2)}`);
+      const axiosError = error as AxiosError;
+      if (axiosError.response) {
+        const errorData = axiosError.response.data as { detail?: string };
+        const errorDetail = errorData.detail ?? 'Erro desconhecido!';
+        displayError(errorDetail);
       }
     } else {
-      console.error(`Error: ${error}`);
+      displayError('Erro desconhecido!');
     }
     throw error;
   }
@@ -182,7 +192,8 @@ onMounted(() => {
     <q-card class="q-pa-md">
       <q-card class="row no-wrap justify-center">
         <q-card>
-          <q-select v-model="sala" :options="salas" emit-value map-options label="Escolha uma sala" />
+          <q-select v-model="sala" :options="salas" emit-value map-options
+          label="Escolha uma sala" />
         </q-card>
       </q-card>
     </q-card>
