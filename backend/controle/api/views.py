@@ -319,7 +319,7 @@ class ManutencaoViewSet(ModelViewSet):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request):
 
         descricao = request.data.get('descricao')
         equipamento_nome = request.data.get('equipamento_nome')

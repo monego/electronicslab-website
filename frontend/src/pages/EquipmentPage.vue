@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { AxiosInstance, AxiosError } from 'axios';
+import { useQuasar } from 'quasar';
 import { api, axios } from 'boot/axios';
 import { ref, onMounted } from 'vue';
 import { format } from 'date-fns';
@@ -9,34 +10,44 @@ const tab = ref('consultar');
 
 const showError = ref(false);
 const errorMessage = ref<string>('');
-const showDialog = ref(false);
 const descManutencao = ref<string>('');
-const equipName = ref();
+const showDialog = ref<boolean>(false);
+const $q = useQuasar();
+const notifTimeout = 30;
 
 function displayError(message: string) {
   errorMessage.value = message;
   showError.value = true;
 }
 
+interface Row {
+  nome: string,
+  patrimonio: string,
+  sala_numero: string,
+  defeito: boolean,
+  num_manutencao: number,
+  foto: string,
+  manual: string,
+}
+
 type ColumnType = {
   name: string;
   label: string;
-  field?: string | ((row: Record<string, string>) => string);
-  required?: boolean;
   align?: 'left' | 'right' | 'center';
+  field?: string | ((row: Row) => string);
+  required?: boolean;
   format?: (val: string) => string;
   sortable?: boolean;
 };
 
-// Table
 const search = ref('');
 const columns: ColumnType[] = [
   {
     name: 'nome',
-    required: true,
     label: 'Nome',
     align: 'left',
     field: 'nome',
+    required: true,
     format: (val: string) => `${val}`,
     sortable: true,
   },
@@ -86,16 +97,6 @@ const columns: ColumnType[] = [
   },
 ];
 
-interface Row {
-  nome: string,
-  patrimonio: string,
-  sala_numero: string,
-  defeito: boolean,
-  num_manutencao: number,
-  foto: string,
-  manual: string,
-}
-
 interface RowManutencao {
   id: string,
   descricao: string,
@@ -104,8 +105,19 @@ interface RowManutencao {
   funcionario_nome: string,
 }
 
+const selectedNome = ref<string>('');
+
+function openDialog(row: Row) {
+  selectedNome.value = row.nome;
+  showDialog.value = true;
+}
+
+function closeDialog() {
+  showDialog.value = false;
+}
+
 const rows = ref<Row[]>([]);
-const manutencoes = ref<Row[]>([]);
+const manutencoes = ref<RowManutencao[]>([]);
 
 async function getEquipments() {
   try {
@@ -183,7 +195,11 @@ async function registerManutencao(desc: string, equip: string) {
     const response = await (api as AxiosInstance).post('/controle/manutencao/', payload);
 
     if (response.status === 201) {
-      console.log('Success');
+      $q.notify({
+        type: 'positive',
+        message: 'Manutenção registrada com successo.',
+        timeout: notifTimeout,
+      });
     } else {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
@@ -216,7 +232,8 @@ onMounted(() => {
     <q-card>
       <q-tabs v-model="tab" dense class="text-grey q-mb-lg"
       active-color="primary" indicator-color="primary"
-        align="justify" narrow-indicator>
+      align="justify" narrow-indicator
+      >
         <q-tab class="text-purple" name="cadastrar" icon="mdi-clock-in" label="Cadastrar" />
         <q-tab class="text-orange" name="consultar" icon="mdi-clock-out" label="Consultar" />
       </q-tabs>
@@ -229,7 +246,8 @@ onMounted(() => {
         <q-tab-panel name="consultar">
 
           <q-table title="Equipamentos" :rows="rows" :columns="columns"
-          :filter="search" row-key="nome">
+          :filter="search" row-key="nome"
+          >
 
             <template v-slot:top-right>
               <q-input borderless dense debounce="300" v-model="search" placeholder="Search">
@@ -241,9 +259,9 @@ onMounted(() => {
 
             <template v-slot:body-cell-foto="props">
               <q-td :props="props">
-                <q-img v-if="props.row.foto" :src="props.row.foto"
-                @click="openImage(props.row.foto)" class="q-mb-xs"
-                  style="max-width: 50px; max-height: 50px; object-fit: cover;" />
+                <q-img v-if="props.row.foto"
+                :src="props.row.foto" @click="openImage(props.row.foto)"
+                class="q-mb-xs" style="max-width: 50px; max-height: 50px; object-fit: cover;" />
                 <q-icon v-else name="photo" class="text-grey" />
               </q-td>
             </template>
@@ -259,42 +277,45 @@ onMounted(() => {
 
             <template v-slot:body-cell-acoes="props">
               <q-td :props="props">
-                <q-btn rounded color="primary" @click="showDialog = true; getManutencao(props.row.nome);" size="sm">Manutenção</q-btn>
-                <q-dialog v-model="showDialog">
-                  <q-card>
-
-                    <q-card-section>
-                      <div class="text-h6">Adicionar manutenção</div>
-                    </q-card-section>
-
-                    <q-card-section class="q-pt-none">
-                      <q-input dense v-model="descManutencao"
-                      autofocus @keyup.enter="prompt = false" />
-                    </q-card-section>
-
-                    <q-separator />
-
-                    <q-card-section style="max-height: 50vh" class="scroll">
-                      <p v-for="manutencao in manutencoes" :key="manutencao.id">
-                        [{{ format(manutencao.data, 'yyyy-MM-dd HH:mm:ss') }}]
-                        [{{ manutencao.funcionario_nome }}] {{ manutencao.descricao }}
-                      </p>
-                    </q-card-section>
-
-                    <q-separator />
-
-                    <q-card-actions align="right">
-                      <q-btn flat label="Cancelar" color="primary" v-close-popup />
-                      <q-btn flat label="Adicionar" color="primary"
-                      @click="registerManutencao(descManutencao, props.row.nome)" v-close-popup />
-                    </q-card-actions>
-                  </q-card>
-                </q-dialog>
+                <q-btn rounded color="primary"
+                @click="openDialog(props.row); getManutencao(props.row.nome);"
+                size="sm">Manutenção</q-btn>
               </q-td>
             </template>
           </q-table>
+
+          <q-dialog v-model="showDialog">
+            <q-card>
+
+              <q-card-section>
+                <div class="text-h6">Adicionar manutenção</div>
+              </q-card-section>
+
+              <q-card-section class="q-pt-none">
+                <q-input dense v-model="descManutencao" autofocus />
+              </q-card-section>
+
+              <q-separator />
+
+              <q-card-section style="max-height: 50vh" class="scroll">
+                <p v-for="manutencao in manutencoes" :key="manutencao.id">
+                  [{{ format(manutencao.data, 'yyyy-MM-dd HH:mm:ss') }}]
+                  [{{ manutencao.funcionario_nome }}] {{ manutencao.descricao }}
+                </p>
+              </q-card-section>
+
+              <q-separator />
+
+              <q-card-actions align="right">
+                <q-btn flat label="Cancelar" color="primary" @click="closeDialog()" v-close-popup />
+                <q-btn flat label="Adicionar" color="primary"
+                  @click="registerManutencao(descManutencao, selectedNome)" v-close-popup />
+              </q-card-actions>
+            </q-card>
+          </q-dialog>
+
         </q-tab-panel>
       </q-tab-panels>
     </q-card>
-</div>
+  </div>
 </template>
