@@ -226,10 +226,6 @@ function removeItem(index: number) {
   loanItems.value.splice(index, 1);
 }
 
-function returnItem(row: Loan, index: number) {
-  row.items[index].returned = true;
-}
-
 watch(loanStatus, () => {
   getLoans();
 });
@@ -348,11 +344,6 @@ onMounted(() => {
                     <div class="text-left">
                       <li v-for="(item, index) in props.row.items" :key=index>
                         <q-item-section>{{ item.name }}</q-item-section>
-                        <q-item-section>
-                          <q-btn @click="returnItem(props.row, index)"
-                          label="Devolver" color="primary"
-                          :disabled="item.returned" />
-                        </q-item-section>
                       </li>
                     </div>
                   </q-td>
