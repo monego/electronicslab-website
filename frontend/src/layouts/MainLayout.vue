@@ -4,6 +4,9 @@ defineOptions({
 });
 
 import { ref } from 'vue';
+import { useRoute, RouteLocationNormalized } from 'vue-router';
+
+const route = useRoute() as RouteLocationNormalized;
 
 const links = ref([
   { label: 'Laboratórios', to: '/laboratorios' },
@@ -32,7 +35,7 @@ const links = ref([
         rounded
         :to="link.to"
         :label="link.label"
-        :class="{ 'active-link': $route.path === link.to }" />
+        :class="{ 'active-link': route.path === link.to }" />
       </q-toolbar>
     </q-header>
 
