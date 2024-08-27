@@ -215,6 +215,10 @@ async function returnLoan(id: string) {
   return null;
 }
 
+function getIdentificador(row: Loan) {
+  return row.identificador;
+}
+
 function addItem() {
   loanItems.value.push({
     name: '',
@@ -303,7 +307,7 @@ onMounted(() => {
 
             <q-table
             flat bordered title="Empréstimos" :rows="rows" :columns="columns" :filter=filter
-            :row-key="identificador">
+            :row-key="getIdentificador">
 
               <template v-slot:top-right>
                 <q-input borderless dense debounce="300" v-model="filter" placeholder="Pesquisar">
