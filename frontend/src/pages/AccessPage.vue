@@ -24,10 +24,17 @@ function capitalizeEachWord(str: string): string {
     .join(' ');
 }
 
+interface Row {
+  'pessoa_nome': string,
+  'pessoa_matricula': string,
+  'sala_numero': string,
+  'hora_entrada': string,
+}
+
 type ColumnType = {
   name: string;
   label: string;
-  field: string | ((row: Record<string, string>) => string);
+  field: ((row: Row) => string);
   required?: boolean;
   align?: 'left' | 'right' | 'center';
   format: (val: string) => string;
@@ -40,7 +47,7 @@ const columns: ColumnType[] = [
     required: true,
     label: 'Nome',
     align: 'left',
-    field: (row: Record<string, string>) => row.pessoa_nome,
+    field: (row: Row) => row.pessoa_nome,
     format: (val: string) => capitalizeEachWord(`${val}`),
     sortable: true,
   },
@@ -49,7 +56,7 @@ const columns: ColumnType[] = [
     required: true,
     label: 'Matrícula',
     align: 'left',
-    field: (row: Record<string, string>) => row.pessoa_matricula,
+    field: (row: Row) => row.pessoa_matricula,
     format: (val: string) => `${val}`,
     sortable: true,
   },
@@ -58,7 +65,7 @@ const columns: ColumnType[] = [
     required: true,
     label: 'Sala',
     align: 'left',
-    field: (row: Record<string, string>) => row.sala_numero,
+    field: (row: Row) => row.sala_numero,
     format: (val: string) => `${val}`,
     sortable: true,
   },
@@ -67,7 +74,7 @@ const columns: ColumnType[] = [
     required: true,
     label: 'Entrada',
     align: 'left',
-    field: (row: Record<string, string>) => row.hora_entrada,
+    field: (row: Row) => row.hora_entrada,
     format: (val: string) => format(`${val}`, 'yyyy-MM-dd HH:mm:ss'),
     sortable: true,
   },
@@ -79,13 +86,6 @@ interface Turnstile {
   numero: string,
   hora_entrada: string,
   hora_saida?: string,
-}
-
-interface Row {
-  'pessoa_nome': string,
-  'pessoa_matricula': string,
-  'sala_numero': string,
-  'hora_entrada': string,
 }
 
 const selected = ref <Row[]>([]);

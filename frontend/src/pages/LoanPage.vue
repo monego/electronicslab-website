@@ -54,7 +54,7 @@ function displayError(message: string) {
 type ColumnType = {
   name: string;
   label: string;
-  field?: string;
+  field: string | ((row: Loan) => string);
   required?: boolean;
   align?: 'left' | 'right' | 'center';
   format?: (val: Loan) => string;
@@ -67,7 +67,7 @@ const columns: ColumnType[] = [
     required: true,
     label: 'Identificador',
     align: 'left',
-    field: 'identificador',
+    field: ((row: Loan) => row.identificador),
     format: (val: Loan) => `${val}`,
     sortable: true,
   },
@@ -75,30 +75,31 @@ const columns: ColumnType[] = [
     name: 'responsavel',
     align: 'center',
     label: 'Responsável',
-    field: 'responsavel',
+    field: ((row: Loan) => row.responsavel_nome),
     format: (val: Loan) => capitalizeEachWord(`${val}`),
     sortable: true,
   },
   {
     name: 'funcionario',
     label: 'Funcionário',
-    field: 'funcionario',
+    field: ((row: Loan) => row.funcionario_nome),
     sortable: true,
   },
   {
     name: 'local',
     label: 'Local',
-    field: 'local',
+    field: ((row: Loan) => row.local),
   },
   {
     name: 'retirada',
     label: 'Retirada',
-    field: 'retirada',
+    field: ((row: Loan) => row.retirada),
     format: (val: Loan) => format(`${val}`, 'yyyy-MM-dd HH:mm:ss'),
   },
   {
     name: 'devolucao',
     label: 'Devolução',
+    field: '',
   },
 ];
 

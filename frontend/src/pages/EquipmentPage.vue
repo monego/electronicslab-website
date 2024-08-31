@@ -34,7 +34,7 @@ type ColumnType = {
   name: string;
   label: string;
   align?: 'left' | 'right' | 'center';
-  field?: string | ((row: Row) => string);
+  field: string | ((row: Row) => string) | ((row: Row) => boolean) | ((row: Row) => number);
   required?: boolean;
   format?: (val: string) => string;
   sortable?: boolean;
@@ -46,7 +46,7 @@ const columns: ColumnType[] = [
     name: 'nome',
     label: 'Nome',
     align: 'left',
-    field: 'nome',
+    field: (row: Row) => row.nome,
     required: true,
     format: (val: string) => `${val}`,
     sortable: true,
@@ -55,45 +55,46 @@ const columns: ColumnType[] = [
     name: 'patrimonio',
     label: 'Patrimônio',
     align: 'center',
-    field: 'patrimonio',
+    field: (row: Row) => row.patrimonio,
   },
   {
     name: 'sala',
     label: 'Sala',
     align: 'center',
-    field: 'sala',
+    field: (row: Row) => row.sala_numero,
   },
   {
     name: 'defeito',
     label: 'Defeito',
     align: 'center',
-    field: 'defeito',
+    field: (row: Row) => row.defeito,
   },
   {
     name: 'manutencao',
     label: 'Manutenções',
     align: 'center',
-    field: 'num_manutencao',
+    field: (row: Row) => row.num_manutencao,
     sortable: true,
   },
   {
     name: 'foto',
     label: 'Foto',
     align: 'center',
-    field: 'foto',
+    field: (row: Row) => row.foto,
     sortable: false,
   },
   {
     name: 'manual',
     label: 'Manual',
     align: 'center',
-    field: 'manual',
+    field: (row: Row) => row.manual,
     sortable: false,
   },
   {
     name: 'acoes',
     label: 'Ações',
     align: 'center',
+    field: '',
   },
 ];
 
