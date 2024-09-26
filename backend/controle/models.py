@@ -109,9 +109,9 @@ class Equipamento(models.Model):
         ('broken', 'Defeito'),
     ]
 
-    nome = models.CharField(max_length=50, default="Nome", unique=True)
+    nome = models.CharField(max_length=200, default="Nome")
     descricao = models.CharField(max_length=200, default="Descrição")
-    patrimonio = models.CharField(max_length=15, unique=True, null=True, blank=True)
+    patrimonio = models.CharField(max_length=15, unique=True, default="SP")
     sala = models.ForeignKey(Sala, on_delete=models.SET_NULL, null=True, blank=True)
     defeito = models.BooleanField(default=False)
     foto = models.ImageField(blank=True, null=True)

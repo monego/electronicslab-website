@@ -304,15 +304,14 @@ class ManutencaoViewSet(ModelViewSet):
     def list(self, request):
         queryset = self.get_queryset()
 
-        # Filter based on a query parameter: ?all=true
-        nome = request.query_params.get('nome', None)
+        patrimonio = request.query_params.get('patrimonio', None)
 
         try:
-            equipamento = Equipamento.objects.get(nome=nome)
+            equipamento = Equipamento.objects.get(patrimonio=patrimonio)
         except Equipamento.DoesNotExist:
             return Response({'detail': 'Não há um equipamento com esse nome'})
 
-        if nome:
+        if patrimonio:
             queryset = queryset.filter(equipamento=equipamento).reverse()
 
         serializer = self.get_serializer(queryset, many=True)
@@ -322,10 +321,10 @@ class ManutencaoViewSet(ModelViewSet):
     def create(self, request):
 
         descricao = request.data.get('descricao')
-        equipamento_nome = request.data.get('equipamento_nome')
+        patrimonio = request.data.get('patrimonio')
 
         try:
-            equipamento = Equipamento.objects.get(nome=equipamento_nome)
+            equipamento = Equipamento.objects.get(patrimonio=patrimonio)
         except Equipamento.DoesNotExist:
             return Response({'detail': 'Não há um equipamento com esse nome'})
 

@@ -107,9 +107,11 @@ interface RowManutencao {
 }
 
 const selectedNome = ref<string>('');
+const selectedPatrimonio = ref<string>('');
 
 function openDialog(row: Row) {
   selectedNome.value = row.nome;
+  selectedPatrimonio.value = row.patrimonio;
   showDialog.value = true;
 }
 
@@ -152,11 +154,11 @@ async function getEquipments() {
   }
 }
 
-async function getManutencao(equip: string) {
+async function getManutencao(patr: string) {
   try {
     const response = await (api as AxiosInstance).get('/controle/manutencao/', {
       params: {
-        nome: equip,
+        patrimonio: patr,
       },
     });
 
@@ -186,10 +188,10 @@ async function getManutencao(equip: string) {
   }
 }
 
-async function registerManutencao(desc: string, equip: string) {
+async function registerManutencao(desc: string, patr: string) {
   const payload = {
     descricao: desc,
-    equipamento_nome: equip,
+    patrimonio: patr,
   };
 
   try {
@@ -201,6 +203,8 @@ async function registerManutencao(desc: string, equip: string) {
         message: 'Manutenção registrada com successo.',
         timeout: notifTimeout,
       });
+
+      await getEquipments();
     } else {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
@@ -279,7 +283,7 @@ onMounted(() => {
             <template v-slot:body-cell-acoes="props">
               <q-td :props="props">
                 <q-btn rounded color="primary"
-                @click="openDialog(props.row); getManutencao(props.row.nome);"
+                @click="openDialog(props.row); getManutencao(props.row.patrimonio);"
                 size="sm">Manutenção</q-btn>
               </q-td>
             </template>
@@ -310,7 +314,8 @@ onMounted(() => {
               <q-card-actions align="right">
                 <q-btn flat label="Cancelar" color="primary" @click="closeDialog()" v-close-popup />
                 <q-btn flat label="Adicionar" color="primary"
-                  @click="registerManutencao(descManutencao, selectedNome)" v-close-popup />
+                  @click="registerManutencao(descManutencao, selectedPatrimonio)"
+                  v-close-popup />
               </q-card-actions>
             </q-card>
           </q-dialog>
