@@ -68,6 +68,7 @@ const columns: ColumnType[] = [
     label: 'Defeito',
     align: 'center',
     field: (row: Row) => row.defeito,
+    format: (val: string) => (val ? 'Sim' : 'Não'),
   },
   {
     name: 'manutencao',
