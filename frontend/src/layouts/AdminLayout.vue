@@ -86,6 +86,12 @@ const privateList: EssentialLinkProps[] = [
     link: '/#/equipamentos',
   },
   {
+    title: 'Ocorrências',
+    caption: 'Jornada e Ocorrências',
+    icon: 'mdi-clock-edit-outline',
+    link: '/#/ocorrencias',
+  },
+  {
     title: 'Registro de Preço',
     caption: 'Aquisição de equipamentos',
     icon: 'mdi-currency-usd',

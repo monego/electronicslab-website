@@ -81,6 +81,29 @@ class AusenciaViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = AusenciaSerializer
 
+    def create(self, request):
+        data = {
+            'inicio': request.data.get('inicio'),
+            'fim': request.data.get('fim'),
+            'motivo': request.data.get('motivo'),
+            'funcionario': request.user.pk,
+        }
+
+        serializer = self.get_serializer(data=data)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(
+                serializer.data, status=status.HTTP_201_CREATED, headers=headers
+            )
+        except ValidationError as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def perform_create(self, serializer):
+        serializer.save()
+
 
 class ControleAcessoViewSet(ModelViewSet):
     queryset = ControleAcesso.objects.all()
@@ -295,6 +318,44 @@ class HorarioTrabalhoViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = HorarioTrabalhoSerializer
 
+    def list(self, request):
+        queryset = self.get_queryset()
+
+        user_pk = request.user.pk
+
+        queryset = queryset.filter(funcionario=user_pk)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['patch'], url_path='byday')
+    def patch_by_day(self, request, *args, **kwargs):
+        dia = request.data.get('dia')
+        inicio = request.data.get('inicio')
+        inicio_intervalo = request.data.get('inicio_intervalo')
+        fim_intervalo = request.data.get('fim_intervalo')
+        fim = request.data.get('fim')
+        user_pk = request.user.pk
+
+        try:
+            horario = HorarioTrabalho.objects.get(
+                dia_da_semana=dia, funcionario=user_pk
+            )
+        except HorarioTrabalho.DoesNotExist:
+            return Response({'detail': 'Não encontrado.'},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        horario.inicio = inicio
+        horario.inicio_intervalo = inicio_intervalo
+        horario.fim_intervalo = fim_intervalo
+        horario.fim = fim
+
+        serializer = self.get_serializer(horario, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response(serializer.data)
 
 class ManutencaoViewSet(ModelViewSet):
     queryset = Manutencao.objects.all()

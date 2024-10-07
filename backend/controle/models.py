@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone
+from django.db.models import UniqueConstraint
 from root.models import Pessoa, Sala
 
 class Atividades(models.Model):
@@ -54,12 +55,12 @@ class Ausencia(models.Model):
     funcionario = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="absences"
     )
-    inicio = models.DateTimeField()
-    fim = models.DateTimeField()
+    inicio = models.DateField()
+    fim = models.DateField()
     motivo = models.CharField(max_length=200)
 
     def __str__(self):
-        return f"{self.funcionario} - {self.reason} ({self.start_datetime} até {self.end_datetime})"
+        return f"{self.funcionario} - {self.motivo} ({self.inicio} até {self.fim})"
 
     class Meta:
         verbose_name = 'Ausência'
@@ -143,6 +144,9 @@ class HorarioTrabalho(models.Model):
     class Meta:
         verbose_name = 'Horário de Trabalho'
         verbose_name_plural = 'Horários de Trabalho'
+        constraints = [
+            UniqueConstraint(fields=['funcionario', 'dia_da_semana'], name='jornada'),
+        ]
 
 
 class Manutencao(models.Model):
