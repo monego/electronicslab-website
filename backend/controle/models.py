@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.contrib.postgres.fields import ArrayField
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from django.db.models import UniqueConstraint
@@ -84,7 +84,7 @@ class ControleBolsistas(models.Model):
     pessoa = models.ForeignKey(Pessoa, on_delete=models.SET_NULL, null=True,
                                limit_choices_to={'tipo': 'BO'})
     hora_entrada = models.DateTimeField(default=timezone.now)
-    hora_saida = models.DateTimeField(default=timezone.now)
+    hora_saida = models.DateTimeField(blank=True, null=True)
 
 class Emprestimo(models.Model):
     identificador = models.CharField(max_length=15, default="", unique=True)
@@ -95,9 +95,12 @@ class Emprestimo(models.Model):
         User, on_delete=models.SET_NULL, null=True, related_name="funcionario"
     )
     local = models.CharField(max_length=20, default="")
-    items = ArrayField(models.CharField(max_length=20), default=list)
     retirada = models.DateTimeField(default=timezone.now)
-    devolucao = models.DateTimeField(default=timezone.now, blank=True, null=True)
+    encerrado = models.BooleanField(default=False)
+    devolucao = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return self.identificador
 
     class Meta:
         verbose_name = 'Empréstimo'
@@ -148,6 +151,40 @@ class HorarioTrabalho(models.Model):
             UniqueConstraint(fields=['funcionario', 'dia_da_semana'], name='jornada'),
         ]
 
+class ItemEmprestimo(models.Model):
+    emprestimo = models.ForeignKey(
+        Emprestimo, on_delete=models.SET_NULL, null=True, related_name='emprestimo'
+    )
+    equipamento = models.ForeignKey(
+        Equipamento,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='equipamento',
+    )
+    nome = models.CharField(max_length=100, blank=True, null=True)
+    devolvido = models.BooleanField(default=False)
+    devolucao = models.DateTimeField(blank=True, null=True)
+
+    def clean(self):
+        if not self.equipamento and not self.nome:
+            raise ValidationError('Ao menos "equipamento" ou "nome" deve constar.')
+        if self.equipamento is not None and self.nome is not None:
+            raise ValidationError('Apenas um entre "equipamento" e "nome" é permitido.')
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        if self.nome:
+            return self.nome
+        elif self.equipamento:
+            return self.equipamento.nome
+
+    class Meta:
+        verbose_name = 'Item de Empréstimo'
+        verbose_name_plural = 'Items de Empréstimo'
 
 class Manutencao(models.Model):
     equipamento = models.ForeignKey(Equipamento, on_delete=models.CASCADE)

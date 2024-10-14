@@ -7,6 +7,7 @@ from controle.models import (
     Emprestimo,
     Equipamento,
     HorarioTrabalho,
+    ItemEmprestimo,
     Manutencao,
 )
 
@@ -46,18 +47,44 @@ class ControleAcessoSerializer(serializers.ModelSerializer):
     def get_sala_numero(self, obj):
         return obj.sala.numero if obj.sala else None
 
+class ItemEmprestimoSerializer(serializers.ModelSerializer):
+    equipamento_nome = serializers.StringRelatedField(
+        source="equipamento.nome", read_only=True
+    )
+    equipamento_patrimonio = serializers.StringRelatedField(
+        source="equipamento.patrimonio", read_only=True
+    )
+
+    class Meta:
+        model = ItemEmprestimo
+        fields = [
+            "emprestimo",
+            "equipamento",
+            "nome",
+            "devolvido",
+            "devolucao",
+            "equipamento_nome",
+            "equipamento_patrimonio",
+        ]
+
 class EmprestimoSerializer(serializers.ModelSerializer):
     responsavel_nome = serializers.SerializerMethodField()
     responsavel_matricula = serializers.SerializerMethodField()
     funcionario_nome = serializers.SerializerMethodField()
-
-    items = serializers.ListField(
-        child=serializers.CharField(max_length=200)
-    )
+    items = ItemEmprestimoSerializer(many=True, read_only=True)
 
     class Meta:
         model = Emprestimo
-        fields = '__all__'
+        fields = [
+            "identificador",
+            "items",
+            "funcionario_nome",
+            "responsavel_nome",
+            "responsavel_matricula",
+            "local",
+            "encerrado",
+            "retirada",
+        ]
 
     def get_responsavel_nome(self, obj):
         return obj.responsavel.nome if obj.responsavel else None

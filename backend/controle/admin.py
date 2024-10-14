@@ -9,6 +9,7 @@ from controle.models import (
     Emprestimo,
     Equipamento,
     HorarioTrabalho,
+    ItemEmprestimo,
     Manutencao,
     Orcamento,
     RegistroPreco,
@@ -53,6 +54,8 @@ class HorarioTrabalhoAdmin(admin.ModelAdmin):
     )
     search_fields = ('funcionario',)
 
+class ItemEmprestimoAdmin(admin.ModelAdmin):
+    list_display = ('emprestimo', 'equipamento', 'nome')
 
 class ManutencaoAdmin(admin.ModelAdmin):
     list_display = ('equipamento', 'funcionario', 'descricao', 'data')
@@ -74,6 +77,7 @@ admin.site.register(ControleAcesso, ControleAcessoAdmin)
 admin.site.register(Emprestimo, EmprestimosAdmin)
 admin.site.register(Equipamento, EquipamentoAdmin)
 admin.site.register(HorarioTrabalho, HorarioTrabalhoAdmin)
+admin.site.register(ItemEmprestimo, ItemEmprestimoAdmin)
 admin.site.register(Manutencao, ManutencaoAdmin)
 admin.site.register(Orcamento, OrcamentoAdmin)
 admin.site.register(RegistroPreco, RegistroPrecoAdmin)

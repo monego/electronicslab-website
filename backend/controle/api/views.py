@@ -6,6 +6,7 @@ from controle.api.serializers import (
     EmprestimoSerializer,
     EquipamentoSerializer,
     HorarioTrabalhoSerializer,
+    ItemEmprestimoSerializer,
     ManutencaoSerializer,
 )
 
@@ -26,6 +27,7 @@ from controle.models import (
     ControleAcesso,
     Emprestimo,
     Equipamento,
+    ItemEmprestimo,
     HorarioTrabalho,
     Manutencao,
 )
@@ -209,6 +211,13 @@ class EmprestimoViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = EmprestimoSerializer
 
+    def get_queryset(self):
+        queryset = Emprestimo.objects.all()
+        identificador = self.request.query_params.get('identificador', None)
+        if identificador is not None:
+            queryset = queryset.filter(identificador=identificador)
+        return queryset
+
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         primary_key = instance.pk
@@ -231,8 +240,8 @@ class EmprestimoViewSet(viewsets.ModelViewSet):
 
         identificador = request.data.get('identificador')
         matricula = request.data.get('matricula')
-        obs = request.data.get('obs')
         items = request.data.get('items')
+        obs = request.data.get('obs')
 
         try:
             responsavel = Pessoa.objects.get(matricula=matricula)
@@ -244,27 +253,45 @@ class EmprestimoViewSet(viewsets.ModelViewSet):
             'responsavel': responsavel.id,
             'funcionario': request.user.id,
             'local': obs,
-            'items': items,
-            'devolucao': None
+            'devolucao': None,
         }
 
         serializer = self.get_serializer(data=data)
 
         try:
             serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
+            emprestimo = serializer.save(
+                responsavel=Pessoa.objects.get(
+                    matricula=self.request.data["matricula"]
+                ),
+                funcionario=self.request.user,
+            )
+
+            for item in items:
+                try:
+                    equipamento = Equipamento.objects.get(patrimonio=item)
+                    data = {
+                        'emprestimo': emprestimo.pk,
+                        'equipamento': equipamento.pk,
+                    }
+                    item_serializer = ItemEmprestimoSerializer(data=data)
+                    item_serializer.is_valid(raise_exception=True)
+                    item_serializer.save()
+                except Equipamento.DoesNotExist:
+                    data = {
+                        'emprestimo': emprestimo.pk,
+                        'nome': item,
+                    }
+                    item_serializer = ItemEmprestimoSerializer(data=data)
+                    item_serializer.is_valid(raise_exception=True)
+                    item_serializer.save()
+
             headers = self.get_success_headers(serializer.data)
             return Response(
                 serializer.data, status=status.HTTP_201_CREATED, headers=headers
             )
         except ValidationError as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-    def perform_create(self, serializer):
-        serializer.save(
-            responsavel=Pessoa.objects.get(matricula=self.request.data['matricula']),
-            funcionario=self.request.user
-        )
 
     @action(detail=False, methods=['patch'], url_path='byidentifier')
     def patch_by_identifier(self, request, *args, **kwargs):
@@ -279,6 +306,7 @@ class EmprestimoViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Não encontrado.'},
                             status=status.HTTP_404_NOT_FOUND)
 
+        obj.encerrado = True
         obj.devolucao = timezone.now()
         obj.save()
 
@@ -352,6 +380,75 @@ class HorarioTrabalhoViewSet(ModelViewSet):
         horario.fim = fim
 
         serializer = self.get_serializer(horario, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response(serializer.data)
+
+class ItemViewSet(ModelViewSet):
+    queryset = ItemEmprestimo.objects.all()
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ItemEmprestimoSerializer
+
+    def list(self, request):
+        queryset = self.get_queryset()
+
+        identificador = request.query_params.get('emprestimo', None)
+
+        try:
+            emprestimo = Emprestimo.objects.get(identificador=identificador)
+        except Emprestimo.DoesNotExist:
+            return Response({'detail': 'Não há um empréstimo com esse ID'})
+
+        if emprestimo:
+            queryset = queryset.filter(emprestimo=emprestimo.pk)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+    @action(detail=False, methods=['patch'], url_path='return')
+    def devolver(self, request, *args, **kwargs):
+
+        emprestimo = request.data.get('emprestimo', None)
+        nome = request.data.get('nome', None)
+
+        if not emprestimo:
+            return Response({'detail': 'Empréstimo não encontrado.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            equipamento = Equipamento.objects.get(patrimonio=nome)
+        except Equipamento.DoesNotExist:
+            pass
+
+        try:
+            obj_nome = ItemEmprestimo.objects.filter(
+                emprestimo=emprestimo, nome=nome, devolvido=False
+            ).exists()
+
+            if obj_nome:
+                obj = ItemEmprestimo.objects.get(
+                    emprestimo=emprestimo, nome=nome, devolvido=False
+                )
+                data = request.data
+            else:
+                obj = ItemEmprestimo.objects.get(
+                    emprestimo=emprestimo, equipamento=equipamento, devolvido=False
+                )
+                data = { 'emprestimo': emprestimo, 'equipamento': equipamento.pk }
+        except ItemEmprestimo.DoesNotExist:
+            return Response({'detail': 'Acesso não encontrado.'},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        obj.devolucao = timezone.now()
+        obj.devolvido = True
+        obj.save()
+
+        serializer = self.get_serializer(obj, data=data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 

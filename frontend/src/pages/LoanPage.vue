@@ -11,19 +11,26 @@ const obs = ref();
 const loanStatus = ref('pending');
 const tab = ref('retirada');
 const filter = ref<string>();
+const dialog = ref<boolean>(false);
 const $q = useQuasar();
 const notifTimeout = 30;
 let allLoans: string;
 
-interface LoanItem {
-  name: string;
-  returned: boolean;
+interface EquipComPatrimonio {
+  devolvido: boolean;
+  equipamento_nome: string;
+  equipamento_patrimonio: string;
 }
 
-const loanItems = ref<LoanItem[]>([{
-  name: '',
-  returned: false,
-}]);
+interface EquipSemPatrimonio {
+  nome: string;
+  devolvido: boolean;
+}
+
+type Equipamento = EquipComPatrimonio | EquipSemPatrimonio
+
+const loanItems = ref<Equipamento[]>([]);
+const newItems = ref<string[]>([]);
 
 interface Loan {
   identificador: string;
@@ -31,10 +38,13 @@ interface Loan {
   funcionario_nome: string;
   local: string;
   retirada: string;
-  items: string[];
+  equipamentos: string[];
   devolucao: string;
-  statusClass: string;
 }
+
+const selectedId = ref<string>('');
+const selectedResponsavel = ref<string>('');
+const selectedEncerrado = ref<boolean>(false);
 
 function capitalizeEachWord(str: string): string {
   return str
@@ -118,15 +128,10 @@ async function getLoans() {
     if (response.status === 200) {
       rows.value = response.data.map((loan: Loan) => ({
         identificador: loan.identificador,
-        responsavel: loan.responsavel_nome,
-        funcionario: loan.funcionario_nome,
-        items: loan.items.map((itemName: string) => ({
-          name: itemName,
-          returned: false,
-        })) as LoanItem[],
+        responsavel_nome: loan.responsavel_nome,
+        funcionario_nome: loan.funcionario_nome,
         local: loan.local,
         retirada: loan.retirada,
-        statusClass: loan.devolucao === null ? 'q-row-active' : 'q-row-inactive',
       }));
     } else {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
@@ -144,7 +149,7 @@ async function getLoans() {
     } else {
       displayError('Erro desconhecido!');
     }
-    throw error; // Rethrow the error
+    throw error;
   }
 }
 
@@ -153,7 +158,7 @@ async function registerLoan() {
     identificador: loanId.value,
     matricula: matricula.value,
     obs: obs.value,
-    items: loanItems.value.map((item) => item.name),
+    items: newItems.value,
   };
 
   try {
@@ -180,26 +185,19 @@ async function registerLoan() {
     } else {
       displayError('Erro desconhecido!');
     }
-    throw error; // Rethrow the error
+    throw error;
   }
 }
 
-async function returnLoan(id: string) {
+async function returnItem(loan: string, name: string, index: number) {
   try {
-    const response = await (api as AxiosInstance).patch('/controle/emprestimos/byidentifier/', {
-      identificador: id,
+    const response = await (api as AxiosInstance).patch('/controle/items/return/', {
+      emprestimo: loan,
+      nome: name,
     });
 
     if (response.status === 200) {
-      $q.notify({
-        type: 'positive',
-        message: 'Devolvido com successo.',
-        timeout: notifTimeout,
-      });
-
-      await getLoans();
-
-      return response.data;
+      loanItems.value[index].devolvido = true;
     }
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
@@ -216,19 +214,83 @@ async function returnLoan(id: string) {
   return null;
 }
 
-function getIdentificador(row: Loan) {
-  return row.identificador;
+async function returnLoan(loan: string) {
+  try {
+    const response = await (api as AxiosInstance).patch('/controle/emprestimos/byidentifier/', {
+      identificador: loan,
+    });
+
+    if (response.status === 200) {
+      $q.notify({
+        type: 'positive',
+        message: 'Devolvido com successo.',
+        timeout: notifTimeout,
+      });
+    }
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response) {
+        const errorData = axiosError.response.data as { detail?: string };
+        const errorDetail = errorData.detail ?? 'Erro desconhecido!';
+        displayError(errorDetail);
+      }
+    } else {
+      displayError('Erro desconhecido!');
+    }
+  }
+  return null;
+}
+
+function returnAllItems(id: string) {
+  loanItems.value.forEach((item, index) => {
+    if (!item.devolvido) {
+      returnItem(item.emprestimo, item.equipamento ? item.equipamento_patrimonio : item.nome, index);
+    }
+  });
+  returnLoan(id);
+  dialog.value = false;
+  getLoans();
 }
 
 function addItem() {
-  loanItems.value.push({
-    name: '',
-    returned: false,
-  });
+  newItems.value.push('');
 }
 
 function removeItem(index: number) {
-  loanItems.value.splice(index, 1);
+  newItems.value.splice(index, 1);
+}
+
+async function getItems(identifier: string, taker: string) {
+  selectedId.value = identifier;
+  selectedResponsavel.value = taker;
+  try {
+    const responseItems = await (api as AxiosInstance).get('/controle/items/', { params: { emprestimo: identifier } });
+    const responseEmprestimo = await (api as AxiosInstance).get('/controle/emprestimos/?all=true', { params: { identificador: identifier } });
+
+    if (responseItems.status === 200 && responseEmprestimo.status === 200) {
+      loanItems.value = responseItems.data;
+      const [{ encerrado }] = responseEmprestimo.data;
+      selectedEncerrado.value = encerrado;
+    } else {
+      throw new Error('Request failed');
+    }
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        const axiosError = error as AxiosError;
+        if (axiosError.response) {
+          const errorData = axiosError.response.data as { detail?: string };
+          const errorDetail = errorData.detail ?? 'Erro desconhecido!';
+          displayError(errorDetail);
+        }
+      }
+    } else {
+      displayError('Erro desconhecido!');
+    }
+    throw error;
+  }
+  dialog.value = true;
 }
 
 watch(loanStatus, () => {
@@ -267,34 +329,95 @@ onMounted(() => {
         <q-separator />
 
         <q-tab-panels v-model="tab" animated>
-          <q-tab-panel name="retirada">
+            <q-tab-panel name="retirada">
 
             <q-card class="flex-container">
               <q-card class="pad">
                 <q-input outlined v-model="loanId" class="pad" label="Identificador" />
                 <q-input outlined v-model="matricula" class="pad" label="Matrícula" />
                 <q-input outlined v-model="obs" class="pad" label="Observação" />
-                <q-btn color="primary" @click="addItem">Acrescentar equipamento</q-btn>
-                <q-list bordered separator>
-                  <q-item v-for="(item, index) in loanItems" :key="index">
-                    <q-item-section>
-                      <q-input v-model="item.name" label="Equipamento"
-                      :class="{ 'strikethrough': item.returned }" />
-                    </q-item-section>
-                    <q-item-section side>
-                      <q-btn flat icon="delete" @click="removeItem(index)" />
-                    </q-item-section>
-                  </q-item>
-                </q-list>
+                <q-form @submit="registerLoan">
+                  <div v-for="(item, index) in newItems" :key="index" class="q-mb-md">
+                    <q-input
+                      v-model="newItems[index]"
+                      label="Item"
+                      filled
+                      lazy-rules
+                      :rules="[val => !!val || 'Field cannot be empty']"
+                    />
+                    <q-btn
+                      icon="remove_circle"
+                      color="negative"
+                      @click="removeItem(index)"
+                      class="col-2"
+                      flat
+                      round
+                    />
+                  </div>
 
-                <q-card class="pad">
-                  <q-btn @click="registerLoan" color="white" text-color="black" label="Registrar" />
-                </q-card>
+                  <!-- Button to Add a New Item -->
+                  <q-btn
+                    label="Adicionar"
+                    color="primary"
+                    @click="addItem"
+                    icon="add"
+                    class="q-mb-md"
+                  />
+
+                  <!-- Submit Button to Save the List -->
+                  <q-btn
+                    label="Registrar"
+                    type="submit"
+                    color="positive"
+                    icon="save"
+                  />
+                </q-form>
               </q-card>
             </q-card>
           </q-tab-panel>
 
           <q-tab-panel name="devolucao">
+
+            <q-dialog v-model="dialog">
+              <q-card>
+                <q-toolbar>
+                  <q-avatar>
+                    <img src="https://cdn.quasar.dev/logo-v2/svg/logo.svg">
+                  </q-avatar>
+
+                  <q-toolbar-title>
+                    Empréstimo {{ selectedId }} ({{ selectedResponsavel }})
+                  </q-toolbar-title>
+
+                  <q-btn flat round dense icon="close" v-close-popup />
+                </q-toolbar>
+
+                <q-card-section>
+                  <div v-for="(item, index) in loanItems" :key="index" class="q-gutter-md row items-center">
+                    <span class="col">
+                      {{ 'equipamento_nome' in item ? `${item.equipamento_nome} (${item.equipamento_patrimonio})` : item.nome }}
+                    </span>
+                    <div class="col-auto">
+                      <q-btn
+                        @click="returnItem(item.emprestimo, item.equipamento ? item.equipamento_patrimonio : item.nome, index)"
+                        :disable="item.devolvido"
+                        label="Devolver"
+                        color="primary"
+                      />
+                    </div>
+                  </div>
+                </q-card-section>
+
+                <q-card-section>
+                <q-btn
+                    label="Devolver Tudo"
+                    color="primary"
+                    :disable="selectedEncerrado"
+                    @click="returnAllItems(selectedId)"
+                  />
+                </q-card-section>
+              </q-card>
+            </q-dialog>
 
             <q-option-group
               v-model="loanStatus"
@@ -308,7 +431,7 @@ onMounted(() => {
 
             <q-table
             flat bordered title="Empréstimos" :rows="rows" :columns="columns" :filter=filter
-            :row-key="getIdentificador">
+            row-key="identificador">
 
               <template v-slot:top-right>
                 <q-input borderless dense debounce="300" v-model="filter" placeholder="Pesquisar">
@@ -318,42 +441,15 @@ onMounted(() => {
                 </q-input>
               </template>
 
-              <template v-slot:header="props">
-                <q-tr :props="props">
-                  <q-th auto-width />
-                  <q-th v-for="col in props.cols" :key="col.name" :props="props">
-                    {{ col.label }}
-                  </q-th>
-                </q-tr>
-              </template>
-
-              <template v-slot:body="props">
-                <q-tr :props="props">
-                  <q-td auto-width>
-                    <q-btn size="sm" color="accent" round dense
-                    @click="props.expand = !props.expand"
-                      :icon="props.expand ? 'remove' : 'add'" />
-                  </q-td>
-                  <q-td v-for="col in props.cols" :key="col.name" :props="props">
-                    <template v-if="col.name === 'devolucao'">
-                        <q-btn color="primary" label="Total"
-                        @click="returnLoan(props.row.identificador)" />
-                    </template>
-                    <template v-else>
-                      {{ col.value }}
-                    </template>
-                  </q-td>
-                </q-tr>
-                <q-tr v-show="props.expand" :props="props">
-                  <q-td colspan="100%">
-                    <div class="text-left">
-                      <li v-for="(item, index) in props.row.items" :key=index>
-                        <q-item-section>{{ item.name }}</q-item-section>
-                      </li>
-                    </div>
-                  </q-td>
-                </q-tr>
-              </template>
+              <template v-slot:body-cell-devolucao="props">
+                <q-td :props="props">
+                  <q-btn
+                    label="Visualizar"
+                    color="primary"
+                    @click="getItems(props.row.identificador, props.row.responsavel_nome)"
+                  />
+                </q-td>
+                </template>
 
             </q-table>
           </q-tab-panel>
@@ -363,7 +459,7 @@ onMounted(() => {
   </q-card>
 </template>
 
-<style scoped>
+<style>
 .q-row-inactive {
   background-color: #0000f0; /* Light gray background for rows with null hora_devolucao */
   color: #a0a0a0; /* Gray text color for rows with null hora_devolucao */
