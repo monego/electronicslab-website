@@ -26,6 +26,7 @@ interface Row {
   sala_numero: string,
   defeito: boolean,
   num_manutencao: number,
+  num_emprestimo: number,
   foto: string,
   manual: string,
 }
@@ -75,6 +76,13 @@ const columns: ColumnType[] = [
     label: 'Manutenções',
     align: 'center',
     field: (row: Row) => row.num_manutencao,
+    sortable: true,
+  },
+  {
+    name: 'emprestimo',
+    label: 'Empréstimos',
+    align: 'center',
+    field: (row: Row) => row.num_emprestimo,
     sortable: true,
   },
   {
@@ -135,6 +143,7 @@ async function getEquipments() {
           sala: item.sala_numero,
           defeito: item.defeito,
           num_manutencao: item.num_manutencao,
+          num_emprestimo: item.num_emprestimo,
           foto: item.foto,
           manual: item.manual,
         }));

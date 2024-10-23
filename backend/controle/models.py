@@ -160,7 +160,7 @@ class ItemEmprestimo(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='equipamento',
+        related_name='item_emprestimo',
     )
     nome = models.CharField(max_length=100, blank=True, null=True)
     devolvido = models.BooleanField(default=False)

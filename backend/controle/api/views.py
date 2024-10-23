@@ -321,7 +321,10 @@ class EquipamentoViewSet(ModelViewSet):
     serializer_class = EquipamentoSerializer
 
     def get_queryset(self):
-        return Equipamento.objects.annotate(num_manutencao=Count('manutencao'))
+        return Equipamento.objects.annotate(
+            num_manutencao=Count('manutencao', distinct=True),
+            num_emprestimo=Count('item_emprestimo', distinct=True)
+        )
 
     @action(detail=True, methods=['post'])
     def upload_foto(self, request, pk=None):

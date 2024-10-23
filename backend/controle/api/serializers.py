@@ -100,12 +100,13 @@ class EmprestimoSerializer(serializers.ModelSerializer):
 
 class EquipamentoSerializer(serializers.ModelSerializer):
     num_manutencao = serializers.IntegerField(read_only=True)
+    num_emprestimo = serializers.IntegerField(read_only=True)
     sala_numero = serializers.SerializerMethodField()
 
     class Meta:
         model = Equipamento
         fields = ['nome', 'descricao', 'patrimonio', 'sala', 'sala_numero',
-                  'defeito', 'foto', 'manual', 'num_manutencao']
+                  'defeito', 'foto', 'manual', 'num_manutencao', 'num_emprestimo']
 
     def get_sala_numero(self, obj):
         return obj.sala.numero if obj.sala else None
