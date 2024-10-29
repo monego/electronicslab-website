@@ -54,6 +54,13 @@ class ItemEmprestimoSerializer(serializers.ModelSerializer):
     equipamento_patrimonio = serializers.StringRelatedField(
         source="equipamento.patrimonio", read_only=True
     )
+    recebente_nome = serializers.SerializerMethodField()
+
+    def get_recebente_nome(self, obj):
+        if fun := obj.recebente:
+            return f"{fun.first_name} {fun.last_name}"
+        else:
+            return
 
     class Meta:
         model = ItemEmprestimo
@@ -63,6 +70,7 @@ class ItemEmprestimoSerializer(serializers.ModelSerializer):
             "nome",
             "devolvido",
             "devolucao",
+            "recebente_nome",
             "equipamento_nome",
             "equipamento_patrimonio",
         ]

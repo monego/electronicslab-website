@@ -16,31 +16,27 @@ const $q = useQuasar();
 const notifTimeout = 30;
 let allLoans: string;
 
-interface EquipComPatrimonio {
-  devolvido: boolean;
-  equipamento_nome: string;
-  equipamento_patrimonio: string;
-}
-
-interface EquipSemPatrimonio {
-  nome: string;
-  devolvido: boolean;
-}
-
-type Equipamento = EquipComPatrimonio | EquipSemPatrimonio
-
-const loanItems = ref<Equipamento[]>([]);
-const newItems = ref<string[]>([]);
-
 interface Loan {
   identificador: string;
   responsavel_nome: string;
   funcionario_nome: string;
   local: string;
   retirada: string;
-  equipamentos: string[];
   devolucao: string;
 }
+
+interface LoanItem {
+  emprestimo: string,
+  equipamento: number | string,
+  equipamento_patrimonio: string,
+  nome: string,
+  recebente_nome: string,
+  devolvido: boolean,
+  devolucao: string,
+}
+
+const loanItems = ref<LoanItem[]>([]);
+const newItems = ref<string[]>([]);
 
 const selectedId = ref<string>('');
 const selectedResponsavel = ref<string>('');
@@ -245,7 +241,11 @@ async function returnLoan(loan: string) {
 function returnAllItems(id: string) {
   loanItems.value.forEach((item, index) => {
     if (!item.devolvido) {
-      returnItem(item.emprestimo, item.equipamento ? item.equipamento_patrimonio : item.nome, index);
+      returnItem(
+        item.emprestimo,
+        item.equipamento ? item.equipamento_patrimonio : item.nome,
+        index,
+      );
     }
   });
   returnLoan(id);
@@ -259,6 +259,30 @@ function addItem() {
 
 function removeItem(index: number) {
   newItems.value.splice(index, 1);
+}
+
+function getNome(item: LoanItem) {
+  let nome: string;
+  if ('equipamento_nome' in item) {
+    nome = `${item.equipamento_nome} (${item.equipamento_patrimonio})`;
+  } else {
+    nome = item.nome;
+  }
+  return nome;
+}
+
+function formatReturn(item: LoanItem) {
+  return format(item.devolucao, 'yyyy-MM-dd HH:mm:ss');
+}
+
+function getPatrOrNome(item: LoanItem) {
+  let patrOrNome: string;
+  if (item.equipamento) {
+    patrOrNome = item.equipamento_patrimonio;
+  } else {
+    patrOrNome = item.nome;
+  }
+  return patrOrNome;
 }
 
 async function getItems(identifier: string, taker: string) {
@@ -337,7 +361,7 @@ onMounted(() => {
                 <q-input outlined v-model="matricula" class="pad" label="Matrícula" />
                 <q-input outlined v-model="obs" class="pad" label="Observação" />
                 <q-form @submit="registerLoan">
-                  <div v-for="(item, index) in newItems" :key="index" class="q-mb-md">
+                  <div v-for="index in newItems.length" :key="index" class="q-mb-md">
                     <q-input
                       v-model="newItems[index]"
                       label="Item"
@@ -393,24 +417,28 @@ onMounted(() => {
                 </q-toolbar>
 
                 <q-card-section>
-                  <div v-for="(item, index) in loanItems" :key="index" class="q-gutter-md row items-center">
+                  <div v-for="(item, index) in loanItems" :key="index"
+                  class="q-gutter-md row items-center">
                     <span class="col">
-                      {{ 'equipamento_nome' in item ? `${item.equipamento_nome} (${item.equipamento_patrimonio})` : item.nome }}
+                      {{ getNome(item) }}
                     </span>
                     <div class="col-auto">
                       <q-btn
-                        @click="returnItem(item.emprestimo, item.equipamento ? item.equipamento_patrimonio : item.nome, index)"
+                        @click="returnItem(item.emprestimo, getPatrOrNome(item), index)"
                         :disable="item.devolvido"
                         label="Devolver"
                         color="primary"
                       />
+                    </div>
+                    <div v-if="item.devolvido" class="col-auto">
+                      {{ item.recebente_nome }} -- {{ formatReturn(item) }}
                     </div>
                   </div>
                 </q-card-section>
 
                 <q-card-section>
                 <q-btn
-                    label="Devolver Tudo"
+                    label="Quitar"
                     color="primary"
                     :disable="selectedEncerrado"
                     @click="returnAllItems(selectedId)"

@@ -447,6 +447,7 @@ class ItemViewSet(ModelViewSet):
             return Response({'detail': 'Acesso não encontrado.'},
                             status=status.HTTP_404_NOT_FOUND)
 
+        obj.recebente = request.user
         obj.devolucao = timezone.now()
         obj.devolvido = True
         obj.save()
