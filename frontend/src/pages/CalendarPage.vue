@@ -31,6 +31,14 @@ interface Sala {
   'value': string
 }
 
+interface SalaResponse {
+  'id': number,
+  'predio': number,
+  'nome': string,
+  'numero': string,
+  'codigo': string,
+}
+
 const showError = ref(false);
 const errorMessage = ref<string>('');
 
@@ -62,7 +70,7 @@ async function getSalas() {
     const response = await (api as AxiosInstance).get('/root/salas');
 
     if (response.status === 200) {
-      salas.value = response.data.map((obj) => ({
+      salas.value = response.data.map((obj: SalaResponse) => ({
         label: `[${obj.numero}] ${obj.nome}`,
         value: obj.codigo,
       }));
@@ -84,7 +92,7 @@ async function getSalas() {
   }
 }
 
-async function getUserList(roomId: string, range: Range) {
+async function getUserList(roomId: Sala, range: Range) {
   const rangeStart: string = range.start.split(' ')[0];
   const rangeEnd: string = range.end.split(' ')[0];
 
@@ -105,10 +113,10 @@ async function getUserList(roomId: string, range: Range) {
     if (response.status === 200) {
       if (response.data.length !== 0) {
         aulasApi = response.data;
-        aulasApi.forEach((aula, index) => {
+        aulasApi.forEach((aula: Aula, index: number) => {
           const titleSplit = aula.title.split('-');
           const subject = capitalizeWords(titleSplit[0]);
-          const lecturer = capitalizeWords(titleSplit.at(-1));
+          const lecturer = capitalizeWords(titleSplit.at(-1)!);
           const filtTitle = `${subject} - ${lecturer}`;
           const obj: Aula = {
             id: index, start: aula.start.slice(0, -3), end: aula.end.slice(0, -3), title: filtTitle, calendarId: 'work',
@@ -142,24 +150,11 @@ const calendarApp = createCalendar({
   selectedDate: today.toISOString().slice(0, 10),
   views: [viewDay, viewWeek],
   locale: 'pt-BR',
-  // calendars: {
-  //   work: {
-  //     colorName: 'work',
-  //     lightColors: {
-  //       main: '#d91c45',
-  //       container: '#0fd2dc',
-  //       onContainer: '#09000d',
-  //     },
-  //     darkColors: {
-  //       main: '#ffc0cc',
-  //       onContainer: '#ffdee6',
-  //       container: '#a24258',
-  //     },
-  //   },
-  // },
   callbacks: {
     onRangeUpdate(range) {
-      getUserList(sala.value, range);
+      if (sala.value != null) {
+        getUserList(sala.value, range);
+      }
     },
   },
   dayBoundaries: {
@@ -178,12 +173,15 @@ const calendarApp = createCalendar({
 });
 
 watch(sala, (newValue) => {
-  getUserList(newValue, calendarControlsPlugin.getRange());
+  if (newValue != null) {
+    getUserList(newValue, calendarControlsPlugin.getRange() as Range);
+  }
 });
 
 onMounted(() => {
   getSalas();
-  // getUserList('3143', calendarControlsPlugin.getRange());
+  const [firstSala] = salas.value;
+  sala.value = firstSala;
 });
 </script>
 
