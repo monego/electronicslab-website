@@ -2,6 +2,10 @@
 import { defineStore } from 'pinia';
 import { AxiosInstance, AxiosError } from 'axios';
 import { axios, api } from 'boot/axios';
+import { useQuasar } from 'quasar';
+
+const $q = useQuasar();
+const notifTimeout = 30;
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -33,12 +37,18 @@ export const useAuthStore = defineStore('auth', {
         if (axios.isAxiosError(error)) {
           const axiosError = error as AxiosError;
           if (axiosError.response) {
-            const errorData = axiosError.response.data as { detail?: string };
-            const errorDetail = errorData.detail ?? 'Erro desconhecido!';
-            console.log(errorDetail);
+            $q.notify({
+              type: 'negative',
+              message: 'Falha desconhecida.',
+              timeout: notifTimeout,
+            });
           }
         } else {
-          console.log('Erro desconhecido!');
+          $q.notify({
+            type: 'negative',
+            message: 'Falha desconhecida.',
+            timeout: notifTimeout,
+          });
         }
         throw error; // Rethrow the error
       }

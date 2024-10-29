@@ -3,9 +3,12 @@ import { ref, onMounted } from 'vue';
 import { format } from 'date-fns';
 import { api, axios } from 'boot/axios';
 import { AxiosInstance, AxiosError } from 'axios';
+import { useQuasar } from 'quasar';
 
 const today = new Date();
 const formattedDate = format(today, 'yyyy/MM/dd');
+const $q = useQuasar();
+const notifTimeout = 30;
 
 type DateModel = {
   from: string;
@@ -36,11 +39,10 @@ async function getHorarios() {
 
     if (response.status === 200) {
       Object.keys(horarios.value).forEach((day, index) => {
-        const inicio = response.data[index].inicio;
+        const { inicio, fim } = response.data[index];
         const inicioIntervalo = response.data[index].inicio_intervalo;
         const fimIntervalo = response.data[index].fim_intervalo;
-        const fim = response.data[index].fim;
-        const diaDaSemana = response.data[index].dia_da_semana;
+        const diaDaSemana = response.data[index].dia_da_semana as keyof Jornada;
         horarios.value[diaDaSemana] = [inicio, inicioIntervalo, fimIntervalo, fim];
       });
     } else {
@@ -50,10 +52,18 @@ async function getHorarios() {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       if (axiosError.response) {
-        console.log(error);
+        $q.notify({
+          type: 'negative',
+          message: 'Falha desconhecida ao registrar.',
+          timeout: notifTimeout,
+        });
       }
     } else {
-      console.log(error);
+      $q.notify({
+        type: 'negative',
+        message: 'Falha desconhecida ao registrar.',
+        timeout: notifTimeout,
+      });
     }
     throw error;
   }
@@ -76,10 +86,18 @@ async function patchHorarios(day: string, hour: (string | null)[]) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       if (axiosError.response) {
-        console.log(error);
+        $q.notify({
+          type: 'negative',
+          message: 'Falha desconhecida ao registrar.',
+          timeout: notifTimeout,
+        });
       }
     } else {
-      console.log(error);
+      $q.notify({
+        type: 'negative',
+        message: 'Falha desconhecida ao registrar.',
+        timeout: notifTimeout,
+      });
     }
     throw error;
   }
@@ -107,7 +125,11 @@ async function setAusencia(time: DateModel, reason: string) {
     const response = await (api as AxiosInstance).post('/controle/ausencia/', data);
 
     if (response.status === 201) {
-      console.log("Success!");
+      $q.notify({
+        type: 'positive',
+        message: 'Ocorrência registrada com sucesso.',
+        timeout: notifTimeout,
+      });
     } else {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
@@ -115,10 +137,18 @@ async function setAusencia(time: DateModel, reason: string) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       if (axiosError.response) {
-        console.log(error);
+        $q.notify({
+          type: 'negative',
+          message: 'Falha desconhecida ao registrar.',
+          timeout: notifTimeout,
+        });
       }
     } else {
-      console.log(error);
+      $q.notify({
+        type: 'negative',
+        message: 'Falha desconhecida ao registrar.',
+        timeout: notifTimeout,
+      });
     }
     throw error;
   }
