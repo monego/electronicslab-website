@@ -361,7 +361,7 @@ onMounted(() => {
                 <q-input outlined v-model="matricula" class="pad" label="Matrícula" />
                 <q-input outlined v-model="obs" class="pad" label="Observação" />
                 <q-form @submit="registerLoan">
-                  <div v-for="index in newItems.length" :key="index" class="q-mb-md">
+                  <div v-for="(_, index) in newItems" :key="index" class="q-mb-md">
                     <q-input
                       v-model="newItems[index]"
                       label="Item"
