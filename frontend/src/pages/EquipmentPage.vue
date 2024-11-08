@@ -243,8 +243,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="q-pa-md">
-    <q-card>
+  <q-page>
+    <q-card class="q-pa-md no-shadow">
       <q-tabs v-model="tab" dense class="text-grey q-mb-lg"
       active-color="primary" indicator-color="primary"
       align="justify" narrow-indicator
@@ -265,7 +265,7 @@ onMounted(() => {
           >
 
             <template v-slot:top-right>
-              <q-input borderless dense debounce="300" v-model="search" placeholder="Search">
+              <q-input borderless dense debounce="300" v-model="search" placeholder="Pesquisar">
                 <template v-slot:append>
                   <q-icon name="search" />
                 </template>
@@ -333,5 +333,5 @@ onMounted(() => {
         </q-tab-panel>
       </q-tab-panels>
     </q-card>
-  </div>
+  </q-page>
 </template>

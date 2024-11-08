@@ -253,8 +253,7 @@ onMounted(() => {
 
 <template>
   <q-page>
-    <q-card class="q-pa-md">
-      <q-card>
+    <q-card class="q-pa-md no-shadow">
         <q-tabs v-model="tab" dense class="text-grey q-mb-lg" active-color="primary"
         indicator-color="primary" align="justify" narrow-indicator>
           <q-tab class="text-purple" name="entrada" icon="mdi-clock-in" label="Entrada" />
@@ -281,29 +280,37 @@ onMounted(() => {
               </q-card>
             </q-dialog>
 
-            <q-card class="q-gutter-md">
-              <q-input outlined v-model="matricula" label="Matrícula" />
-              <q-select outlined v-model="sala" :options="options" label="Sala" />
-              <q-btn @click="registerAccess" color="white" text-color="black" label="Registrar" />
-            </q-card>
+            <q-input outlined v-model="matricula" label="Matrícula" class="q-input"/>
+            <q-select outlined v-model="sala" :options="options" label="Sala" class="q-input" />
+            <q-btn @click="registerAccess"
+              label="Registrar"
+              type="submit"
+              color="positive"
+              icon="mdi-turnstile-outline"
+            />
 
           </q-tab-panel>
 
           <q-tab-panel name="saida">
-            <q-card class="q-gutter-md">
-              <q-table
-              title="Registros"
-              selection="multiple"
-              :rows="rows"
-              :columns="columns"
-              row-key="pessoa_matricula"
-              v-model:selected="selected"
+            <q-table
+            flat bordered
+            title="Registros"
+            selection="multiple"
+            :rows="rows"
+            :columns="columns"
+            row-key="pessoa_matricula"
+            v-model:selected="selected"
+            />
+            <div style="padding-top: 20px;">
+              <q-btn @click="releaseStudents(selected)"
+              label="Liberar"
+              type="submit"
+              color="positive"
+              icon="mdi-turnstile-outline"
               />
-              <q-btn @click="releaseStudents(selected)">Liberar</q-btn>
-            </q-card>
+          </div>
           </q-tab-panel>
         </q-tab-panels>
       </q-card>
-    </q-card>
   </q-page>
 </template>

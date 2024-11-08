@@ -327,13 +327,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <q-card class="q-pa-md">
-    <q-card class="q-gutter-md">
-      <q-card>
+  <q-page>
+  <q-card class="q-pa-md no-shadow">
         <q-tabs
         v-model="tab"
         dense
-        class="text-grey"
+        class="text-grey q-mb-lg"
         active-color="primary"
         indicator-color="primary"
         align="justify"
@@ -354,50 +353,46 @@ onMounted(() => {
 
         <q-tab-panels v-model="tab" animated>
             <q-tab-panel name="retirada">
-
-            <q-card class="flex-container">
-              <q-card class="pad">
-                <q-input outlined v-model="loanId" class="pad" label="Identificador" />
-                <q-input outlined v-model="matricula" class="pad" label="Matrícula" />
-                <q-input outlined v-model="obs" class="pad" label="Observação" />
+                <q-input outlined v-model="loanId" class="q-input" label="Identificador" />
+                <q-input outlined v-model="matricula" class="q-input" label="Matrícula" />
+                <q-input outlined v-model="obs" class="q-input" label="Observação/Local" />
                 <q-form @submit="registerLoan">
                   <div v-for="(_, index) in newItems" :key="index" class="q-mb-md">
-                    <q-input
-                      v-model="newItems[index]"
-                      label="Item"
-                      filled
-                      lazy-rules
-                      :rules="[val => !!val || 'Field cannot be empty']"
-                    />
-                    <q-btn
-                      icon="remove_circle"
-                      color="negative"
-                      @click="removeItem(index)"
-                      class="col-2"
-                      flat
-                      round
-                    />
+                    <div class="flex">
+                      <q-input
+                        v-model="newItems[index]"
+                        label="Item"
+                        filled
+                        lazy-rules
+                        :rules="[val => !!val || 'Field cannot be empty']"
+                      />
+                      <q-btn
+                        icon="mdi-delete-circle"
+                        color="negative"
+                        @click="removeItem(index)"
+                        flat
+                        round
+                      />
+                    </div>
                   </div>
 
-                  <!-- Button to Add a New Item -->
                   <q-btn
                     label="Adicionar"
                     color="primary"
                     @click="addItem"
-                    icon="add"
+                    icon="mdi-plus"
                     class="q-mb-md"
                   />
 
-                  <!-- Submit Button to Save the List -->
-                  <q-btn
-                    label="Registrar"
-                    type="submit"
-                    color="positive"
-                    icon="save"
-                  />
+                  <div class="flex">
+                    <q-btn
+                      label="Registrar"
+                      type="submit"
+                      color="positive"
+                      icon="mdi-content-save"
+                    />
+                  </div>
                 </q-form>
-              </q-card>
-            </q-card>
           </q-tab-panel>
 
           <q-tab-panel name="devolucao">
@@ -482,9 +477,8 @@ onMounted(() => {
             </q-table>
           </q-tab-panel>
         </q-tab-panels>
-      </q-card>
     </q-card>
-  </q-card>
+  </q-page>
 </template>
 
 <style>
@@ -496,5 +490,10 @@ onMounted(() => {
 .q-row-active {
   background-color: #ffffff; /* White background for rows with non-null hora_devolucao */
   color: #000000; /* Black text color for rows with non-null hora_devolucao */
+}
+
+.q-input {
+  padding-top: 10px;
+  padding-bottom: 20px;
 }
 </style>
