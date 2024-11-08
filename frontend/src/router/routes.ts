@@ -7,7 +7,6 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: '/', component: () => import('pages/IndexPage.vue') },
       { path: '/calendario', component: () => import('pages/CalendarPage.vue') },
-      { path: '/laboratorios', component: () => import('pages/LaboratoryPage.vue') },
     ],
   },
   {
@@ -18,8 +17,6 @@ const routes: RouteRecordRaw[] = [
       { path: '/emprestimo', component: () => import('pages/LoanPage.vue') },
       { path: '/equipamentos', component: () => import('pages/EquipmentPage.vue') },
       { path: '/ocorrencias', component: () => import('pages/OccurrencePage.vue') },
-      { path: '/registrodepreco', component: () => import('pages/PriceRegisterPage.vue') },
-      { path: '/estatisticas', component: () => import('pages/StatisticsPage.vue') },
     ],
   },
   {

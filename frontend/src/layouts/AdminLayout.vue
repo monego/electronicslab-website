@@ -92,12 +92,6 @@ const privateList: EssentialLinkProps[] = [
     link: '/#/ocorrencias',
   },
   {
-    title: 'Registro de Preço',
-    caption: 'Aquisição de equipamentos',
-    icon: 'mdi-currency-usd',
-    link: '/#/registrodepreco',
-  },
-  {
     title: 'Estatísticas',
     caption: 'Estatísticas do banco de dados',
     icon: 'mdi-chart-line',

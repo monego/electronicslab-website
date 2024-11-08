@@ -91,6 +91,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'nupedee.wsgi.application'
 
+CORS_ALLOWED_ORIGINS = ['http://localhost:9000']
 CSRF_TRUSTED_ORIGINS = ['http://localhost:9000']
 CORS_ALLOW_CREDENTIALS = True
 

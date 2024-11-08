@@ -21,6 +21,8 @@
     "@schedule-x/theme-default": "^1.63.1",
     "@schedule-x/vue": "^1.58.0",
     "axios": "^1.7.7",
+    "date-fns": "^4.1.0",
+    "js-cookie": "^3.0.5",
     "pinia": "^2.2.4",
     "quasar": "^2.17.1",
     "remeda": "^2.16.0",

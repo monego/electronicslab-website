@@ -2,8 +2,6 @@ import django_filters
 from django.contrib import admin
 from django.contrib.auth.models import User
 from controle.models import (
-    Atividades,
-    AtualizacaoAtividade,
     Ausencia,
     ControleAcesso,
     Emprestimo,
@@ -11,25 +9,7 @@ from controle.models import (
     HorarioTrabalho,
     ItemEmprestimo,
     Manutencao,
-    Orcamento,
-    RegistroPreco,
 )
-
-class AtividadesFilter(django_filters.FilterSet):
-    grupos = django_filters.ModelMultipleChoiceFilter(queryset=User.objects.all())
-
-class AtividadesAdmin(admin.ModelAdmin):
-    list_filter = ('funcionarios', 'estado', 'hora_iniciada', 'hora_concluida',)
-    list_display = (
-        'descricao',
-        'estado',
-        'hora_iniciada',
-        'hora_concluida',
-    )
-    filter_horizontal = ('funcionarios',)
-
-class AtualizacaoAtividadeAdmin(admin.ModelAdmin):
-    list_display=('atividade', 'observacao', 'data')
 
 class AusenciaAdmin(admin.ModelAdmin):
     list_display = ('funcionario', 'inicio', 'fim', 'motivo')
@@ -64,14 +44,6 @@ class ManutencaoAdmin(admin.ModelAdmin):
 class ControleAcessoAdmin(admin.ModelAdmin):
     list_display = ('pessoa', 'sala')
 
-class RegistroPrecoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'estado')
-
-class OrcamentoAdmin(admin.ModelAdmin):
-    list_display = ('registro', 'preco')
-
-admin.site.register(Atividades, AtividadesAdmin)
-admin.site.register(AtualizacaoAtividade, AtualizacaoAtividadeAdmin)
 admin.site.register(Ausencia, AusenciaAdmin)
 admin.site.register(ControleAcesso, ControleAcessoAdmin)
 admin.site.register(Emprestimo, EmprestimosAdmin)
@@ -79,5 +51,3 @@ admin.site.register(Equipamento, EquipamentoAdmin)
 admin.site.register(HorarioTrabalho, HorarioTrabalhoAdmin)
 admin.site.register(ItemEmprestimo, ItemEmprestimoAdmin)
 admin.site.register(Manutencao, ManutencaoAdmin)
-admin.site.register(Orcamento, OrcamentoAdmin)
-admin.site.register(RegistroPreco, RegistroPrecoAdmin)

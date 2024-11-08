@@ -9,7 +9,7 @@ description = "Site novo do NUPEDEE"
 authors = [
 {name = "Vinicius Monego", email = "monego@posteo.net"}
 ]
-license = "agpl3+"
+license = "AGPLv3+"
 dependencies = [
 "django>=4,<5",
 "djangorestframework>=3.14.0",

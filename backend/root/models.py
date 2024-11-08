@@ -43,6 +43,7 @@ class Sala(models.Model):
     nome = models.CharField(max_length=50, null=True)
     numero = models.CharField(max_length=5, null=True)
     codigo = models.CharField(max_length=5, null=True)
+    imagem = models.ImageField("Imagem", null=True, blank=True)
 
     def __str__(self):
         return "[" + self.numero + "]" + " " + self.nome
@@ -50,13 +51,3 @@ class Sala(models.Model):
     class Meta:
         ordering = ["numero"]
 
-
-class Laboratorio(models.Model):
-    nome = models.ForeignKey(Sala, on_delete=models.SET_NULL, null=True)
-    imagem = models.ImageField("Imagem")
-    ativo = models.BooleanField()
-
-    class Meta:
-        ordering = ["nome"]
-        verbose_name = 'Laboratório'
-        verbose_name_plural = "Laboratórios"

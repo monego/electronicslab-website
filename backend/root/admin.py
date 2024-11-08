@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 
-from .models import (Laboratorio, Pessoa, Predio, Sala)
+from .models import (Pessoa, Predio, Sala)
 
 class PessoaAdmin(admin.ModelAdmin):
     list_display = ('nome', 'matricula', 'tipo')
@@ -20,11 +20,6 @@ class PessoaAdmin(admin.ModelAdmin):
         else:
             pass
 
-
-class LaboratorioAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'ativo')
-
-
 class PredioAdmin(admin.ModelAdmin):
     list_display = ('nome', 'numero')
 
@@ -33,7 +28,6 @@ class SalaAdmin(admin.ModelAdmin):
     list_display = ('nome', 'predio', 'numero')
 
 
-admin.site.register(Laboratorio, LaboratorioAdmin)
 admin.site.register(Pessoa, PessoaAdmin)
 admin.site.register(Predio, PredioAdmin)
 admin.site.register(Sala, SalaAdmin)
