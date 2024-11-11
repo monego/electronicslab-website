@@ -65,7 +65,7 @@ const login = async () => {
 
     if (response.status === 200) {
       if (response.data.authenticated) {
-        authStore.setUsername(response.data.username);
+        authStore.login(response.data.username);
         router.push('/admin');
       } else {
         $q.notify({

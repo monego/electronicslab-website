@@ -16,8 +16,9 @@ export const useAuthStore = defineStore('auth', {
     userName: (state) => state.username,
   },
   actions: {
-    setUsername(username: string) {
+    login(username: string) {
       this.username = username;
+      this.isAuthenticated = true;
     },
     logout() {
       this.username = '';

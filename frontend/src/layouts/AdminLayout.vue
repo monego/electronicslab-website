@@ -117,8 +117,7 @@ const logout = async () => {
     });
 
     if (response.status === 200) {
-      authStore.setUsername('');
-      authStore.isAuthenticated = false;
+      authStore.logout();
       router.push('/login');
     }
   } catch (error: unknown) {

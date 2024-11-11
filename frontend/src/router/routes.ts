@@ -1,4 +1,5 @@
 import { RouteRecordRaw } from 'vue-router';
+import { useAuthStore } from 'stores/auth';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -12,6 +13,14 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/admin',
     component: () => import('src/layouts/AdminLayout.vue'),
+    beforeEnter: (to, from, next) => {
+      const authStore = useAuthStore();
+      if (!authStore.isAuthenticated) {
+        next({ path: '/login' });
+      } else {
+        next();
+      }
+    },
     children: [
       { path: '/acesso', component: () => import('pages/AccessPage.vue') },
       { path: '/emprestimo', component: () => import('pages/LoanPage.vue') },
