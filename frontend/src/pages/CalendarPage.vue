@@ -6,6 +6,7 @@ import { createEventsServicePlugin } from '@schedule-x/events-service';
 import { createCalendarControlsPlugin } from '@schedule-x/calendar-controls';
 import { AxiosInstance, AxiosError } from 'axios';
 import { axios, api } from 'boot/axios';
+import { useQuasar } from 'quasar';
 import {
   createCalendar,
   viewDay,
@@ -41,6 +42,7 @@ interface SalaResponse {
 
 const showError = ref(false);
 const errorMessage = ref<string>('');
+const $q = useQuasar();
 
 function displayError(message: string) {
   errorMessage.value = message;
@@ -197,7 +199,9 @@ onMounted(() => {
     </q-card>
   </q-card>
   <q-card>
-    <ScheduleXCalendar :calendar-app="calendarApp" />
+    <div :class="{ 'q-mx-xl q-my-md': !$q.platform.is.mobile }">
+      <ScheduleXCalendar :calendar-app="calendarApp" />
+    </div>
   </q-card>
 </template>
 
@@ -205,11 +209,7 @@ onMounted(() => {
 body {
   background-color: #eeeeee; /* Cinza claro */
 }
-#calendar {
-  width: 50%;
-  height: 400px;
-  max-height: 90vh;
-}
+
 .sx__time-grid-event-title {
   font-weight: normal;
   font-size: medium;

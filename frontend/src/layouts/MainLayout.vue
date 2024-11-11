@@ -20,13 +20,9 @@ const links = ref([
   <q-layout view="lHh Lpr lFf">
     <q-header elevated>
       <q-toolbar>
-        <q-btn round color='#212121'>
           <q-avatar square>
             <img src="/Icone.ico">
           </q-avatar>
-
-          <a href='#'>NUPEDEE</a>
-        </q-btn>
         <q-space />
         <q-btn
         v-for="link in links"
