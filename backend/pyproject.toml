@@ -13,14 +13,17 @@ license = "AGPLv3+"
 dependencies = [
 "django>=4,<5",
 "djangorestframework>=3.14.0",
+"django-dbbackup",
 "django-cors-headers>=3.13.0",
 "django-filter",
-"Pillow>=9.4.0",
-"python-decouple>=3.7",
-"psycopg>=3.1.8",
+"granian>=1,<2",
 "ipython>=8.18.1",
 "pandas>=2.1",
-"hypercorn"
+"Pillow>=9.4.0",
+"python-barcode",
+"python-decouple>=3.7",
+"psycopg>=3.1.8",
+"reportlab>=4,<5"
 ]
 
 [tool.hatch.version]
