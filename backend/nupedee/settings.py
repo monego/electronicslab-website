@@ -10,7 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 from pathlib import Path
-from decouple import config
+from decouple import config, Csv
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -91,8 +91,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'nupedee.wsgi.application'
 
-CORS_ALLOWED_ORIGINS = ['http://localhost:9000']
-CSRF_TRUSTED_ORIGINS = ['http://localhost:9000']
+CORS_ALLOWED_ORIGINS = config("CORS_ALLOWED_ORIGINS", cast=Csv(post_process=tuple))
+CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", cast=Csv(post_process=tuple))
 CORS_ALLOW_CREDENTIALS = True
 
 # settings.py
