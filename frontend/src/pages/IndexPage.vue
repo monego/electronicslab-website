@@ -82,7 +82,7 @@ const columns: ColumnType[] = [
 
 const rows = ref<Aula[]>(aulas.value);
 
-function extractData(lab: string, title: string, periodoString: string): Aula {
+function extractData(lab: string, title: string, startTime: string, endTime: string): Aula {
   /* Function to process the response and generate the Aula object. */
 
   const titleSplit = title.split(' - ');
@@ -93,11 +93,6 @@ function extractData(lab: string, title: string, periodoString: string): Aula {
   // Extract 'professor' from 'title' for the Aula object
   const professorUpperCase = titleSplit[titleSplit.length - 1];
   // input.charAt(0).toUpperCase() + input.slice(1);
-
-  // Extract 'start' and 'end' for the Aula object
-  const parts: string[] = periodoString.split(' ');
-  const startTime: string = parts[1];
-  const endTime: string = parts[4];
 
   return {
     start: startTime,
@@ -135,17 +130,15 @@ async function getSalas() {
 
 async function getUserList(sala: Sala) {
   try {
-    const response = await axios.post('https://oca.ctism.ufsm.br/ensalamento/getFullCalendar', {
+    const response = await axios.post('https://oca.ctism.ufsm.br/ensalamento/getAulasAgora', {
       withCredentials: false,
       espaco: sala.code,
-      inicio: new Date().toISOString().slice(0, 10),
-      fim: new Date().toISOString().slice(0, 10),
       apenasDeferidos: true,
     });
     if (response.status === 200) {
       if (response.data.length !== 0) {
-        response.data.forEach((aula: { title: string, periodoString: string }) => {
-          aulas.value.push(extractData(sala.label, aula.title, aula.periodoString));
+        response.data.forEach((aula: { titulo: string, inicio: string, fim: string }) => {
+          aulas.value.push(extractData(sala.label, aula.titulo, aula.inicio, aula.fim));
         });
       }
     } else {
