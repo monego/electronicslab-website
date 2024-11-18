@@ -7,6 +7,7 @@ class Pessoa(models.Model):
     class Tipo(models.TextChoices):
         ALUNO = 'AL'
         BOLSISTA = 'BO'
+        FUNCIONARIO = 'FU'
         PROFESSOR = 'PR'
 
     nome = models.CharField(max_length=100, default="")
