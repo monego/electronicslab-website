@@ -4,7 +4,7 @@ import { useQuasar } from 'quasar';
 import { format } from 'date-fns';
 import { AxiosInstance, AxiosError } from 'axios';
 import { axios, api } from 'boot/axios';
-import MatriculaButton from 'components/MatriculaButton.vue';
+// import MatriculaButton from 'components/MatriculaButton.vue';
 
 const $q = useQuasar();
 
@@ -282,7 +282,7 @@ onMounted(() => {
               </q-card>
             </q-dialog>
 
-            <MatriculaButton />
+            <q-input outlined v-model="matricula" label="Matrícula" class="q-input"/>
             <q-select outlined v-model="sala" :options="options" label="Sala" class="q-input" />
             <q-btn @click="registerAccess"
               label="Registrar"
