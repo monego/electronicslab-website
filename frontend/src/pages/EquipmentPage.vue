@@ -267,7 +267,7 @@ onMounted(() => {
             <template v-slot:top-right>
               <q-input borderless dense debounce="300" v-model="search" placeholder="Pesquisar">
                 <template v-slot:append>
-                  <q-icon name="search" />
+                  <q-icon name="mdi-table-search" />
                 </template>
               </q-input>
             </template>
@@ -277,7 +277,7 @@ onMounted(() => {
                 <q-img v-if="props.row.foto"
                 :src="props.row.foto" @click="openImage(props.row.foto)"
                 class="q-mb-xs" style="max-width: 50px; max-height: 50px; object-fit: cover;" />
-                <q-icon v-else name="photo" class="text-grey" />
+                <q-icon v-else name="mdi-image" class="text-grey" />
               </q-td>
             </template>
 

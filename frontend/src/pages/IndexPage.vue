@@ -179,7 +179,7 @@ onMounted(async () => {
       <template v-slot:top-right>
         <q-input borderless dense debounce="300" v-model="filter" placeholder="Pesquisar">
           <template v-slot:append>
-            <q-icon name="search" />
+            <q-icon name="mdi-table-search" />
           </template>
         </q-input>
       </template>
