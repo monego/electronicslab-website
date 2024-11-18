@@ -4,6 +4,7 @@ import { AxiosInstance, AxiosError } from 'axios';
 import { axios, api } from 'boot/axios';
 import { format } from 'date-fns';
 import { useQuasar } from 'quasar';
+import MatriculaButton from 'components/MatriculaButton.vue';
 
 const loanId = ref();
 const matricula = ref();
@@ -354,7 +355,7 @@ onMounted(() => {
         <q-tab-panels v-model="tab" animated>
             <q-tab-panel name="retirada">
                 <q-input outlined v-model="loanId" class="q-input" label="Identificador" />
-                <q-input outlined v-model="matricula" class="q-input" label="Matrícula" />
+                <MatriculaButton />
                 <q-input outlined v-model="obs" class="q-input" label="Observação/Local" />
                 <q-form @submit="registerLoan">
                   <div v-for="(_, index) in newItems" :key="index" class="q-mb-md">
