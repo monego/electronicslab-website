@@ -3,6 +3,7 @@ from controle.api.serializers import (
     ControleAcessoSerializer,
     EmprestimoSerializer,
     EquipamentoSerializer,
+    EquipamentoPublicoSerializer,
     HorarioTrabalhoSerializer,
     ItemEmprestimoSerializer,
     ManutencaoSerializer,
@@ -294,6 +295,11 @@ class EquipamentoViewSet(ModelViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class EquipamentoPublicoViewSet(ModelViewSet):
+    queryset = Equipamento.objects.all()
+    permission_classes = []
+    serializer_class = EquipamentoPublicoSerializer
 
 class HorarioTrabalhoViewSet(ModelViewSet):
     queryset = HorarioTrabalho.objects.all()

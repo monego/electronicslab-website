@@ -11,7 +11,7 @@ const route = useRoute() as RouteLocationNormalized;
 const links = ref([
   { label: 'Laboratórios', to: '/laboratorios' },
   { label: 'Calendário', to: '/calendario' },
-  { label: 'Equipamentos', to: '/equipamentos' },
+  { label: 'Equipamentos', to: '/materiais' },
   { label: 'Sobre', to: '/sobre' },
 ]);
 </script>

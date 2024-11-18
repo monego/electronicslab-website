@@ -105,6 +105,16 @@ class EquipamentoSerializer(serializers.ModelSerializer):
     def get_sala_numero(self, obj):
         return obj.sala.numero if obj.sala else None
 
+class EquipamentoPublicoSerializer(serializers.ModelSerializer):
+    sala_numero = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Equipamento
+        fields = ['nome', 'patrimonio', 'sala_numero', 'foto', 'manual']
+
+    def get_sala_numero(self, obj):
+        return obj.sala.numero if obj.sala else None
+
 class HorarioTrabalhoSerializer(serializers.ModelSerializer):
 
     class Meta:
