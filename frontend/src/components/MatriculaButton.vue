@@ -2,7 +2,7 @@
     <div>
         <q-input
         outlined
-        v-model="localValue"
+        v-model="modelValue"
         :label="label"
         class="q-input"
         :error="!exists"
@@ -13,27 +13,27 @@
 </template>
 
 <script setup lang="ts">
-defineOptions({
-  name: 'MatriculaButton',
-});
-
 import { ref } from 'vue';
 import type { AxiosInstance, AxiosError } from 'axios';
 import { axios, api } from 'boot/axios';
 
-interface MatriculaButtonProps {
-    label?: string
-    errorMessage?: string
-}
+const modelValue = defineModel<string>();
 
-const props = withDefaults(defineProps<MatriculaButtonProps>(), {
-  label: 'Matrícula',
-  errorMessage: 'Matrícula não encontrada',
+defineOptions({
+  name: 'MatriculaButton',
 });
 
-const { label, errorMessage } = props;
+defineProps({
+  label: {
+    type: String,
+    default: 'Matrícula',
+  },
+  errorMessage: {
+    type: String,
+    default: 'Matrícula não encontrada',
+  },
+});
 
-const localValue = ref<string>('');
 const exists = ref<boolean>(true);
 
 async function getPersonData(numeroMatricula: string) {
@@ -63,6 +63,6 @@ async function getPersonData(numeroMatricula: string) {
 }
 
 async function handleBlur() {
-  await getPersonData(localValue.value);
+  await getPersonData(modelValue.value ?? '');
 }
 </script>
