@@ -11,6 +11,7 @@ from controle.api.serializers import (
 
 from django.contrib.auth.models import User
 from django.db.models import Count
+from django.http import FileResponse
 from django.utils import timezone
 from rest_framework import viewsets, status
 from rest_framework.authentication import SessionAuthentication
@@ -29,6 +30,14 @@ from controle.models import (
     Manutencao,
 )
 from root.models import Pessoa, Sala
+
+from barcode import Code39
+from barcode.writer import ImageWriter
+from datetime import datetime
+from io import BytesIO
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.utils import ImageReader
 
 class AusenciaViewSet(ModelViewSet):
     queryset = Ausencia.objects.all()
@@ -267,6 +276,106 @@ class EmprestimoViewSet(viewsets.ModelViewSet):
         self.perform_update(serializer)
 
         return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], url_path='printsheet')
+    def print_sheet(self, request, *args, **kwargs):
+        start = int(request.query_params.get('inicio'))
+        pages = int(request.query_params.get('paginas'))
+
+        fig_w, fig_h = 113, 62
+        text_size = 12
+
+        buffer = BytesIO()
+
+        c = canvas.Canvas(buffer, pagesize=A4)
+
+        margin = 28
+
+        width, height = A4
+
+        num_columns = 3
+        num_rows = 9
+
+        code_list = range(start, start + num_columns*num_rows*pages)
+
+        code_iter = iter(code_list)
+
+        for page in range(1, pages + 1):
+
+            cell_width = (width - 2 * margin) / num_columns
+            cell_height = (height - 2 * margin) / num_rows
+
+            for i in range(num_columns + 1):
+                x = margin + i * cell_width
+                c.line(x, margin, x, height - margin)
+
+            for j in range(num_rows + 1):
+                y = margin + j * cell_height
+                c.line(margin, y, width - margin, y)
+
+            for row in range(num_rows):
+                for col in range(num_columns):
+
+                    img = BytesIO()
+
+                    Code39(
+                        str(next(code_iter)),
+                        writer=ImageWriter(),
+                        add_checksum=False,
+                    ).write(img)
+
+                    code = ImageReader(img)
+
+                    x = margin + col * cell_width
+                    y = margin + (num_rows - row - 1) * cell_height
+
+                    cell_center_x = x + cell_width / 2
+                    cell_center_y = y + cell_height / 2
+
+                    center_x = cell_center_x - fig_w / 2
+                    center_y = cell_center_y - fig_h / 2
+
+                    text_pipe = '|'
+                    text_sign = '__________'
+                    text_retdev = 'Retirada / Devolução'
+                    text_under = "NUPEDEE - Autenticação de Registros de Empréstimo"
+                    text_pages = f"{page}/{pages}"
+                    text_date = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+
+                    text_pipe_w = c.stringWidth(text_pipe, "Helvetica", text_size)
+                    text_sign_w = c.stringWidth(text_sign, "Helvetica", text_size)
+                    text_retdev_w = c.stringWidth(text_retdev, "Helvetica", text_size)
+                    text_h = text_size
+
+                    centered_pipe_x = cell_center_x - text_pipe_w / 2
+                    centered_sign_x = cell_center_x - text_sign_w / 2
+                    centered_retdev_x = cell_center_x - text_retdev_w / 2
+
+                    centered_y = cell_center_y - text_h / 2
+
+                    c.drawImage(
+                        code,
+                        center_x,
+                        center_y + 10,
+                        width=fig_w,
+                        height=fig_h,
+                    )
+                    c.drawString(centered_sign_x - 35, centered_y - 20, text_sign)
+                    c.drawString(centered_pipe_x, centered_y - 25, text_pipe)
+                    c.drawString(centered_sign_x + 35, centered_y - 20, text_sign)
+                    c.drawString(centered_retdev_x + 5, centered_y - 35, text_retdev)
+                    c.drawString(50, 820, text_date)
+                    c.drawString(50, 10, text_under)
+                    c.drawString(500, 10, text_pages)
+
+            c.showPage()
+
+        c.save()
+
+        buffer.seek(0)
+        return FileResponse(
+            buffer, as_attachment=True, filename=f"folha_{start}.pdf",
+        )
 
 class EquipamentoViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated,)

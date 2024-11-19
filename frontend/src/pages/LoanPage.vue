@@ -10,6 +10,8 @@ const loanId = ref();
 const matricula = ref();
 const obs = ref();
 const loanStatus = ref('pending');
+const startCode = ref<number | undefined>();
+const pages = ref<number | undefined>();
 const tab = ref('retirada');
 const filter = ref<string>();
 const dialog = ref<boolean>(false);
@@ -318,6 +320,40 @@ async function getItems(identifier: string, taker: string) {
   dialog.value = true;
 }
 
+async function printCodes(start: number | undefined, nPages: number | undefined) {
+  try {
+    const response = await (api as AxiosInstance).get('/controle/emprestimos/printsheet', {
+      params: {
+        inicio: start,
+        paginas: nPages,
+      },
+      responseType: 'blob',
+    });
+
+    if (response.status === 200) {
+      const blob = response.data;
+      const fileURL = URL.createObjectURL(blob);
+      window.open(fileURL, '_blank');
+    } else {
+      throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
+    }
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        const axiosError = error as AxiosError;
+        if (axiosError.response) {
+          const errorData = axiosError.response.data as { detail?: string };
+          const errorDetail = errorData.detail ?? 'Erro desconhecido!';
+          displayError(errorDetail);
+        }
+      }
+    } else {
+      displayError('Erro desconhecido!');
+    }
+    throw error;
+  }
+}
+
 watch(loanStatus, () => {
   getLoans();
 });
@@ -329,170 +365,134 @@ onMounted(() => {
 
 <template>
   <q-page>
-  <q-card class="q-pa-md no-shadow">
-        <q-tabs
-        v-model="tab"
-        dense
-        class="text-grey q-mb-lg"
-        active-color="primary"
-        indicator-color="primary"
-        align="justify"
-        narrow-indicator>
-          <q-tab
-          class="text-purple"
-          name="retirada"
-          icon="mdi-arrow-top-right-thin"
-          label="Retirada" />
-          <q-tab
-          class="text-orange"
-          name="devolucao"
-          icon="mdi-arrow-bottom-left-thin"
-          label="Devolução" />
-        </q-tabs>
+    <q-card class="q-pa-md no-shadow">
+      <q-tabs v-model="tab" dense class="text-grey q-mb-lg" active-color="primary"
+      indicator-color="primary" align="justify" narrow-indicator>
+        <q-tab class="text-purple" name="retirada" icon="mdi-arrow-top-right-thin"
+        label="Retirada" />
+        <q-tab class="text-orange" name="devolucao" icon="mdi-arrow-bottom-left-thin"
+        label="Devolução" />
+      </q-tabs>
 
-        <q-separator />
+      <q-separator />
 
-        <q-tab-panels v-model="tab" animated>
-            <q-tab-panel name="retirada">
-                <q-input outlined v-model="loanId" class="q-input" label="Identificador" />
-                <MatriculaButton v-model="matricula" />
-                <q-input outlined v-model="obs" class="q-input" label="Observação/Local" />
-                <q-form @submit="registerLoan">
-                  <div v-for="(_, index) in newItems" :key="index" class="q-mb-md">
-                    <div class="flex">
-                      <q-input
-                        v-model="newItems[index]"
-                        label="Item"
-                        filled
-                        lazy-rules
-                        :rules="[val => !!val || 'Field cannot be empty']"
-                      />
-                      <q-btn
-                        icon="mdi-delete-circle"
-                        color="negative"
-                        @click="removeItem(index)"
-                        flat
-                        round
-                      />
-                    </div>
-                  </div>
-
-                  <q-btn
-                    label="Adicionar"
-                    color="primary"
-                    @click="addItem"
-                    icon="mdi-plus"
-                    class="q-mb-md"
-                  />
-
-                  <div class="flex">
-                    <q-btn
-                      label="Registrar"
-                      type="submit"
-                      color="positive"
-                      icon="mdi-content-save"
-                    />
-                  </div>
-                </q-form>
-          </q-tab-panel>
-
-          <q-tab-panel name="devolucao">
-
-            <q-dialog v-model="dialog">
+      <q-tab-panels v-model="tab" animated>
+        <q-tab-panel name="retirada">
+          <div class="row full-width">
+            <div class="col-6 bg-light q-pa-md">
               <q-card>
-                <q-toolbar>
-                  <q-avatar>
-                    <img src="https://cdn.quasar.dev/logo-v2/svg/logo.svg">
-                  </q-avatar>
-
-                  <q-toolbar-title>
-                    Empréstimo {{ selectedId }} ({{ selectedResponsavel }})
-                  </q-toolbar-title>
-
-                  <q-btn flat round dense icon="close" v-close-popup />
-                </q-toolbar>
-
                 <q-card-section>
-                  <div v-for="(item, index) in loanItems" :key="index"
-                  class="q-gutter-md row items-center">
-                    <span class="col">
-                      {{ getNome(item) }}
-                    </span>
-                    <div class="col-auto">
-                      <q-btn
-                        @click="returnItem(item.emprestimo, getPatrOrNome(item), index)"
-                        :disable="item.devolvido"
-                        label="Devolver"
-                        color="primary"
-                      />
+                  <q-input outlined v-model="loanId" class="q-input" label="Identificador" />
+                  <MatriculaButton v-model="matricula" />
+                  <q-input outlined v-model="obs" class="q-input" label="Observação/Local" />
+                  <q-form @submit="registerLoan">
+                    <div v-for="(_, index) in newItems" :key="index" class="q-mb-md">
+                      <div class="flex">
+                        <q-input v-model="newItems[index]" label="Item" filled lazy-rules
+                          :rules="[val => !!val || 'Field cannot be empty']" />
+                        <q-btn icon="mdi-delete-circle" color="negative" @click="removeItem(index)"
+                        flat round />
+                      </div>
                     </div>
-                    <div v-if="item.devolvido" class="col-auto">
-                      {{ item.recebente_nome }} -- {{ formatReturn(item) }}
-                    </div>
-                  </div>
-                </q-card-section>
 
-                <q-card-section>
-                <q-btn
-                    label="Quitar"
-                    color="primary"
-                    :disable="selectedEncerrado"
-                    @click="returnAllItems(selectedId)"
-                  />
+                    <q-btn label="Adicionar" color="primary" @click="addItem" icon="mdi-plus"
+                    class="q-mb-md" />
+
+                    <div class="flex">
+                      <q-btn label="Registrar" type="submit" color="positive"
+                      icon="mdi-content-save" />
+                    </div>
+                  </q-form>
                 </q-card-section>
               </q-card>
-            </q-dialog>
+            </div>
 
-            <q-option-group
-              v-model="loanStatus"
-              inline
-              class="q-mb-md"
-              :options="[
-                { label: 'Pendentes', value: 'pending' },
-                { label: 'Todos', value: 'all' },
-              ]"
-            />
+            <div class="col-6 bg-light q-pa-md">
+              <q-card>
+                <q-card-section>
+                  <q-input outlined v-model="startCode" type="number" class="q-input"
+                  label="Início" />
+                  <q-input outlined v-model="pages" type="number" class="q-input"
+                  label="Páginas" />
+                  <q-btn label="Gerar folha" @click="printCodes(startCode, pages)" type="submit"
+                  color="positive" icon="mdi-content-save" />
+                </q-card-section>
+              </q-card>
+            </div>
+          </div>
 
-            <q-table
-            flat bordered title="Empréstimos" :rows="rows" :columns="columns" :filter=filter
+        </q-tab-panel>
+
+        <q-tab-panel name="devolucao">
+
+          <q-dialog v-model="dialog">
+            <q-card>
+              <q-toolbar>
+                <q-avatar>
+                  <img src="https://cdn.quasar.dev/logo-v2/svg/logo.svg">
+                </q-avatar>
+
+                <q-toolbar-title>
+                  Empréstimo {{ selectedId }} ({{ selectedResponsavel }})
+                </q-toolbar-title>
+
+                <q-btn flat round dense icon="close" v-close-popup />
+              </q-toolbar>
+
+              <q-card-section>
+                <div v-for="(item, index) in loanItems" :key="index"
+                class="q-gutter-md row items-center">
+                  <span class="col">
+                    {{ getNome(item) }}
+                  </span>
+                  <div class="col-auto">
+                    <q-btn @click="returnItem(item.emprestimo, getPatrOrNome(item), index)"
+                    :disable="item.devolvido" label="Devolver" color="primary" />
+                  </div>
+                  <div v-if="item.devolvido" class="col-auto">
+                    {{ item.recebente_nome }} -- {{ formatReturn(item) }}
+                  </div>
+                </div>
+              </q-card-section>
+
+              <q-card-section>
+                <q-btn label="Quitar" color="primary" :disable="selectedEncerrado"
+                  @click="returnAllItems(selectedId)" />
+              </q-card-section>
+            </q-card>
+          </q-dialog>
+
+          <q-option-group v-model="loanStatus" inline class="q-mb-md" :options="[
+            { label: 'Pendentes', value: 'pending' },
+            { label: 'Todos', value: 'all' },
+          ]" />
+
+          <q-table flat bordered title="Empréstimos" :rows="rows" :columns="columns" :filter=filter
             row-key="identificador">
 
-              <template v-slot:top-right>
-                <q-input borderless dense debounce="300" v-model="filter" placeholder="Pesquisar">
-                  <template v-slot:append>
-                    <q-icon name="mdi-magnify" />
-                  </template>
-                </q-input>
-              </template>
-
-              <template v-slot:body-cell-devolucao="props">
-                <q-td :props="props">
-                  <q-btn
-                    label="Visualizar"
-                    color="primary"
-                    @click="getItems(props.row.identificador, props.row.responsavel_nome)"
-                  />
-                </q-td>
+            <template v-slot:top-right>
+              <q-input borderless dense debounce="300" v-model="filter" placeholder="Pesquisar">
+                <template v-slot:append>
+                  <q-icon name="mdi-magnify" />
                 </template>
+              </q-input>
+            </template>
 
-            </q-table>
-          </q-tab-panel>
-        </q-tab-panels>
+            <template v-slot:body-cell-devolucao="props">
+              <q-td :props="props">
+                <q-btn label="Visualizar" color="primary"
+                  @click="getItems(props.row.identificador, props.row.responsavel_nome)" />
+              </q-td>
+            </template>
+
+          </q-table>
+        </q-tab-panel>
+      </q-tab-panels>
     </q-card>
   </q-page>
 </template>
 
 <style>
-.q-row-inactive {
-  background-color: #0000f0; /* Light gray background for rows with null hora_devolucao */
-  color: #a0a0a0; /* Gray text color for rows with null hora_devolucao */
-}
-
-.q-row-active {
-  background-color: #ffffff; /* White background for rows with non-null hora_devolucao */
-  color: #000000; /* Black text color for rows with non-null hora_devolucao */
-}
-
 .q-input {
   padding-top: 10px;
   padding-bottom: 20px;
