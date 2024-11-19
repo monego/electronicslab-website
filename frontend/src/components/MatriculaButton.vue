@@ -26,7 +26,7 @@
 
         <q-card-actions align="right" class="text-primary">
           <q-btn flat label="OK" v-close-popup />
-          <q-btn flat label="Atualizar" @click="patchPersonData(matriculaPessoa)" v-close-popup />
+          <q-btn flat label="Atualizar" @click="patchPersonData" v-close-popup />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -96,10 +96,10 @@ async function getPersonData(numeroMatricula: string) {
   }
 }
 
-async function patchPersonData(numeroMatricula: string) {
+async function patchPersonData() {
   try {
     const response = await (api as AxiosInstance).patch('/root/pessoas/mailphone/', {
-      matricula: numeroMatricula,
+      matricula: matriculaPessoa.value,
       email: emailPessoa.value,
       telefone: telefonePessoa.value,
     });
