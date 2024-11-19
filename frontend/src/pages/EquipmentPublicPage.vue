@@ -83,10 +83,10 @@ async function getEquipments() {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       if (axiosError.response) {
-        console.error('adeus');
+        throw error;
       }
     } else {
-      console.error('adeus');
+      throw error;
     }
     throw error;
   }
