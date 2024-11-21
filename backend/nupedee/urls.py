@@ -27,7 +27,7 @@ urlpatterns = [
     path('api/auth/', include('authentication.api.urls')),
     path('api/controle/', include('controle.api.urls')),
     path('api/root/', include('root.api.urls')),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
