@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { AxiosInstance, AxiosError } from 'axios';
+import type { AxiosInstance, AxiosError } from 'axios';
 import { axios, api } from 'boot/axios';
 import { useQuasar } from 'quasar';
 
@@ -88,7 +88,7 @@ function extractData(lab: string, title: string, startTime: string, endTime: str
   const titleSplit = title.split(' - ');
 
   // Extract 'title' from 'title' (code)
-  const titleDisciplina: string = titleSplit[0];
+  const titleDisciplina: string = titleSplit[0] as string;
 
   // Extract 'professor' from 'title' for the Aula object
   const professorUpperCase = titleSplit[titleSplit.length - 1];
@@ -99,7 +99,7 @@ function extractData(lab: string, title: string, startTime: string, endTime: str
     end: endTime,
     sala: lab,
     title: titleDisciplina,
-    professor: professorUpperCase,
+    professor: professorUpperCase as string,
   };
 }
 
@@ -166,16 +166,8 @@ onMounted(async () => {
 
 <template>
   <div class="q-pa-md">
-    <q-table
-      :grid="$q.screen.xs"
-      flat bordered
-      title="Aulas de hoje"
-      :rows="rows"
-      :columns="columns"
-      row-key="startEnd"
-      :filter="filter"
-      :rows-per-page-options="[0]"
-    >
+    <q-table :grid="$q.screen.xs" flat bordered title="Aulas de hoje" :rows="rows" :columns="columns" row-key="startEnd"
+      :filter="filter" :rows-per-page-options="[0]">
       <template v-slot:top-right>
         <q-input borderless dense debounce="300" v-model="filter" placeholder="Pesquisar">
           <template v-slot:append>
@@ -195,6 +187,7 @@ onMounted(async () => {
 
 <style lang="scss">
 body {
-  background-color: #eeeeee; /* Cinza claro */
+  background-color: #eeeeee;
+  /* Cinza claro */
 }
 </style>

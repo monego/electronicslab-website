@@ -6,17 +6,8 @@
       </q-card-section>
       <q-card-section>
         <q-form @submit="login">
-          <q-input
-          class="q-mt-md q-mb-md"
-          filled
-          v-model="username"
-          label="Nome de usuário" />
-          <q-input
-          class="q-mt-md q-mb-md"
-          filled
-          v-model="password"
-          label="Senha"
-          type="password" />
+          <q-input class="q-mt-md q-mb-md" filled v-model="username" label="Nome de usuário" />
+          <q-input class="q-mt-md q-mb-md" filled v-model="password" label="Senha" type="password" />
           <q-btn class="q-mt-md q-mb-md full-width" type="submit" label="Login" color="primary" />
           <q-card flat>
             * para uso somente dos funcionários
@@ -29,7 +20,7 @@
 
 <script setup lang="ts">
 import { api, axios } from 'boot/axios';
-import { AxiosInstance, AxiosError } from 'axios';
+import type { AxiosInstance, AxiosError } from 'axios';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from 'stores/auth';

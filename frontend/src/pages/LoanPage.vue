@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
-import { AxiosInstance, AxiosError } from 'axios';
+import type { AxiosInstance, AxiosError } from 'axios';
 import { axios, api } from 'boot/axios';
 import { format } from 'date-fns';
 import { useQuasar } from 'quasar';
@@ -196,7 +196,9 @@ async function returnItem(loan: string, name: string, index: number) {
     });
 
     if (response.status === 200) {
-      loanItems.value[index].devolvido = true;
+      if (loanItems.value[index]) {
+        loanItems.value[index].devolvido = true;
+      }
     }
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
@@ -292,8 +294,16 @@ async function getItems(identifier: string, taker: string) {
   selectedId.value = identifier;
   selectedResponsavel.value = taker;
   try {
-    const responseItems = await (api as AxiosInstance).get('/controle/items/', { params: { emprestimo: identifier } });
-    const responseEmprestimo = await (api as AxiosInstance).get('/controle/emprestimos/?all=true', { params: { identificador: identifier } });
+    const responseItems = await (api as AxiosInstance).get('/controle/items/', {
+      params: {
+        emprestimo: identifier,
+      },
+    });
+    const responseEmprestimo = await (api as AxiosInstance).get('/controle/emprestimos/?all=true', {
+      params: {
+        identificador: identifier,
+      },
+    });
 
     if (responseItems.status === 200 && responseEmprestimo.status === 200) {
       loanItems.value = responseItems.data;
@@ -366,12 +376,10 @@ onMounted(() => {
 <template>
   <q-page>
     <q-card class="q-pa-md no-shadow">
-      <q-tabs v-model="tab" dense class="text-grey q-mb-lg" active-color="primary"
-      indicator-color="primary" align="justify" narrow-indicator>
-        <q-tab class="text-purple" name="retirada" icon="mdi-arrow-top-right-thin"
-        label="Retirada" />
-        <q-tab class="text-orange" name="devolucao" icon="mdi-arrow-bottom-left-thin"
-        label="Devolução" />
+      <q-tabs v-model="tab" dense class="text-grey q-mb-lg" active-color="primary" indicator-color="primary"
+        align="justify" narrow-indicator>
+        <q-tab class="text-purple" name="retirada" icon="mdi-arrow-top-right-thin" label="Retirada" />
+        <q-tab class="text-orange" name="devolucao" icon="mdi-arrow-bottom-left-thin" label="Devolução" />
       </q-tabs>
 
       <q-separator />
@@ -390,17 +398,14 @@ onMounted(() => {
                       <div class="flex">
                         <q-input v-model="newItems[index]" label="Item" filled lazy-rules
                           :rules="[val => !!val || 'Field cannot be empty']" />
-                        <q-btn icon="mdi-delete-circle" color="negative" @click="removeItem(index)"
-                        flat round />
+                        <q-btn icon="mdi-delete-circle" color="negative" @click="removeItem(index)" flat round />
                       </div>
                     </div>
 
-                    <q-btn label="Adicionar" color="primary" @click="addItem" icon="mdi-plus"
-                    class="q-mb-md" />
+                    <q-btn label="Adicionar" color="primary" @click="addItem" icon="mdi-plus" class="q-mb-md" />
 
                     <div class="flex">
-                      <q-btn label="Registrar" type="submit" color="positive"
-                      icon="mdi-content-save" />
+                      <q-btn label="Registrar" type="submit" color="positive" icon="mdi-content-save" />
                     </div>
                   </q-form>
                 </q-card-section>
@@ -410,12 +415,10 @@ onMounted(() => {
             <div class="col-6 bg-light q-pa-md">
               <q-card>
                 <q-card-section>
-                  <q-input outlined v-model="startCode" type="number" class="q-input"
-                  label="Início" />
-                  <q-input outlined v-model="pages" type="number" class="q-input"
-                  label="Páginas" />
-                  <q-btn label="Gerar folha" @click="printCodes(startCode, pages)" type="submit"
-                  color="positive" icon="mdi-content-save" />
+                  <q-input outlined v-model="startCode" type="number" class="q-input" label="Início" />
+                  <q-input outlined v-model="pages" type="number" class="q-input" label="Páginas" />
+                  <q-btn label="Gerar folha" @click="printCodes(startCode, pages)" type="submit" color="positive"
+                    icon="mdi-content-save" />
                 </q-card-section>
               </q-card>
             </div>
@@ -440,14 +443,13 @@ onMounted(() => {
               </q-toolbar>
 
               <q-card-section>
-                <div v-for="(item, index) in loanItems" :key="index"
-                class="q-gutter-md row items-center">
+                <div v-for="(item, index) in loanItems" :key="index" class="q-gutter-md row items-center">
                   <span class="col">
                     {{ getNome(item) }}
                   </span>
                   <div class="col-auto">
-                    <q-btn @click="returnItem(item.emprestimo, getPatrOrNome(item), index)"
-                    :disable="item.devolvido" label="Devolver" color="primary" />
+                    <q-btn @click="returnItem(item.emprestimo, getPatrOrNome(item), index)" :disable="item.devolvido"
+                      label="Devolver" color="primary" />
                   </div>
                   <div v-if="item.devolvido" class="col-auto">
                     {{ item.recebente_nome }} -- {{ formatReturn(item) }}

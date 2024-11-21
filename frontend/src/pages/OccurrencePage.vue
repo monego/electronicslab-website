@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { format } from 'date-fns';
 import { api, axios } from 'boot/axios';
-import { AxiosInstance, AxiosError } from 'axios';
+import type { AxiosInstance, AxiosError } from 'axios';
 import { useQuasar } from 'quasar';
 
 const today = new Date();
@@ -180,8 +180,7 @@ onMounted(() => {
             <q-input v-model="horarios.segunda[1]" filled type="time" hint="Saída" />
             <q-input v-model="horarios.segunda[2]" filled type="time" hint="Entrada" />
             <q-input v-model="horarios.segunda[3]" filled type="time" hint="Fim" />
-            <q-btn color="primary" label="Atualizar"
-            @click="patchHorarios('segunda', horarios.segunda)" />
+            <q-btn color="primary" label="Atualizar" @click="patchHorarios('segunda', horarios.segunda)" />
           </div>
           <div class="flex">
             Terça-feira
@@ -189,8 +188,7 @@ onMounted(() => {
             <q-input v-model="horarios.terca[1]" filled type="time" hint="Saída" />
             <q-input v-model="horarios.terca[2]" filled type="time" hint="Entrada" />
             <q-input v-model="horarios.terca[3]" filled type="time" hint="Fim" />
-            <q-btn color="primary" label="Atualizar"
-            @click="patchHorarios('terca', horarios.terca)" />
+            <q-btn color="primary" label="Atualizar" @click="patchHorarios('terca', horarios.terca)" />
           </div>
           <div class="flex">
             Quarta-feira
@@ -198,8 +196,7 @@ onMounted(() => {
             <q-input v-model="horarios.quarta[1]" filled type="time" hint="Saída" />
             <q-input v-model="horarios.quarta[2]" filled type="time" hint="Entrada" />
             <q-input v-model="horarios.quarta[3]" filled type="time" hint="Fim" />
-            <q-btn color="primary" label="Atualizar"
-            @click="patchHorarios('quarta', horarios.quarta)" />
+            <q-btn color="primary" label="Atualizar" @click="patchHorarios('quarta', horarios.quarta)" />
           </div>
           <div class="flex">
             Quinta-feira
@@ -207,8 +204,7 @@ onMounted(() => {
             <q-input v-model="horarios.quinta[1]" filled type="time" hint="Saída" />
             <q-input v-model="horarios.quinta[2]" filled type="time" hint="Entrada" />
             <q-input v-model="horarios.quinta[3]" filled type="time" hint="Fim" />
-            <q-btn color="primary" label="Atualizar"
-            @click="patchHorarios('quinta', horarios.quinta)" />
+            <q-btn color="primary" label="Atualizar" @click="patchHorarios('quinta', horarios.quinta)" />
           </div>
           <div class="flex">
             Sexta-feira
@@ -216,8 +212,7 @@ onMounted(() => {
             <q-input v-model="horarios.sexta[1]" filled type="time" hint="Saída" />
             <q-input v-model="horarios.sexta[2]" filled type="time" hint="Entrada" />
             <q-input v-model="horarios.sexta[3]" filled type="time" hint="Fim" />
-            <q-btn color="primary" label="Atualizar"
-            @click="patchHorarios('sexta', horarios.sexta)" />
+            <q-btn color="primary" label="Atualizar" @click="patchHorarios('sexta', horarios.sexta)" />
           </div>
         </div>
       </div>

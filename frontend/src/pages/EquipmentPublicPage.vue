@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AxiosInstance, AxiosError } from 'axios';
+import type { AxiosInstance, AxiosError } from 'axios';
 import { api, axios } from 'boot/axios';
 import { ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
@@ -104,41 +104,34 @@ onMounted(() => {
 <template>
   <q-page>
     <q-card class="q-pa-md no-shadow">
-        <q-table
-        :grid="$q.screen.xs"
-        title="Equipamentos"
-        :rows="rows"
-        :columns="columns"
-        :filter="search"
-        row-key="nome"
-        >
+      <q-table :grid="$q.screen.xs" title="Equipamentos" :rows="rows" :columns="columns" :filter="search"
+        row-key="nome">
 
         <template v-slot:top-right>
-            <q-input borderless dense debounce="300" v-model="search" placeholder="Pesquisar">
+          <q-input borderless dense debounce="300" v-model="search" placeholder="Pesquisar">
             <template v-slot:append>
-                <q-icon name="mdi-table-search" />
+              <q-icon name="mdi-table-search" />
             </template>
-            </q-input>
+          </q-input>
         </template>
 
         <template v-slot:body-cell-foto="props">
-            <q-td :props="props">
-            <q-img v-if="props.row.foto"
-            :src="props.row.foto" @click="openImage(props.row.foto)"
-            class="q-mb-xs" style="max-width: 50px; max-height: 50px; object-fit: cover;" />
+          <q-td :props="props">
+            <q-img v-if="props.row.foto" :src="props.row.foto" @click="openImage(props.row.foto)" class="q-mb-xs"
+              style="max-width: 50px; max-height: 50px; object-fit: cover;" />
             <q-icon v-else name="mdi-image" class="text-grey" />
-            </q-td>
+          </q-td>
         </template>
 
         <template v-slot:body-cell-manual="props">
-            <q-td :props="props">
+          <q-td :props="props">
             <a v-if="props.row.manual" :href="props.row.manual" target="_blank" class="q-mb-xs">
-                <q-btn color="primary" label="Ler Manual" size="sm" />
+              <q-btn color="primary" label="Ler Manual" size="sm" />
             </a>
             <q-btn v-else color="primary" label="Ler Manual" size="sm" :disable=true />
-            </q-td>
+          </q-td>
         </template>
-        </q-table>
+      </q-table>
     </q-card>
   </q-page>
 </template>

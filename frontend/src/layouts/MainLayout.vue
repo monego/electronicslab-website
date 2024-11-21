@@ -4,7 +4,8 @@ defineOptions({
 });
 
 import { ref } from 'vue';
-import { useRoute, RouteLocationNormalized } from 'vue-router';
+import { useRoute } from 'vue-router';
+import type { RouteLocationNormalized } from 'vue-router';
 
 const route = useRoute() as RouteLocationNormalized;
 
@@ -20,18 +21,12 @@ const links = ref([
   <q-layout view="lHh Lpr lFf">
     <q-header elevated>
       <q-toolbar>
-          <q-avatar square>
-            <img src="/Icone.ico">
-          </q-avatar>
+        <q-avatar square>
+          <img src="/Icone.ico">
+        </q-avatar>
         <q-space />
-        <q-btn
-        v-for="link in links"
-        :key="link.label"
-        flat
-        rounded
-        :to="link.to"
-        :label="link.label"
-        :class="{ 'active-link': route.path === link.to }" />
+        <q-btn v-for="link in links" :key="link.label" flat rounded :to="link.to" :label="link.label"
+          :class="{ 'active-link': route.path === link.to }" />
       </q-toolbar>
     </q-header>
 

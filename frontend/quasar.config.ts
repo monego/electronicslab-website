@@ -6,10 +6,10 @@
 /* eslint func-names: 0 */
 /* eslint global-require: 0 */
 
-import { configure } from 'quasar/wrappers';
 import { fileURLToPath } from 'node:url';
+import { defineConfig } from '#q-app/wrappers';
 
-export default configure((ctx) => ({
+export default defineConfig((ctx) => ({
   // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
   // preFetch: true,
 
@@ -35,8 +35,9 @@ export default configure((ctx) => ({
     // 'themify',
     // 'line-awesome',
     // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
-    'material-icons',
+
     'roboto-font', // optional, you are not bound to it
+    'material-icons', // optional, you are not bound to it
   ],
 
   // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
@@ -44,6 +45,12 @@ export default configure((ctx) => ({
     target: {
       browser: ['es2022', 'firefox115', 'chrome115', 'safari14'],
       node: 'node20',
+    },
+
+    typescript: {
+      strict: true,
+      vueShim: true,
+      // extendTsConfig (tsConfig) {}
     },
 
     vueRouterMode: 'hash', // available values: 'hash', 'history'
@@ -80,9 +87,7 @@ export default configure((ctx) => ({
         include: [fileURLToPath(new URL('./src/i18n', import.meta.url))],
       }],
       ['vite-plugin-checker', {
-        vueTsc: {
-          tsconfigPath: 'tsconfig.vue-tsc.json',
-        },
+        vueTsc: true,
         eslint: {
           lintCommand: 'eslint "./**/*.{js,ts,mjs,cjs,vue}"',
         },
@@ -101,7 +106,7 @@ export default configure((ctx) => ({
     config: {},
 
     // iconSet: 'material-icons', // Quasar icon set
-    lang: 'pt-BR', // Quasar language pack
+    // lang: 'en-US', // Quasar language pack
 
     // For special cases outside of where the auto-import strategy can have an impact
     // (like functional components as one of the examples),
@@ -111,7 +116,9 @@ export default configure((ctx) => ({
     // directives: [],
 
     // Quasar plugins
-    plugins: ['Notify'],
+    plugins: [
+      'Notify',
+    ],
   },
 
   // animations: 'all', // --- includes all animations
@@ -151,7 +158,6 @@ export default configure((ctx) => ({
     pwa: false,
 
     // pwaOfflineHtmlFilename: 'offline.html', // do NOT use index.html as name!
-    // will mess up SSR
 
     // pwaExtendGenerateSWOptions (cfg) {},
     // pwaExtendInjectManifestOptions (cfg) {}
@@ -211,7 +217,7 @@ export default configure((ctx) => ({
     builder: {
       // https://www.electron.build/configuration/configuration
 
-      appId: 'frontend',
+      appId: 'site-nupedee',
     },
   },
 
@@ -220,8 +226,6 @@ export default configure((ctx) => ({
     // extendBexScriptsConf (esbuildConf) {},
     // extendBexManifestJson (json) {},
 
-    contentScripts: [
-      'my-content-script',
-    ],
+    extraScripts: [],
   },
 }));

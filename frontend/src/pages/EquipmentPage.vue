@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AxiosInstance, AxiosError } from 'axios';
+import type { AxiosInstance, AxiosError } from 'axios';
 import { useQuasar } from 'quasar';
 import { api, axios } from 'boot/axios';
 import { ref, onMounted } from 'vue';
@@ -245,10 +245,8 @@ onMounted(() => {
 <template>
   <q-page>
     <q-card class="q-pa-md no-shadow">
-      <q-tabs v-model="tab" dense class="text-grey q-mb-lg"
-      active-color="primary" indicator-color="primary"
-      align="justify" narrow-indicator
-      >
+      <q-tabs v-model="tab" dense class="text-grey q-mb-lg" active-color="primary" indicator-color="primary"
+        align="justify" narrow-indicator>
         <q-tab class="text-purple" name="cadastrar" icon="mdi-clock-in" label="Cadastrar" />
         <q-tab class="text-orange" name="consultar" icon="mdi-clock-out" label="Consultar" />
       </q-tabs>
@@ -260,9 +258,7 @@ onMounted(() => {
 
         <q-tab-panel name="consultar">
 
-          <q-table title="Equipamentos" :rows="rows" :columns="columns"
-          :filter="search" row-key="nome"
-          >
+          <q-table title="Equipamentos" :rows="rows" :columns="columns" :filter="search" row-key="nome">
 
             <template v-slot:top-right>
               <q-input borderless dense debounce="300" v-model="search" placeholder="Pesquisar">
@@ -274,9 +270,8 @@ onMounted(() => {
 
             <template v-slot:body-cell-foto="props">
               <q-td :props="props">
-                <q-img v-if="props.row.foto"
-                :src="props.row.foto" @click="openImage(props.row.foto)"
-                class="q-mb-xs" style="max-width: 50px; max-height: 50px; object-fit: cover;" />
+                <q-img v-if="props.row.foto" :src="props.row.foto" @click="openImage(props.row.foto)" class="q-mb-xs"
+                  style="max-width: 50px; max-height: 50px; object-fit: cover;" />
                 <q-icon v-else name="mdi-image" class="text-grey" />
               </q-td>
             </template>
@@ -292,9 +287,8 @@ onMounted(() => {
 
             <template v-slot:body-cell-acoes="props">
               <q-td :props="props">
-                <q-btn rounded color="primary"
-                @click="openDialog(props.row); getManutencao(props.row.patrimonio);"
-                size="sm">Manutenção</q-btn>
+                <q-btn rounded color="primary" @click="openDialog(props.row); getManutencao(props.row.patrimonio);"
+                  size="sm">Manutenção</q-btn>
               </q-td>
             </template>
           </q-table>
@@ -324,8 +318,7 @@ onMounted(() => {
               <q-card-actions align="right">
                 <q-btn flat label="Cancelar" color="primary" @click="closeDialog()" v-close-popup />
                 <q-btn flat label="Adicionar" color="primary"
-                  @click="registerManutencao(descManutencao, selectedPatrimonio)"
-                  v-close-popup />
+                  @click="registerManutencao(descManutencao, selectedPatrimonio)" v-close-popup />
               </q-card-actions>
             </q-card>
           </q-dialog>

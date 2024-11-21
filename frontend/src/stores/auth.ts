@@ -1,6 +1,6 @@
 // stores/auth.ts
 import { defineStore } from 'pinia';
-import { AxiosInstance, AxiosError } from 'axios';
+import type { AxiosInstance, AxiosError } from 'axios';
 import { axios, api } from 'boot/axios';
 import { useQuasar } from 'quasar';
 

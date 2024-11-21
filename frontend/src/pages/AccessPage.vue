@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, Ref, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
+import type { Ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { format } from 'date-fns';
-import { AxiosInstance, AxiosError } from 'axios';
+import type { AxiosInstance, AxiosError } from 'axios';
 import { axios, api } from 'boot/axios';
 import MatriculaButton from 'components/MatriculaButton.vue';
 
@@ -89,7 +90,7 @@ interface Turnstile {
   hora_saida?: string,
 }
 
-const selected = ref <Row[]>([]);
+const selected = ref<Row[]>([]);
 
 const rows = ref<Turnstile[]>([]);
 
@@ -256,63 +257,48 @@ onMounted(() => {
 <template>
   <q-page>
     <q-card class="q-pa-md no-shadow">
-        <q-tabs v-model="tab" dense class="text-grey q-mb-lg" active-color="primary"
-        indicator-color="primary" align="justify" narrow-indicator>
-          <q-tab class="text-purple" name="entrada" icon="mdi-clock-in" label="Entrada" />
-          <q-tab class="text-orange" name="saida" icon="mdi-clock-out" label="Saída" />
-        </q-tabs>
+      <q-tabs v-model="tab" dense class="text-grey q-mb-lg" active-color="primary" indicator-color="primary"
+        align="justify" narrow-indicator>
+        <q-tab class="text-purple" name="entrada" icon="mdi-clock-in" label="Entrada" />
+        <q-tab class="text-orange" name="saida" icon="mdi-clock-out" label="Saída" />
+      </q-tabs>
 
-        <q-separator />
+      <q-separator />
 
-        <q-tab-panels v-model="tab" animated>
-          <q-tab-panel name="entrada">
-            <q-dialog v-model="showError">
-              <q-card>
-                <q-card-section>
-                  <q-card class="text-h6">Erro</q-card>
-                </q-card-section>
+      <q-tab-panels v-model="tab" animated>
+        <q-tab-panel name="entrada">
+          <q-dialog v-model="showError">
+            <q-card>
+              <q-card-section>
+                <q-card class="text-h6">Erro</q-card>
+              </q-card-section>
 
-                <q-card-section class="q-pt-none">
-                  {{ errorMessage }}
-                </q-card-section>
+              <q-card-section class="q-pt-none">
+                {{ errorMessage }}
+              </q-card-section>
 
-                <q-card-actions align="right">
-                  <q-btn flat label="OK" color="primary" v-close-popup />
-                </q-card-actions>
-              </q-card>
-            </q-dialog>
+              <q-card-actions align="right">
+                <q-btn flat label="OK" color="primary" v-close-popup />
+              </q-card-actions>
+            </q-card>
+          </q-dialog>
 
-            <MatriculaButton v-model="matricula" />
-            <q-select outlined v-model="sala" :options="options" label="Sala" class="q-input" />
-            <q-btn @click="registerAccess"
-              label="Registrar"
-              type="submit"
-              color="positive"
-              icon="mdi-turnstile-outline"
-            />
+          <MatriculaButton v-model="matricula" />
+          <q-select outlined v-model="sala" :options="options" label="Sala" class="q-input" />
+          <q-btn @click="registerAccess" label="Registrar" type="submit" color="positive"
+            icon="mdi-turnstile-outline" />
 
-          </q-tab-panel>
+        </q-tab-panel>
 
-          <q-tab-panel name="saida">
-            <q-table
-            flat bordered
-            title="Registros"
-            selection="multiple"
-            :rows="rows"
-            :columns="columns"
-            row-key="pessoa_matricula"
-            v-model:selected="selected"
-            />
-            <div style="padding-top: 20px;">
-              <q-btn @click="releaseStudents(selected)"
-              label="Liberar"
-              type="submit"
-              color="positive"
-              icon="mdi-turnstile-outline"
-              />
+        <q-tab-panel name="saida">
+          <q-table flat bordered title="Registros" selection="multiple" :rows="rows" :columns="columns"
+            row-key="pessoa_matricula" v-model:selected="selected" />
+          <div style="padding-top: 20px;">
+            <q-btn @click="releaseStudents(selected)" label="Liberar" type="submit" color="positive"
+              icon="mdi-turnstile-outline" />
           </div>
-          </q-tab-panel>
-        </q-tab-panels>
-      </q-card>
+        </q-tab-panel>
+      </q-tab-panels>
+    </q-card>
   </q-page>
 </template>

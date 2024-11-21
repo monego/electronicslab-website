@@ -10,7 +10,7 @@
 
         <div>
           <q-btn-dropdown class="glossy" :label=userName>
-              <q-btn color="primary" label="Logout" push size="sm" v-close-popup @click="logout" />
+            <q-btn color="primary" label="Logout" push size="sm" v-close-popup @click="logout" />
           </q-btn-dropdown>
         </div>
       </q-toolbar>
@@ -42,10 +42,11 @@
 import { ref, onMounted } from 'vue';
 import { useAuthStore } from 'stores/auth';
 import { useRouter } from 'vue-router';
-import { AxiosInstance, AxiosError } from 'axios';
+import type { AxiosInstance, AxiosError } from 'axios';
 import { api, axios } from 'boot/axios';
 import Cookie from 'js-cookie';
-import EssentialLink, { EssentialLinkProps } from 'components/EssentialLink.vue';
+import EssentialLink from 'components/EssentialLink.vue';
+import type { EssentialLinkProps } from 'components/EssentialLink.vue';
 
 defineOptions({
   name: 'AdminLayout',

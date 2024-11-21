@@ -23,7 +23,7 @@ module.exports = {
     // Base ESLint recommended rules
     // 'eslint:recommended',
 
-    // https://github.com/typescript-eslint/typescript-eslint/tree/master/packages/eslint-plugin#usage
+    // https://typescript-eslint.io/getting-started/legacy-eslint-setup
     // ESLint typescript rules
     'plugin:@typescript-eslint/recommended',
 
@@ -84,6 +84,8 @@ module.exports = {
     'import/prefer-default-export': 'off',
     
     'prefer-promise-reject-errors': 'off',
+
+    'max-len': ['error', { code: 120 }],
 
     quotes: ['warn', 'single', { avoidEscape: true }],
 

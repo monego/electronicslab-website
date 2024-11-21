@@ -4,7 +4,7 @@ import { createCurrentTimePlugin } from '@schedule-x/current-time';
 import { ref, watch, onMounted } from 'vue';
 import { createEventsServicePlugin } from '@schedule-x/events-service';
 import { createCalendarControlsPlugin } from '@schedule-x/calendar-controls';
-import { AxiosInstance, AxiosError } from 'axios';
+import type { AxiosInstance, AxiosError } from 'axios';
 import { axios, api } from 'boot/axios';
 import { useQuasar } from 'quasar';
 import {
@@ -95,8 +95,8 @@ async function getSalas() {
 }
 
 async function getUserList(roomId: Sala, range: Range) {
-  const rangeStart: string = range.start.split(' ')[0];
-  const rangeEnd: string = range.end.split(' ')[0];
+  const rangeStart: string = range.start.split(' ')[0] as string;
+  const rangeEnd: string = range.end.split(' ')[0] as string;
 
   // It seems that I have to add a day to pick up Friday.
   const rangeEndDate = new Date(rangeEnd);
@@ -116,8 +116,8 @@ async function getUserList(roomId: Sala, range: Range) {
       if (response.data.length !== 0) {
         aulasApi = response.data;
         aulasApi.forEach((aula: Aula, index: number) => {
-          const titleSplit = aula.title.split('-');
-          const subject = capitalizeWords(titleSplit[0]);
+          const titleSplit: string[] = (aula.title as string).split('-');
+          const subject = capitalizeWords(titleSplit[0] as string);
           const lecturer = capitalizeWords(titleSplit.at(-1)!);
           const filtTitle = `${subject} - ${lecturer}`;
           const obj: Aula = {
@@ -183,7 +183,7 @@ watch(sala, (newValue) => {
 onMounted(() => {
   getSalas();
   const [firstSala] = salas.value;
-  sala.value = firstSala;
+  sala.value = firstSala as Sala;
 });
 </script>
 
@@ -192,8 +192,7 @@ onMounted(() => {
     <q-card class="q-pa-md">
       <q-card class="row no-wrap justify-center">
         <q-card>
-          <q-select v-model="sala" :options="salas" emit-value map-options
-          label="Escolha uma sala" />
+          <q-select v-model="sala" :options="salas" emit-value map-options label="Escolha uma sala" />
         </q-card>
       </q-card>
     </q-card>
@@ -207,7 +206,8 @@ onMounted(() => {
 
 <style lang="scss">
 body {
-  background-color: #eeeeee; /* Cinza claro */
+  background-color: #eeeeee;
+  /* Cinza claro */
 }
 
 .sx__time-grid-event-title {
