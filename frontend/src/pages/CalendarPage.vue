@@ -7,6 +7,7 @@ import { createCalendarControlsPlugin } from '@schedule-x/calendar-controls';
 import type { AxiosInstance, AxiosError } from 'axios';
 import { axios, api } from 'boot/axios';
 import { useQuasar } from 'quasar';
+import { parseISO, format } from 'date-fns';
 import {
   createCalendar,
   viewDay,
@@ -19,7 +20,6 @@ interface Aula {
   'start': string,
   'end': string,
   'title': string,
-  'calendarId': string,
 }
 
 interface Range {
@@ -105,24 +105,33 @@ async function getUserList(roomId: Sala, range: Range) {
 
   try {
     const aulas: Aula[] = [];
-    const response = await axios.post('https://oca.ctism.ufsm.br/ensalamento/getFullCalendar', {
+    const response = await (api as AxiosInstance).get('/aulas/aulas/calendario', {
+      params: {
+        codigo: roomId,
+        inicio: rangeStart,
+        fim: rangeEndPlusOne,
+      },
       withCredentials: false,
-      espaco: roomId,
-      inicio: rangeStart,
-      fim: rangeEndPlusOne,
-      apenasDeferidos: true,
     });
     if (response.status === 200) {
       if (response.data.length !== 0) {
         aulasApi = response.data;
-        aulasApi.forEach((aula: Aula, index: number) => {
-          const titleSplit: string[] = (aula.title as string).split('-');
-          const subject = capitalizeWords(titleSplit[0] as string);
-          const lecturer = capitalizeWords(titleSplit.at(-1)!);
-          const filtTitle = `${subject} - ${lecturer}`;
+        aulasApi.forEach((aula: {
+          inicio: string,
+          fim: string,
+          disciplina: string,
+          professor: string
+        }, index: number) => {
+          const disciplina = capitalizeWords(aula.disciplina);
+          const professor = capitalizeWords(aula.professor);
+
           const obj: Aula = {
-            id: index, start: aula.start.slice(0, -3), end: aula.end.slice(0, -3), title: filtTitle, calendarId: 'work',
+            id: index,
+            start: format(parseISO(aula.inicio), 'yyyy-MM-dd HH:mm'),
+            end: format(parseISO(aula.fim), 'yyyy-MM-dd HH:mm'),
+            title: `${disciplina} - ${professor}`,
           };
+
           aulas.push(obj);
 
           eventsServicePlugin.set(aulas);

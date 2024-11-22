@@ -3,24 +3,12 @@ import { ref, onMounted } from 'vue';
 import type { AxiosInstance, AxiosError } from 'axios';
 import { axios, api } from 'boot/axios';
 import { useQuasar } from 'quasar';
-
-interface Sala {
-  'label': string,
-  'code': string
-}
-
-interface SalaResponse {
-  'id': number,
-  'predio': number,
-  'nome': string,
-  'numero': string,
-  'codigo': string,
-}
+import { parseISO, format } from 'date-fns';
 
 interface Aula {
   'title': string,
   'professor': string,
-  'sala': string,
+  'room': string,
   'start': string,
   'end': string,
 }
@@ -44,7 +32,6 @@ function capitalizeEachWord(str: string): string {
 
 const $q = useQuasar();
 const filter = ref<string>('');
-const salas = ref<Sala[]>([]);
 const aulas = ref<Aula[]>([]);
 
 const columns: ColumnType[] = [
@@ -61,7 +48,7 @@ const columns: ColumnType[] = [
     name: 'sala',
     align: 'left',
     label: 'Sala',
-    field: (row) => row.sala,
+    field: (row) => row.room,
     sortable: true,
   },
   {
@@ -82,64 +69,27 @@ const columns: ColumnType[] = [
 
 const rows = ref<Aula[]>(aulas.value);
 
-function extractData(lab: string, title: string, startTime: string, endTime: string): Aula {
-  /* Function to process the response and generate the Aula object. */
-
-  const titleSplit = title.split(' - ');
-
-  // Extract 'title' from 'title' (code)
-  const titleDisciplina: string = titleSplit[0] as string;
-
-  // Extract 'professor' from 'title' for the Aula object
-  const professorUpperCase = titleSplit[titleSplit.length - 1];
-  // input.charAt(0).toUpperCase() + input.slice(1);
-
-  return {
-    start: startTime,
-    end: endTime,
-    sala: lab,
-    title: titleDisciplina,
-    professor: professorUpperCase as string,
-  };
-}
-
-async function getSalas() {
+async function getUserList() {
   try {
-    const response = await (api as AxiosInstance).get('/root/salas');
-
-    if (response.status === 200) {
-      salas.value = response.data.map((obj: SalaResponse) => ({
-        label: `[${obj.numero}] ${obj.nome}`,
-        code: obj.codigo,
-      }));
-    } else {
-      throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
-    }
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        throw error;
-      }
-    } else {
-      throw error;
-    }
-    throw error;
-  }
-}
-
-async function getUserList(sala: Sala) {
-  try {
-    const response = await axios.post('https://oca.ctism.ufsm.br/ensalamento/getAulasAgora', {
+    const response = await (api as AxiosInstance).get('/aulas/aulas/hoje', {
       withCredentials: false,
-      espaco: sala.code,
-      apenasDeferidos: true,
     });
     if (response.status === 200) {
       if (response.data.length !== 0) {
-        response.data.forEach((aula: { titulo: string, inicio: string, fim: string }) => {
-          aulas.value.push(extractData(sala.label, aula.titulo, aula.inicio, aula.fim));
-        });
+        response.data.forEach((aula: {
+          titulo: string,
+          sala_nome: string,
+          disciplina: string,
+          professor: string,
+          inicio: string,
+          fim: string
+        }) => aulas.value.push({
+          title: aula.disciplina,
+          professor: aula.professor,
+          room: aula.sala_nome,
+          start: format(parseISO(aula.inicio), 'HH:mm'),
+          end: format(parseISO(aula.fim), 'HH:mm'),
+        }));
       }
     } else {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
@@ -158,9 +108,7 @@ async function getUserList(sala: Sala) {
 }
 
 onMounted(async () => {
-  await getSalas();
-  const promises = salas.value.map((sala) => getUserList(sala));
-  await Promise.all(promises);
+  await getUserList();
 });
 </script>
 

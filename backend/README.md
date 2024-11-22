@@ -26,11 +26,18 @@ With the database set up, create a `.env` file in this folder (backend) containi
 
 ``` sh
 SECRET_KEY = 'my-secret-key' # Use get_random_secret_key()
+ALLOWED_HOSTS = '.localhost, .127.0.0.1,' # Allowed hosts, without 'http'
+CORS_ALLOWED_ORIGINS = 'http://...,' # Allowed domains for CORS, comma-separated
+CSRF_TRUSTED_ORIGINS = 'http://...,' # Allowed domains for CSRF, comma-separated
+DEBUG = True # DEBUG setting, set to False for production
 DB_NAME = 'my-database-name'
 DB_USER = 'my-database-user'
 DB_PASS = 'my-database-password'
 DB_HOST = 'network-adress-of-the-database'
 DB_PORT = 'port-to-connect-to-the-database' # PostgreSQL defaults to 5432
+CPD_URL = 'http://...' # URL of CPD to mirror the classes API
+DOMAIN_NAME_SLASH = 'http://.../' # URL of the domain it is being hosted on, with a trailing slash
+CELERY_TOKEN = 'my-secret-celery-key' # Secret key for Celery authentication
 ```
 
 Install [Hatch](https://hatch.pypa.io/) and then install the dependencies in the environment:

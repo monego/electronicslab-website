@@ -7,23 +7,37 @@ name = "nupedee"
 version = "0.1.0"
 description = "Site novo do NUPEDEE"
 authors = [
-{name = "Vinicius Monego", email = "monego@posteo.net"}
+    { name = "Vinicius Monego", email = "monego@posteo.net" }
 ]
 license = "AGPLv3+"
 dependencies = [
-"django>=4,<5",
-"djangorestframework>=3.14.0",
-"django-dbbackup",
-"django-cors-headers>=3.13.0",
-"django-filter",
-"granian>=1,<2",
-"ipython>=8.18.1",
-"pandas>=2.1",
-"Pillow>=9.4.0",
-"python-barcode",
-"python-decouple>=3.7",
-"psycopg>=3.1.8",
-"reportlab>=4,<5"
+    # Celery
+    "celery>=5,<6",
+    "django-celery-beat",
+    "redis",
+
+    # Django base
+    "django>=4,<5",
+    "djangorestframework>=3.14.0",
+    "django-cors-headers>=3.13.0",
+    "django-dbbackup",
+    "django-filter",
+    "psycopg>=3.1.8",
+    "python-decouple>=3.7",
+    "whitenoise",
+
+    # Deployment
+    "granian>=1,<2",
+    "httpx",
+
+    # Extra functionality
+    "ipython>=8.18.1",
+    "Pillow>=9.4.0",
+    "python-barcode",
+    "reportlab>=4,<5",
+
+    # Database import
+    "pandas>=2.1",
 ]
 
 [tool.hatch.version]
@@ -32,12 +46,12 @@ path = "{{ project_name }}/__version__.py"
 # Default environment
 [tool.hatch.envs.default]
 dependencies = [
-"django-types",
-"ipdb",
-"model-bakery",
-"pytest",
-"pytest-django",
-"pytest-mock",
+    "django-types",
+    "ipdb",
+    "model-bakery",
+    "pytest",
+    "pytest-django",
+    "pytest-mock",
 ]
 
 [tool.hatch.envs.pypy]

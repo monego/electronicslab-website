@@ -39,11 +39,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Extensions
+    'django_celery_beat',
     'rest_framework',
     'corsheaders',
     # My apps
     'root',
     'authentication',
+    'aulas',
     'controle',
     'nupedee',
 ]
@@ -175,3 +177,11 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+DOMAIN_NAME_SLASH = config("DOMAIN_NAME_SLASH")
+CELERY_TOKEN = config("CELERY_TOKEN")
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_TIMEZONE = 'America/Sao_Paulo'
