@@ -13,6 +13,7 @@ const loanStatus = ref('pending');
 const startCode = ref<number | undefined>();
 const pages = ref<number | undefined>();
 const tab = ref('retirada');
+const idExists = ref<boolean>(false);
 const filter = ref<string>();
 const dialog = ref<boolean>(false);
 const $q = useQuasar();
@@ -364,6 +365,30 @@ async function printCodes(start: number | undefined, nPages: number | undefined)
   }
 }
 
+async function identificadorExists() {
+  try {
+    const response = await (api as AxiosInstance).get('/controle/emprestimos', {
+      params: {
+        identificador: loanId.value,
+      },
+    });
+
+    if (response.status === 200 && response.data.length > 0) {
+      idExists.value = true;
+    }
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response) {
+        throw error;
+      }
+    } else {
+      throw error;
+    }
+    throw error;
+  }
+}
+
 watch(loanStatus, () => {
   getLoans();
 });
@@ -390,7 +415,14 @@ onMounted(() => {
             <div class="col-6 bg-light q-pa-md">
               <q-card>
                 <q-card-section>
-                  <q-input outlined v-model="loanId" class="q-input" label="Identificador" />
+                  <q-input
+                  outlined
+                  v-model="loanId"
+                  class="q-input"
+                  label="Identificador"
+                  :error="idExists"
+                  error-message="Este identificador já foi cadastrado"
+                  @blur="identificadorExists" />
                   <MatriculaButton v-model="matricula" />
                   <q-input outlined v-model="obs" class="q-input" label="Observação/Local" />
                   <q-form @submit="registerLoan">
