@@ -14,6 +14,7 @@ const startCode = ref<number | undefined>();
 const pages = ref<number | undefined>();
 const tab = ref('retirada');
 const idExists = ref<boolean>(false);
+const obsTooLong = ref<boolean>(false);
 const filter = ref<string>();
 const dialog = ref<boolean>(false);
 const $q = useQuasar();
@@ -389,6 +390,14 @@ async function identificadorExists() {
   }
 }
 
+function validatePlace() {
+  if (obs.value.length > 20) {
+    obsTooLong.value = true;
+  } else {
+    obsTooLong.value = false;
+  }
+}
+
 watch(loanStatus, () => {
   getLoans();
 });
@@ -424,7 +433,14 @@ onMounted(() => {
                   error-message="Este identificador já foi cadastrado"
                   @blur="identificadorExists" />
                   <MatriculaButton v-model="matricula" />
-                  <q-input outlined v-model="obs" class="q-input" label="Observação/Local" />
+                  <q-input
+                  outlined
+                  v-model="obs"
+                  class="q-input"
+                  label="Observação/Local"
+                  :error="obsTooLong"
+                  error-message="O local excede 20 caracteres"
+                  @blur="validatePlace" />
                   <q-form @submit="registerLoan">
                     <div v-for="(_, index) in newItems" :key="index" class="q-mb-md">
                       <div class="flex">
