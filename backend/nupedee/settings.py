@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Extensions
-    'django_celery_beat',
+    'django_q',
     'rest_framework',
     'corsheaders',
     # My apps
@@ -147,6 +147,22 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+Q_CLUSTER = {
+    'name': 'nupedee',
+    'workers': 8,
+    'recycle': 500,
+    'timeout': 60,
+    'compress': True,
+    'save_limit': 250,
+    'queue_limit': 500,
+    'cpu_affinity': 1,
+    'label': 'Django Q',
+    'redis': {
+        'host': '127.0.0.1',
+        'port': 6379,
+        'db': 0, }
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/

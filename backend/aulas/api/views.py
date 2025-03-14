@@ -15,25 +15,17 @@ from root.models import Sala
 import httpx
 import json
 
+class IsLocalhost(BasePermission):
 
-class IsCeleryWorker(BasePermission):
     def has_permission(self, request, view):
-        if request.method == 'GET':
-            return True
+        client_ip = request.META.get('REMOTE_ADDR')
 
-        if request.method == 'POST':
-            return (
-                request.headers.get("Authorization")
-                == f"Bearer {settings.CELERY_TOKEN}"
-            )
-
-        return False
-
+        return client_ip in ('127.0.0.1', '::1')
 
 class AulasViewSet(ModelViewSet):
     queryset = Aula.objects.all()
     serializer_class = AulaSerializer
-    permission_classes = [IsCeleryWorker]
+    permission_classes = [IsLocalhost]
 
     def create(self, request, *args, **kwargs):
         url = settings.URL_CPD
@@ -127,6 +119,14 @@ class AulasViewSet(ModelViewSet):
                     Q(sala__in=[k[2] for k in chaves_excluir])
                 ).delete()
 
+        return Response(
+            {"detail": "OK"},
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=False, methods=['get'], url_path='update')
+    def get_for_update(self, request, *args, **kwarts):
+        self.create(request)
         return Response(
             {"detail": "OK"},
             status=status.HTTP_200_OK,
