@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from controle.models import (
     Ausencia,
+    Compras,
     ControleAcesso,
     Emprestimo,
     Equipamento,
@@ -14,6 +15,13 @@ from controle.models import (
 class AusenciaAdmin(admin.ModelAdmin):
     list_display = ('funcionario', 'inicio', 'fim', 'motivo')
     search_fields = ('funcionario',)
+
+class ComprasAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'data', 'origem', 'tipo', 'funcionario')
+    search_fields = ('titulo',)
+
+class ControleAcessoAdmin(admin.ModelAdmin):
+    list_display = ('pessoa', 'sala')
 
 class EquipamentoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'descricao', 'foto', 'manual')
@@ -41,10 +49,8 @@ class ManutencaoAdmin(admin.ModelAdmin):
     list_display = ('equipamento', 'funcionario', 'descricao', 'data')
     search_fields = ('equipamento', 'funcionario')
 
-class ControleAcessoAdmin(admin.ModelAdmin):
-    list_display = ('pessoa', 'sala')
-
 admin.site.register(Ausencia, AusenciaAdmin)
+admin.site.register(Compras, ComprasAdmin)
 admin.site.register(ControleAcesso, ControleAcessoAdmin)
 admin.site.register(Emprestimo, EmprestimosAdmin)
 admin.site.register(Equipamento, EquipamentoAdmin)

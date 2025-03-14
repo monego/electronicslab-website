@@ -21,6 +21,40 @@ class Ausencia(models.Model):
         verbose_name = 'Ausência'
         verbose_name_plural = 'Ausências'
 
+class Compras(models.Model):
+    data = models.DateTimeField(default=timezone.now)
+    titulo = models.CharField(max_length=100)
+    quantidade = models.PositiveSmallIntegerField()
+    justificativa = models.TextField(max_length=500)
+    estado = models.CharField(max_length=15, choices=[
+        ('solicitado', 'Solicitado'),
+        ('aprovado', 'aprovado'),
+        ('tramitado', 'Tramitado'),
+        ('comprado', 'Comprado'),
+        ('recebido', 'Recebido'),
+        ('negado', 'Negado'),
+        ('excluido', 'Excluído')
+    ])
+    origem = models.CharField(max_length=25, choices=[
+        ('almox', 'Almoxarifado'),
+        ('cc', 'Cartão Corporativo'),
+        ('rp', 'Registro de Preço')
+    ])
+    tipo = models.CharField(max_length=15, choices=[
+        ('permanente', 'Permanente'),
+        ('consumo', 'Consumo')
+    ])
+    funcionario = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, related_name='solicitante'
+    )
+
+    def __str__(self):
+        return f"{self.titulo}"
+
+    class Meta:
+        verbose_name = 'Compra'
+        verbose_name_plural = 'Compras'
+
 class ControleAcesso(models.Model):
     pessoa = models.ForeignKey(Pessoa, on_delete=models.SET_NULL, null=True,
                                limit_choices_to={'tipo': 'AL'})
