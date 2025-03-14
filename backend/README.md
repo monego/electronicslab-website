@@ -37,7 +37,6 @@ DB_HOST = 'network-adress-of-the-database'
 DB_PORT = 'port-to-connect-to-the-database' # PostgreSQL defaults to 5432
 CPD_URL = 'http://...' # URL of CPD to mirror the classes API
 DOMAIN_NAME_SLASH = 'http://.../' # URL of the domain it is being hosted on, with a trailing slash
-CELERY_TOKEN = 'my-secret-celery-key' # Secret key for Celery authentication
 ```
 
 Install [Hatch](https://hatch.pypa.io/) and then install the dependencies in the environment:

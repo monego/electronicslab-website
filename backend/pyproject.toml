@@ -11,9 +11,7 @@ authors = [
 ]
 license = "AGPLv3+"
 dependencies = [
-    # Celery
-    "celery>=5,<6",
-    "django-celery-beat",
+    # Task queues
     "redis",
 
     # Django base
@@ -22,6 +20,7 @@ dependencies = [
     "django-cors-headers>=3.13.0",
     "django-dbbackup",
     "django-filter",
+    "django-q2",
     "psycopg>=3.1.8",
     "python-decouple>=3.7",
     "whitenoise",
