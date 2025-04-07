@@ -10,10 +10,9 @@ import type { RouteLocationNormalized } from 'vue-router';
 const route = useRoute() as RouteLocationNormalized;
 
 const links = ref([
-  { label: 'Laboratórios', to: '/laboratorios' },
-  { label: 'Calendário', to: '/calendario' },
-  { label: 'Equipamentos', to: '/materiais' },
-  { label: 'Sobre', to: '/sobre' },
+  { icon: 'mdi-calendar-clock', label: 'Calendário', to: '/calendario' },
+  { icon: 'mdi-tools', label: 'Equipamentos', to: '/materiais' },
+  { icon: 'mdi-login', label: 'Entrar', to: '/login' },
 ]);
 </script>
 
@@ -21,12 +20,15 @@ const links = ref([
   <q-layout view="lHh Lpr lFf">
     <q-header elevated>
       <q-toolbar>
-        <q-avatar square>
-          <img src="/Icone.ico">
-        </q-avatar>
+        <q-item to="/">
+          <q-avatar square>
+            <img src="/Icone.ico">
+          </q-avatar>
+        </q-item>
         <q-space />
-        <q-btn v-for="link in links" :key="link.label" flat rounded :to="link.to" :label="link.label"
-          :class="{ 'active-link': route.path === link.to }" />
+        <q-btn v-for="link in links" :key="link.label" flat rounded :to="link.to"
+        :label="link.label" :icon="link.icon"
+        :class="{ 'active-link': route.path === link.to }" />
       </q-toolbar>
     </q-header>
 
