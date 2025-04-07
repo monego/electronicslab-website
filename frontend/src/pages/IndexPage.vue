@@ -79,6 +79,7 @@ async function getUserList() {
         response.data.forEach((aula: {
           titulo: string,
           sala_nome: string,
+          sala_numero: string,
           disciplina: string,
           professor: string,
           inicio: string,
@@ -86,7 +87,7 @@ async function getUserList() {
         }) => aulas.value.push({
           title: aula.disciplina,
           professor: aula.professor,
-          room: aula.sala_nome,
+          room: `[${aula.sala_numero}] ${aula.sala_nome}`,
           start: format(parseISO(aula.inicio), 'HH:mm'),
           end: format(parseISO(aula.fim), 'HH:mm'),
         }));
