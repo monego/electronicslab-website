@@ -29,7 +29,7 @@ interface Range {
 
 interface Sala {
   'label': string,
-  'value': string
+  'code': string
 }
 
 interface SalaResponse {
@@ -51,7 +51,7 @@ function displayError(message: string) {
 
 let aulasApi = [];
 
-const sala = ref<Sala | null>(null);
+const sala = ref<Sala>();
 const salas = ref<Sala[]>([]);
 
 const today = new Date();
@@ -74,7 +74,7 @@ async function getSalas() {
     if (response.status === 200) {
       salas.value = response.data.map((obj: SalaResponse) => ({
         label: `[${obj.numero}] ${obj.nome}`,
-        value: obj.codigo,
+        code: obj.codigo,
       }));
     } else {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
@@ -90,11 +90,11 @@ async function getSalas() {
     } else {
       displayError('Erro desconhecido!');
     }
-    throw error; // Rethrow the error
+    throw error;
   }
 }
 
-async function getUserList(roomId: Sala, range: Range) {
+async function getUserList(roomId: string, range: Range) {
   const rangeStart: string = range.start.split(' ')[0] as string;
   const rangeEnd: string = range.end.split(' ')[0] as string;
 
@@ -164,7 +164,7 @@ const calendarApp = createCalendar({
   callbacks: {
     onRangeUpdate(range) {
       if (sala.value != null) {
-        getUserList(sala.value, range);
+        getUserList(sala.value.code, range);
       }
     },
   },
@@ -185,14 +185,17 @@ const calendarApp = createCalendar({
 
 watch(sala, (newValue) => {
   if (newValue != null) {
-    getUserList(newValue, calendarControlsPlugin.getRange() as Range);
+    getUserList(newValue.code, calendarControlsPlugin.getRange() as Range);
   }
 });
 
-onMounted(() => {
-  getSalas();
+onMounted(async () => {
+  await getSalas();
   const [firstSala] = salas.value;
-  sala.value = firstSala as Sala;
+  sala.value = firstSala;
+  if (sala.value != null) {
+    await getUserList(sala.value.code, calendarControlsPlugin.getRange() as Range);
+  }
 });
 </script>
 
