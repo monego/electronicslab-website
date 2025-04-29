@@ -1,10 +1,13 @@
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 from django.db import models
-from django.utils import timezone
 from django.db.models import UniqueConstraint
+from django.utils import timezone
 from root.models import Pessoa, Sala
-
+from PIL import Image
+import io
+import os
 
 class Ausencia(models.Model):
     funcionario = models.ForeignKey(
@@ -112,6 +115,31 @@ class Equipamento(models.Model):
 
     def __str__(self):
         return self.nome
+
+    def save(self, *args, **kwargs):
+        """ Optimize image by converting to WebP, 80% quality """
+
+        if self.foto:
+            foto_webp = Image.open(self.foto)
+
+            orig_path = self.foto.path
+
+            foto_io = io.BytesIO()
+
+            foto_webp.save(foto_io, format='WebP', quality=80)
+
+            foto_file = ContentFile(
+                foto_io.getvalue(),
+                name=f"{os.path.splitext(self.foto.name)[0]}.webp"
+            )
+
+            self.foto.save(foto_file.name, foto_file, save=False)
+
+            super().save(*args, **kwargs)
+
+            # Remove the original, unoptimized image
+            if os.path.exists(orig_path):
+                os.remove(orig_path)
 
     class Meta:
         verbose_name = 'Equipamento'
