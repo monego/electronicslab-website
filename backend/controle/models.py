@@ -26,7 +26,8 @@ class Ausencia(models.Model):
 
 class Compras(models.Model):
     data = models.DateTimeField(default=timezone.now)
-    titulo = models.CharField(max_length=100)
+    titulo = models.CharField(max_length=100, default="")
+    descricao = models.TextField(max_length=500)
     quantidade = models.PositiveSmallIntegerField()
     justificativa = models.TextField(max_length=500)
     estado = models.CharField(max_length=15, choices=[
@@ -37,7 +38,9 @@ class Compras(models.Model):
         ('recebido', 'Recebido'),
         ('negado', 'Negado'),
         ('excluido', 'Excluído')
-    ])
+    ],
+    default = 'solicitado'
+    )
     origem = models.CharField(max_length=25, choices=[
         ('almox', 'Almoxarifado'),
         ('cc', 'Cartão Corporativo'),
@@ -216,3 +219,14 @@ class Manutencao(models.Model):
         verbose_name = 'Manutenção'
         verbose_name_plural = 'Manutenções'
 
+class Orcamento(models.Model):
+    compra = models.ForeignKey(Compras, on_delete=models.CASCADE)
+    empresa = models.CharField(max_length=25)
+    data = models.DateField()
+    preco = models.DecimalField(max_digits=6, decimal_places=2)
+    website = models.URLField(max_length=200)
+    anexo = models.FileField()
+
+    class Meta:
+        verbose_name = 'Orçamento'
+        verbose_name_plural = 'Orçamentos'

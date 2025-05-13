@@ -93,10 +93,10 @@ const privateList: EssentialLinkProps[] = [
     link: '/#/ocorrencias',
   },
   {
-    title: 'Estatísticas',
-    caption: 'Estatísticas do banco de dados',
-    icon: 'mdi-chart-line',
-    link: '/#/estatisticas',
+    title: 'Compras',
+    caption: 'Solicitações de Compra',
+    icon: 'mdi-cart-variant',
+    link: '/#/compras',
   },
 ];
 

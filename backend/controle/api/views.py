@@ -1,5 +1,6 @@
 from controle.api.serializers import (
     AusenciaSerializer,
+    ComprasSerializer,
     ControleAcessoSerializer,
     EmprestimoSerializer,
     EquipamentoSerializer,
@@ -7,6 +8,7 @@ from controle.api.serializers import (
     HorarioTrabalhoSerializer,
     ItemEmprestimoSerializer,
     ManutencaoSerializer,
+    OrcamentoSerializer,
 )
 
 from django.contrib.auth.models import User
@@ -22,12 +24,14 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from controle.models import (
     Ausencia,
+    Compras,
     ControleAcesso,
     Emprestimo,
     Equipamento,
     ItemEmprestimo,
     HorarioTrabalho,
     Manutencao,
+    Orcamento,
 )
 from root.models import Pessoa, Sala
 
@@ -67,6 +71,10 @@ class AusenciaViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save()
 
+class ComprasViewSet(ModelViewSet):
+    queryset = Compras.objects.all()
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ComprasSerializer
 
 class ControleAcessoViewSet(ModelViewSet):
     queryset = ControleAcesso.objects.all()
@@ -578,6 +586,11 @@ class ManutencaoViewSet(ModelViewSet):
         serializer.save(
             funcionario=self.request.user
         )
+
+class OrcamentoViewSet(ModelViewSet):
+    queryset = Orcamento.objects.all()
+    permission_classes = (IsAuthenticated,)
+    serializer_class = OrcamentoSerializer
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()

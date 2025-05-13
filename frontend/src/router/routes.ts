@@ -27,6 +27,7 @@ const routes: RouteRecordRaw[] = [
       { path: '/emprestimo', component: () => import('pages/LoanPage.vue') },
       { path: '/equipamentos', component: () => import('pages/EquipmentPage.vue') },
       { path: '/ocorrencias', component: () => import('pages/OccurrencePage.vue') },
+      { path: '/compras', component: () => import('pages/PurchasePage.vue') },
     ],
   },
   {

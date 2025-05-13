@@ -1,12 +1,14 @@
 import rest_framework.serializers as serializers
 from controle.models import (
     Ausencia,
+    Compras,
     ControleAcesso,
     Emprestimo,
     Equipamento,
     HorarioTrabalho,
     ItemEmprestimo,
     Manutencao,
+    Orcamento,
 )
 
 class AusenciaSerializer(serializers.ModelSerializer):
@@ -14,6 +16,29 @@ class AusenciaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ausencia
         fields = '__all__'
+
+class ComprasSerializer(serializers.ModelSerializer):
+    funcionario_nome = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Compras
+        fields = [
+            "data",
+            "titulo",
+            "descricao",
+            "quantidade",
+            "justificativa",
+            "estado",
+            "origem",
+            "tipo",
+            "funcionario_nome"
+        ]
+
+    def get_funcionario_nome(self, obj):
+        if fun := obj.funcionario:
+            return f"{fun.first_name} {fun.last_name}"
+        else:
+            return
 
 class ControleAcessoSerializer(serializers.ModelSerializer):
     pessoa_nome = serializers.SerializerMethodField()
@@ -137,3 +162,9 @@ class ManutencaoSerializer(serializers.ModelSerializer):
             return f"{fun.first_name} {fun.last_name}"
         else:
             return
+
+class OrcamentoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Orcamento
+        fields = '__all__'
