@@ -39,9 +39,10 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/telao',
-    component: () => import('layouts/TelaoLayout.vue'),
+    component: () => import('src/layouts/TelaoLayout.vue'),
     children: [
-      { path: '/secretaria', name: 'secretaria', component: () => import('src/pages/TelaoSecretaria.vue') },
+      { path: '/telaohall', component: () => import('pages/TelaoHall.vue') },
+      { path: '/secretaria', name: 'secretaria', component: () => import('pages/TelaoSecretaria.vue') },
     ],
   },
 

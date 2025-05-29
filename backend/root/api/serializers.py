@@ -19,4 +19,4 @@ class SalaSerializer(ModelSerializer):
     search_fields =  ['numero']
     class Meta:
         model = Sala
-        fields = ['id', 'predio', 'nome', 'numero', 'codigo']
+        fields = ['id', 'predio', 'nome', 'numero', 'andar', 'codigo']

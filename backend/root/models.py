@@ -43,6 +43,10 @@ class Sala(models.Model):
     predio = models.ForeignKey(Predio, on_delete=models.SET_NULL, null=True)
     nome = models.CharField(max_length=50, null=True)
     numero = models.CharField(max_length=5, null=True)
+    andar = models.SmallIntegerField(choices=[
+        (1, '1'),
+        (2, '2')
+    ], default=1)
     codigo = models.CharField(max_length=5, null=True)
     imagem = models.ImageField("Imagem", null=True, blank=True)
 

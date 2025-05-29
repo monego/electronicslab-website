@@ -25,7 +25,7 @@ class PredioAdmin(admin.ModelAdmin):
 
 
 class SalaAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'predio', 'numero')
+    list_display = ('nome', 'predio', 'numero', 'andar')
 
 
 admin.site.register(Pessoa, PessoaAdmin)

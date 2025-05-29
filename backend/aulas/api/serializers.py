@@ -7,6 +7,7 @@ import rest_framework.serializers as serializers
 class AulaSerializer(ModelSerializer):
     queryset = Aula.objects.all()
     serializer_class = Aula
+    sala_andar = serializers.SerializerMethodField()
     sala_codigo = serializers.SerializerMethodField()
     sala_numero = serializers.SerializerMethodField()
     sala_nome = serializers.SerializerMethodField()
@@ -24,7 +25,11 @@ class AulaSerializer(ModelSerializer):
             "sala_codigo",
             "sala_nome",
             "sala_numero",
+            "sala_andar",
         ]
+
+    def get_sala_andar(self, obj):
+        return obj.sala.andar if obj.sala else None
 
     def get_sala_codigo(self, obj):
         return obj.sala.codigo if obj.sala else None
