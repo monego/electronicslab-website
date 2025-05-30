@@ -1,24 +1,16 @@
 <script setup lang="ts">
-import type { AxiosInstance, AxiosError } from 'axios';
+import type { AxiosInstance } from 'axios';
 import { useQuasar } from 'quasar';
-import { api, axios } from 'boot/axios';
+import { api } from 'boot/axios';
 import { ref, onMounted } from 'vue';
 import { format } from 'date-fns';
 
 // Data properties
 const tab = ref('consultar');
-
-const showError = ref(false);
-const errorMessage = ref<string>('');
 const descManutencao = ref<string>('');
 const showDialog = ref<boolean>(false);
 const $q = useQuasar();
 const notifTimeout = 30;
-
-function displayError(message: string) {
-  errorMessage.value = message;
-  showError.value = true;
-}
 
 interface Row {
   nome: string,
@@ -150,17 +142,11 @@ async function getEquipments() {
       rows.value = await Promise.all(accessList);
     }
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        const errorData = axiosError.response.data as { detail?: string };
-        const errorDetail = errorData.detail ?? 'Erro desconhecido!';
-        displayError(errorDetail);
-      }
-    } else {
-      displayError('Erro desconhecido!');
-    }
-    throw error;
+    $q.notify({
+      type: 'negative',
+      message: 'Erro no servidor ao buscar equipamentos.',
+      timeout: 2500,
+    });
   }
 }
 
@@ -184,17 +170,11 @@ async function getManutencao(patr: string) {
       manutencoes.value = await Promise.all(manutencaoList);
     }
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        const errorData = axiosError.response.data as { detail?: string };
-        const errorDetail = errorData.detail ?? 'Erro desconhecido!';
-        displayError(errorDetail);
-      }
-    } else {
-      displayError('Erro desconhecido!');
-    }
-    throw error;
+    $q.notify({
+      type: 'negative',
+      message: 'Erro no servidor ao buscar manutenções.',
+      timeout: 2500,
+    });
   }
 }
 
@@ -219,17 +199,11 @@ async function registerManutencao(desc: string, patr: string) {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        const errorData = axiosError.response.data as { detail?: string };
-        const errorDetail = errorData.detail ?? 'Erro desconhecido!';
-        displayError(errorDetail);
-      }
-    } else {
-      displayError('Erro desconhecido!');
-    }
-    throw error; // Rethrow the error
+    $q.notify({
+      type: 'negative',
+      message: 'Erro no servidor ao registrar manutenção.',
+      timeout: 2500,
+    });
   }
 }
 

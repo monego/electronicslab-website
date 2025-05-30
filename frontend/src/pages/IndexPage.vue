@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import type { AxiosInstance, AxiosError } from 'axios';
-import { axios, api } from 'boot/axios';
+import type { AxiosInstance } from 'axios';
+import { api } from 'boot/axios';
 import { useQuasar } from 'quasar';
 import { parseISO, format } from 'date-fns';
 
@@ -95,16 +95,12 @@ async function getUserList() {
     } else {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        throw error;
-      }
-    } else {
-      throw error;
-    }
-    throw error;
+  } catch (error: unknown) {
+    $q.notify({
+      type: 'negative',
+      message: 'Erro na comunicação com o servidor. Consulte o desenvolvedor.',
+      timeout: 2500,
+    });
   }
 }
 

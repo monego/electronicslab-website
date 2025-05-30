@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { format } from 'date-fns';
-import { api, axios } from 'boot/axios';
-import type { AxiosInstance, AxiosError } from 'axios';
+import { api } from 'boot/axios';
+import type { AxiosInstance } from 'axios';
 import { useQuasar } from 'quasar';
 
 const today = new Date();
@@ -49,23 +49,11 @@ async function getHorarios() {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        $q.notify({
-          type: 'negative',
-          message: 'Falha desconhecida ao registrar.',
-          timeout: notifTimeout,
-        });
-      }
-    } else {
-      $q.notify({
-        type: 'negative',
-        message: 'Falha desconhecida ao registrar.',
-        timeout: notifTimeout,
-      });
-    }
-    throw error;
+    $q.notify({
+      type: 'negative',
+      message: 'Erro no servidor ao buscar horários.',
+      timeout: 2500,
+    });
   }
 }
 
@@ -83,24 +71,13 @@ async function patchHorarios(day: string, hour: (string | null)[]) {
 
     return response.data;
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        $q.notify({
-          type: 'negative',
-          message: 'Falha desconhecida ao registrar.',
-          timeout: notifTimeout,
-        });
-      }
-    } else {
-      $q.notify({
-        type: 'negative',
-        message: 'Falha desconhecida ao registrar.',
-        timeout: notifTimeout,
-      });
-    }
-    throw error;
+    $q.notify({
+      type: 'negative',
+      message: 'Erro no servidor ao registrar horário.',
+      timeout: 2500,
+    });
   }
+  return null;
 }
 
 async function setAusencia(time: DateModel, reason: string) {
@@ -134,23 +111,11 @@ async function setAusencia(time: DateModel, reason: string) {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        $q.notify({
-          type: 'negative',
-          message: 'Falha desconhecida ao registrar.',
-          timeout: notifTimeout,
-        });
-      }
-    } else {
-      $q.notify({
-        type: 'negative',
-        message: 'Falha desconhecida ao registrar.',
-        timeout: notifTimeout,
-      });
-    }
-    throw error;
+    $q.notify({
+      type: 'negative',
+      message: 'Erro no servidor ao registrar ausência.',
+      timeout: 2500,
+    });
   }
 }
 

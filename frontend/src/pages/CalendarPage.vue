@@ -4,8 +4,8 @@ import { createCurrentTimePlugin } from '@schedule-x/current-time';
 import { ref, watch, onMounted } from 'vue';
 import { createEventsServicePlugin } from '@schedule-x/events-service';
 import { createCalendarControlsPlugin } from '@schedule-x/calendar-controls';
-import type { AxiosInstance, AxiosError } from 'axios';
-import { axios, api } from 'boot/axios';
+import type { AxiosInstance } from 'axios';
+import { api } from 'boot/axios';
 import { useQuasar } from 'quasar';
 import { parseISO, format } from 'date-fns';
 import {
@@ -40,14 +40,7 @@ interface SalaResponse {
   'codigo': string,
 }
 
-const showError = ref(false);
-const errorMessage = ref<string>('');
 const $q = useQuasar();
-
-function displayError(message: string) {
-  errorMessage.value = message;
-  showError.value = true;
-}
 
 let aulasApi = [];
 
@@ -80,17 +73,11 @@ async function getSalas() {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        const errorData = axiosError.response.data as { detail?: string };
-        const errorDetail = errorData.detail ?? 'Erro desconhecido!';
-        displayError(errorDetail);
-      }
-    } else {
-      displayError('Erro desconhecido!');
-    }
-    throw error;
+    $q.notify({
+      type: 'negative',
+      message: 'Erro na comunicação com o servidor. Consulte o desenvolvedor.',
+      timeout: 2500,
+    });
   }
 }
 
@@ -142,18 +129,12 @@ async function getUserList(roomId: string, range: Range) {
     } else {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        const errorData = axiosError.response.data as { detail?: string };
-        const errorDetail = errorData.detail ?? 'Erro desconhecido!';
-        displayError(errorDetail);
-      }
-    } else {
-      displayError('Erro desconhecido!');
-    }
-    throw error;
+  } catch (error: unknown) {
+    $q.notify({
+      type: 'negative',
+      message: 'Erro na comunicação com o servidor. Consulte o desenvolvedor.',
+      timeout: 2500,
+    });
   }
 }
 

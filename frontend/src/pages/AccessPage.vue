@@ -3,8 +3,8 @@ import { ref, onMounted } from 'vue';
 import type { Ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { format } from 'date-fns';
-import type { AxiosInstance, AxiosError } from 'axios';
-import { axios, api } from 'boot/axios';
+import type { AxiosInstance } from 'axios';
+import { api } from 'boot/axios';
 import MatriculaButton from 'components/MatriculaButton.vue';
 
 const $q = useQuasar();
@@ -12,9 +12,6 @@ const $q = useQuasar();
 const notifTimeout = 30;
 
 const sala = ref();
-const showError = ref(false);
-const errorMessage = ref<string>('');
-
 const matricula = ref<string>('');
 const tab: Ref<string> = ref<string>('entrada');
 const options = ref();
@@ -94,11 +91,6 @@ const selected = ref<Row[]>([]);
 
 const rows = ref<Turnstile[]>([]);
 
-function displayError(message: string) {
-  errorMessage.value = message;
-  showError.value = true;
-}
-
 async function getSalas() {
   try {
     const response = await (api as AxiosInstance).get('/root/salas');
@@ -112,17 +104,11 @@ async function getSalas() {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        const errorData = axiosError.response.data as { detail?: string };
-        const errorDetail = errorData.detail ?? 'Erro desconhecido!';
-        displayError(errorDetail);
-      }
-    } else {
-      displayError('Erro desconhecido!');
-    }
-    throw error;
+    $q.notify({
+      type: 'negative',
+      message: 'Erro ao buscar salas no servidor.',
+      timeout: 2500,
+    });
   }
 }
 
@@ -141,17 +127,11 @@ async function getRegistered() {
       rows.value = await Promise.all(accessList);
     }
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        const errorData = axiosError.response.data as { detail?: string };
-        const errorDetail = errorData.detail ?? 'Erro desconhecido!';
-        displayError(errorDetail);
-      }
-    } else {
-      displayError('Erro desconhecido!');
-    }
-    throw error;
+    $q.notify({
+      type: 'negative',
+      message: 'Erro no servidor ao buscar acessos registrados.',
+      timeout: 2500,
+    });
   }
 }
 
@@ -176,17 +156,11 @@ async function registerAccess() {
       return response.data;
     }
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        const errorData = axiosError.response.data as { detail?: string };
-        const errorDetail = errorData.detail ?? 'Unknown error detail';
-        displayError(errorDetail);
-      }
-    } else {
-      displayError('Erro desconhecido!');
-    }
-    throw error;
+    $q.notify({
+      type: 'negative',
+      message: 'Erro na comunicação com servidor ao registrar acesso.',
+      timeout: 2500,
+    });
   }
   return null;
 }
@@ -211,17 +185,11 @@ async function releaseStudent(numeroMatricula: string) {
       return response.data;
     }
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        const errorData = axiosError.response.data as { detail?: string };
-        const errorDetail = errorData.detail ?? 'Unknown error detail';
-        displayError(errorDetail);
-      }
-    } else {
-      displayError('Erro desconhecido!');
-    }
-    throw error;
+    $q.notify({
+      type: 'negative',
+      message: 'Erro no servidor ao liberar acesso.',
+      timeout: 2500,
+    });
   }
   return null;
 }
@@ -238,17 +206,11 @@ onMounted(() => {
       await getSalas();
       await getRegistered();
     } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        const axiosError = error as AxiosError;
-        if (axiosError.response) {
-          const errorData = axiosError.response.data as { detail?: string };
-          const errorDetail = errorData.detail ?? 'Unknown error detail';
-          displayError(errorDetail);
-        }
-      } else {
-        displayError('Erro desconhceido!');
-      }
-      throw error;
+      $q.notify({
+        type: 'negative',
+        message: 'Erro ao buscar salas ou registros no servidor.',
+        timeout: 2500,
+      });
     }
   })();
 });
@@ -267,27 +229,10 @@ onMounted(() => {
 
       <q-tab-panels v-model="tab" animated>
         <q-tab-panel name="entrada">
-          <q-dialog v-model="showError">
-            <q-card>
-              <q-card-section>
-                <q-card class="text-h6">Erro</q-card>
-              </q-card-section>
-
-              <q-card-section class="q-pt-none">
-                {{ errorMessage }}
-              </q-card-section>
-
-              <q-card-actions align="right">
-                <q-btn flat label="OK" color="primary" v-close-popup />
-              </q-card-actions>
-            </q-card>
-          </q-dialog>
-
           <MatriculaButton v-model="matricula" />
           <q-select outlined v-model="sala" :options="options" label="Sala" class="q-input" />
           <q-btn @click="registerAccess" label="Registrar" type="submit" color="positive"
             icon="mdi-turnstile-outline" />
-
         </q-tab-panel>
 
         <q-tab-panel name="saida">

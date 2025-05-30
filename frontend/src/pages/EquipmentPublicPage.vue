@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { AxiosInstance, AxiosError } from 'axios';
-import { api, axios } from 'boot/axios';
+import type { AxiosInstance } from 'axios';
+import { api } from 'boot/axios';
 import { ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 
@@ -80,15 +80,11 @@ async function getEquipments() {
       rows.value = await Promise.all(accessList);
     }
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        throw error;
-      }
-    } else {
-      throw error;
-    }
-    throw error;
+    $q.notify({
+      type: 'negative',
+      message: 'Erro no servidor ao buscar os materiais.',
+      timeout: 2500,
+    });
   }
 }
 

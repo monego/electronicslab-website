@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
-import type { AxiosInstance, AxiosError } from 'axios';
-import { axios, api } from 'boot/axios';
+import type { AxiosInstance } from 'axios';
+import { api } from 'boot/axios';
 import { format } from 'date-fns';
 import { useQuasar } from 'quasar';
 import MatriculaButton from 'components/MatriculaButton.vue';
@@ -52,14 +52,6 @@ function capitalizeEachWord(str: string): string {
     .split(' ')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
-}
-
-const showError = ref(false);
-const errorMessage = ref<string>('');
-
-function displayError(message: string) {
-  errorMessage.value = message;
-  showError.value = true;
 }
 
 type ColumnType = {
@@ -138,19 +130,11 @@ async function getLoans() {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
-        const axiosError = error as AxiosError;
-        if (axiosError.response) {
-          const errorData = axiosError.response.data as { detail?: string };
-          const errorDetail = errorData.detail ?? 'Erro desconhecido!';
-          displayError(errorDetail);
-        }
-      }
-    } else {
-      displayError('Erro desconhecido!');
-    }
-    throw error;
+    $q.notify({
+      type: 'negative',
+      message: 'Erro no servidor ao buscar empréstimos.',
+      timeout: 2500,
+    });
   }
 }
 
@@ -176,17 +160,11 @@ async function registerLoan() {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        const errorData = axiosError.response.data as { detail?: string };
-        const errorDetail = errorData.detail ?? 'Erro desconhecido!';
-        displayError(errorDetail);
-      }
-    } else {
-      displayError('Erro desconhecido!');
-    }
-    throw error;
+    $q.notify({
+      type: 'negative',
+      message: 'Erro no servidor ao registrar empréstimo.',
+      timeout: 2500,
+    });
   }
 }
 
@@ -203,16 +181,11 @@ async function returnItem(loan: string, name: string, index: number) {
       }
     }
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        const errorData = axiosError.response.data as { detail?: string };
-        const errorDetail = errorData.detail ?? 'Erro desconhecido!';
-        displayError(errorDetail);
-      }
-    } else {
-      displayError('Erro desconhecido!');
-    }
+    $q.notify({
+      type: 'negative',
+      message: 'Erro no servidor ao registrar devolução do item.',
+      timeout: 2500,
+    });
   }
   return null;
 }
@@ -231,16 +204,11 @@ async function returnLoan(loan: string) {
       });
     }
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        const errorData = axiosError.response.data as { detail?: string };
-        const errorDetail = errorData.detail ?? 'Erro desconhecido!';
-        displayError(errorDetail);
-      }
-    } else {
-      displayError('Erro desconhecido!');
-    }
+    $q.notify({
+      type: 'negative',
+      message: 'Erro no servidor ao registrar devolução.',
+      timeout: 2500,
+    });
   }
   return null;
 }
@@ -315,19 +283,11 @@ async function getItems(identifier: string, taker: string) {
       throw new Error('Request failed');
     }
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
-        const axiosError = error as AxiosError;
-        if (axiosError.response) {
-          const errorData = axiosError.response.data as { detail?: string };
-          const errorDetail = errorData.detail ?? 'Erro desconhecido!';
-          displayError(errorDetail);
-        }
-      }
-    } else {
-      displayError('Erro desconhecido!');
-    }
-    throw error;
+    $q.notify({
+      type: 'negative',
+      message: 'Erro no servidor ao buscar itens.',
+      timeout: 2500,
+    });
   }
   dialog.value = true;
 }
@@ -350,19 +310,11 @@ async function printCodes(start: number | undefined, nPages: number | undefined)
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
-        const axiosError = error as AxiosError;
-        if (axiosError.response) {
-          const errorData = axiosError.response.data as { detail?: string };
-          const errorDetail = errorData.detail ?? 'Erro desconhecido!';
-          displayError(errorDetail);
-        }
-      }
-    } else {
-      displayError('Erro desconhecido!');
-    }
-    throw error;
+    $q.notify({
+      type: 'negative',
+      message: 'Erro no servidor ao calcular códigos de empréstimo.',
+      timeout: 2500,
+    });
   }
 }
 
@@ -378,15 +330,11 @@ async function identificadorExists() {
       idExists.value = true;
     }
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        throw error;
-      }
-    } else {
-      throw error;
-    }
-    throw error;
+    $q.notify({
+      type: 'negative',
+      message: 'Erro no servidor ao registrar empréstimo.',
+      timeout: 2500,
+    });
   }
 }
 

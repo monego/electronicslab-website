@@ -19,8 +19,8 @@
 </template>
 
 <script setup lang="ts">
-import { api, axios } from 'boot/axios';
-import type { AxiosInstance, AxiosError } from 'axios';
+import { api } from 'boot/axios';
+import type { AxiosInstance } from 'axios';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from 'stores/auth';
@@ -31,14 +31,6 @@ const username = ref('');
 const password = ref('');
 const router = useRouter();
 const authStore = useAuthStore();
-
-const showError = ref(false);
-const errorMessage = ref<string>('');
-
-function displayError(message: string) {
-  errorMessage.value = message;
-  showError.value = true;
-}
 
 const login = async () => {
   try {
@@ -67,17 +59,11 @@ const login = async () => {
       }
     }
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        const errorData = axiosError.response.data as { detail?: string };
-        const errorDetail = errorData.detail ?? 'Erro desconhecido!';
-        displayError(errorDetail);
-      }
-    } else {
-      displayError('Erro desconhecido!');
-    }
-    throw error;
+    $q.notify({
+      type: 'negative',
+      message: 'Erro no servidor ao tentar entrar.',
+      timeout: 2500,
+    });
   }
 };
 </script>

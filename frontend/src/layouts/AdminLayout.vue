@@ -42,8 +42,9 @@
 import { ref, onMounted } from 'vue';
 import { useAuthStore } from 'stores/auth';
 import { useRouter } from 'vue-router';
-import type { AxiosInstance, AxiosError } from 'axios';
-import { api, axios } from 'boot/axios';
+import { useQuasar } from 'quasar';
+import type { AxiosInstance } from 'axios';
+import { api } from 'boot/axios';
 import Cookie from 'js-cookie';
 import EssentialLink from 'components/EssentialLink.vue';
 import type { EssentialLinkProps } from 'components/EssentialLink.vue';
@@ -55,14 +56,7 @@ defineOptions({
 const authStore = useAuthStore();
 const { userName } = useAuthStore();
 const router = useRouter();
-
-const showError = ref(false);
-const errorMessage = ref<string>('');
-
-function displayError(message: string) {
-  errorMessage.value = message;
-  showError.value = true;
-}
+const $q = useQuasar();
 
 const publicList: EssentialLinkProps[] = [
   {
@@ -122,16 +116,11 @@ const logout = async () => {
       router.push('/login');
     }
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        const errorData = axiosError.response.data as { detail?: string };
-        const errorDetail = errorData.detail ?? 'Erro desconhecido!';
-        displayError(errorDetail);
-      }
-    } else {
-      displayError('Erro desconhecido!');
-    }
+    $q.notify({
+      type: 'negative',
+      message: 'Erro ao encerrar a sessão.',
+      timeout: 2500,
+    });
   }
 };
 
