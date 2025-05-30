@@ -23,7 +23,7 @@ interface Row {
   manual: string,
 }
 
-type ColumnType = {
+interface Column {
   name: string;
   label: string;
   align?: 'left' | 'right' | 'center';
@@ -31,10 +31,10 @@ type ColumnType = {
   required?: boolean;
   format?: (val: string) => string;
   sortable?: boolean;
-};
+}
 
 const search = ref('');
-const columns: ColumnType[] = [
+const columns: Column[] = [
   {
     name: 'nome',
     label: 'Nome',

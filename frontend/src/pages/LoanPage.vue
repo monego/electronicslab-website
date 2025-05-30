@@ -54,7 +54,7 @@ function capitalizeEachWord(str: string): string {
     .join(' ');
 }
 
-type ColumnType = {
+interface Column {
   name: string;
   label: string;
   field: string | ((row: Loan) => string);
@@ -62,9 +62,9 @@ type ColumnType = {
   align?: 'left' | 'right' | 'center';
   format?: (val: Loan) => string;
   sortable?: boolean;
-};
+}
 
-const columns: ColumnType[] = [
+const columns: Column[] = [
   {
     name: 'identificador',
     required: true,

@@ -30,7 +30,7 @@ interface Row {
   'hora_entrada': string,
 }
 
-type ColumnType = {
+interface Column {
   name: string;
   label: string;
   field: ((row: Row) => string);
@@ -38,9 +38,9 @@ type ColumnType = {
   align?: 'left' | 'right' | 'center';
   format: (val: string) => string;
   sortable?: boolean;
-};
+}
 
-const columns: ColumnType[] = [
+const columns: Column[] = [
   {
     name: 'nome',
     required: true,

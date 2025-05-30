@@ -47,7 +47,7 @@ function getKeys(options: Record<string, string>, val: string): string {
   )[0] ?? '';
 }
 
-type Row = {
+interface Row {
     data: string,
     origem: string,
     tipo: string,
@@ -58,7 +58,7 @@ type Row = {
     funcionario_nome: string,
 }
 
-type Column = {
+interface Column {
     name: string;
     label: string;
     align?: 'left' | 'right' | 'center';

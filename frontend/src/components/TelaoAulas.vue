@@ -33,7 +33,7 @@ interface Aula {
   'end': string,
 }
 
-type ColumnType = {
+interface Column {
   name: string;
   label: string;
   field: ((row: Aula) => string);
@@ -42,7 +42,7 @@ type ColumnType = {
   format?: (val: string) => string;
   headerStyle: string;
   style: (row: Aula) => string;
-};
+}
 
 function capitalizeEachWord(str: string): string {
   return str
@@ -73,7 +73,7 @@ const $q = useQuasar();
 const filter = ref<string>('');
 const aulas = ref<Aula[]>([]);
 
-const columns: ColumnType[] = [
+const columns: Column[] = [
   {
     name: 'startEnd',
     required: true,

@@ -15,7 +15,7 @@ type DateModel = {
   to: string;
 } | string;
 
-type Jornada = {
+interface Jornada {
   segunda: (string | null)[],
   terca: (string | null)[],
   quarta: (string | null)[],
