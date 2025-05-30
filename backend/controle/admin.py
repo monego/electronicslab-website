@@ -1,6 +1,4 @@
-import django_filters
 from django.contrib import admin
-from django.contrib.auth.models import User
 from controle.models import (
     Ausencia,
     Compras,
