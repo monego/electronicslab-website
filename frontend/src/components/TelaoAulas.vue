@@ -23,6 +23,7 @@ import { axios, api } from 'boot/axios';
 import { useQuasar } from 'quasar';
 import { parseISO, format, minutesToMilliseconds } from 'date-fns';
 import '@fontsource-variable/inter';
+import '@fontsource/lato';
 
 interface Aula {
   'title': string,
@@ -51,8 +52,8 @@ function capitalizeEachWord(str: string): string {
     .join(' ');
 }
 
-const propFontSize = '30px';
-const propFontFamily = 'Inter, sans-serif';
+const propFontSize = '33px';
+const propFontFamily = 'Lato, sans-serif';
 
 function rowLevelBg(row: Aula, cellWidth: string) {
   let backgroundColor: string;
@@ -65,7 +66,8 @@ function rowLevelBg(row: Aula, cellWidth: string) {
     `font-size: ${propFontSize};`,
     `width: ${cellWidth};`,
     `font-family: ${propFontFamily};`,
-    `background: ${backgroundColor}`,
+    'font-weight: 900;',
+    `background: ${backgroundColor};`,
   ].join(' ');
 }
 
