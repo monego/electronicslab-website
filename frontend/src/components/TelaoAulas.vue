@@ -17,9 +17,9 @@ defineOptions({
   name: 'TelaoAulas',
 });
 
-import { ref, onMounted } from 'vue';
-import type { AxiosInstance, AxiosError } from 'axios';
-import { axios, api } from 'boot/axios';
+import { ref, onMounted, watch } from 'vue';
+import type { AxiosInstance } from 'axios';
+import { api } from 'boot/axios';
 import { useQuasar } from 'quasar';
 import { parseISO, format, minutesToMilliseconds } from 'date-fns';
 import '@fontsource-variable/inter';
@@ -161,27 +161,26 @@ async function getUserList() {
           end: format(parseISO(aula.fim), 'HH:mm'),
         }));
       }
-    } else {
-      throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        throw error;
-      }
-    } else {
-      throw error;
-    }
-    throw error;
+  } catch (error: unknown) {
+    $q.notify({
+      type: 'negative',
+      message: 'Erro na comunicação com o servidor. Consulte o desenvolvedor.',
+      timeout: 2500,
+    });
   }
 }
 
-onMounted(async () => {
-  await getUserList();
-  setInterval(async () => {
-    await getUserList();
+onMounted(() => {
+  getUserList();
+  setInterval(() => {
+    aulas.value = [];
+    getUserList();
   }, minutesToMilliseconds(30));
+});
+
+watch(aulas, (newAulas) => {
+  rows.value = newAulas;
 });
 </script>
 

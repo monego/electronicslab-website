@@ -16,6 +16,7 @@ function getAndFormatTime() {
 }
 
 onMounted(() => {
+  getAndFormatTime();
   const now = new Date();
   const nextMinute = new Date(now.getTime() + (60 - now.getSeconds()) * 1000);
   const delay = nextMinute.getTime() - now.getTime();
