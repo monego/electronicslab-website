@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Extensions
+    'dbbackup',
     'django_q',
     'rest_framework',
     'corsheaders',
@@ -197,3 +198,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 URL_CPD = config('URL_CPD')
 
 DOMAIN_NAME_SLASH = config("DOMAIN_NAME_SLASH")
+
+DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
+DBBACKUP_STORAGE_OPTIONS = {'location': config('DBBACKUP_LOCATION')}
+DBBACKUP_DATABASES = ['default']
