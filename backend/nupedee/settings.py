@@ -197,9 +197,3 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 URL_CPD = config('URL_CPD')
 
 DOMAIN_NAME_SLASH = config("DOMAIN_NAME_SLASH")
-CELERY_TOKEN = config("CELERY_TOKEN")
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-CELERY_TIMEZONE = 'America/Sao_Paulo'
