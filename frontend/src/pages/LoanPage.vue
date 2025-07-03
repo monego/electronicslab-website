@@ -197,6 +197,8 @@ async function returnLoan(loan: string) {
     });
 
     if (response.status === 200) {
+      await getLoans();
+
       $q.notify({
         type: 'positive',
         message: 'Devolvido com successo.',
