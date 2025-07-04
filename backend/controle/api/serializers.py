@@ -90,13 +90,13 @@ class EmprestimoSerializer(serializers.ModelSerializer):
     responsavel_nome = serializers.SerializerMethodField()
     responsavel_matricula = serializers.SerializerMethodField()
     funcionario_nome = serializers.SerializerMethodField()
-    items = ItemEmprestimoSerializer(many=True, read_only=True)
+    items_nomes = serializers.SerializerMethodField()
 
     class Meta:
         model = Emprestimo
         fields = [
             "identificador",
-            "items",
+            "items_nomes",
             "funcionario_nome",
             "responsavel_nome",
             "responsavel_matricula",
@@ -116,6 +116,17 @@ class EmprestimoSerializer(serializers.ModelSerializer):
             return f"{fun.first_name} {fun.last_name}"
         else:
             return
+
+    def get_items_nomes(self, obj):
+        items = ItemEmprestimo.objects.filter(emprestimo=obj)
+        item_names = []
+        for item in items:
+            if not item.equipamento:
+                item_names.append(item.nome)
+            else:
+                item_names.append(item.equipamento.nome)
+        return '; '.join(item_names)
+
 
 class EquipamentoSerializer(serializers.ModelSerializer):
     num_manutencao = serializers.IntegerField(read_only=True)

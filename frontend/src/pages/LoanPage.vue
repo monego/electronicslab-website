@@ -25,6 +25,7 @@ interface Loan {
   identificador: string;
   responsavel_nome: string;
   funcionario_nome: string;
+  items_nomes: string;
   local: string;
   retirada: string;
   devolucao: string;
@@ -83,6 +84,13 @@ const columns: Column[] = [
     sortable: true,
   },
   {
+    name: 'items_nomes',
+    align: 'center',
+    label: 'Items',
+    field: ((row: Loan) => row.items_nomes),
+    sortable: true,
+  },
+  {
     name: 'funcionario',
     label: 'Funcionário',
     field: ((row: Loan) => row.funcionario_nome),
@@ -123,6 +131,7 @@ async function getLoans() {
         identificador: loan.identificador,
         responsavel_nome: loan.responsavel_nome,
         funcionario_nome: loan.funcionario_nome,
+        items_nomes: loan.items_nomes,
         local: loan.local,
         retirada: loan.retirada,
       }));

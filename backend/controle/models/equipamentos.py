@@ -24,7 +24,7 @@ class Equipamento(models.Model):
     manual = models.FileField(blank=True, null=True)
 
     def __str__(self):
-        return self.nome
+        return f"{self.nome} ({self.patrimonio})"
 
     def save(self, *args, **kwargs):
         """ Optimize image by converting to WebP, 80% quality """
