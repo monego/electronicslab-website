@@ -150,8 +150,8 @@ const calendarApp = createCalendar({
     },
   },
   dayBoundaries: {
-    start: '07:30',
-    end: '20:30',
+    start: '07:00',
+    end: '21:00',
   },
   weekOptions: {
     gridHeight: 500,
