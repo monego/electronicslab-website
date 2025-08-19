@@ -24,6 +24,7 @@ let allLoans: string;
 interface Loan {
   identificador: string;
   responsavel_nome: string;
+  responsavel_matricula: string;
   funcionario_nome: string;
   items_nomes: string;
   local: string;
@@ -46,6 +47,7 @@ const newItems = ref<string[]>([]);
 
 const selectedId = ref<string>('');
 const selectedResponsavel = ref<string>('');
+const selectedMatricula = ref<string>('');
 const selectedEncerrado = ref<boolean>(false);
 
 function capitalizeEachWord(str: string): string {
@@ -82,6 +84,14 @@ const columns: Column[] = [
     field: ((row: Loan) => row.responsavel_nome),
     format: (val: Loan) => capitalizeEachWord(`${val}`),
     sortable: true,
+  },
+  {
+    name: 'matricula',
+    align: 'center',
+    label: 'Matrícula',
+    field: ((row: Loan) => row.responsavel_matricula),
+    format: (val: Loan) => `${val}`,
+    sortable: false,
   },
   {
     name: 'items_nomes',
@@ -129,6 +139,7 @@ async function getLoans() {
     if (response.status === 200) {
       rows.value = response.data.map((loan: Loan) => ({
         identificador: loan.identificador,
+        responsavel_matricula: loan.responsavel_matricula,
         responsavel_nome: loan.responsavel_nome,
         funcionario_nome: loan.funcionario_nome,
         items_nomes: loan.items_nomes,
@@ -278,9 +289,11 @@ function getPatrOrNome(item: LoanItem) {
   return patrOrNome;
 }
 
-async function getItems(identifier: string, taker: string) {
+async function getItems(identifier: string, taker: string, takerMatricula: string) {
   selectedId.value = identifier;
   selectedResponsavel.value = taker;
+  selectedMatricula.value = takerMatricula;
+
   try {
     const responseItems = await (api as AxiosInstance).get('/controle/items/', {
       params: {
@@ -390,23 +403,11 @@ onMounted(() => {
             <div class="col-6 bg-light q-pa-md">
               <q-card>
                 <q-card-section>
-                  <q-input
-                  outlined
-                  v-model="loanId"
-                  class="q-input"
-                  label="Identificador"
-                  :error="idExists"
-                  error-message="Este identificador já foi cadastrado"
-                  @blur="identificadorExists" />
+                  <q-input outlined v-model="loanId" class="q-input" label="Identificador" :error="idExists"
+                    error-message="Este identificador já foi cadastrado" @blur="identificadorExists" />
                   <MatriculaButton v-model="matricula" />
-                  <q-input
-                  outlined
-                  v-model="obs"
-                  class="q-input"
-                  label="Observação/Local"
-                  :error="obsTooLong"
-                  error-message="O local excede 20 caracteres"
-                  @blur="validatePlace" />
+                  <q-input outlined v-model="obs" class="q-input" label="Observação/Local" :error="obsTooLong"
+                    error-message="O local excede 20 caracteres" @blur="validatePlace" />
                   <q-form @submit="registerLoan">
                     <div v-for="(_, index) in newItems" :key="index" class="q-mb-md">
                       <div class="flex">
@@ -450,13 +451,17 @@ onMounted(() => {
                 </q-avatar>
 
                 <q-toolbar-title>
-                  Empréstimo {{ selectedId }} ({{ selectedResponsavel }})
+                  <b>Empréstimo</b> {{ selectedId }}
                 </q-toolbar-title>
 
                 <q-btn flat round dense icon="close" v-close-popup />
               </q-toolbar>
 
               <q-card-section>
+
+                <p><b>Solicitante</b>: {{ selectedResponsavel }}</p>
+                <p><b>Matrícula</b>: {{ selectedMatricula }}</p>
+
                 <div v-for="(item, index) in loanItems" :key="index" class="q-gutter-md row items-center">
                   <span class="col">
                     {{ getNome(item) }}
@@ -497,7 +502,11 @@ onMounted(() => {
             <template v-slot:body-cell-devolucao="props">
               <q-td :props="props">
                 <q-btn label="Visualizar" color="primary"
-                  @click="getItems(props.row.identificador, props.row.responsavel_nome)" />
+                  @click="getItems(
+                    props.row.identificador,
+                    props.row.responsavel_nome,
+                    props.row.responsavel_matricula
+                  )" />
               </q-td>
             </template>
 
