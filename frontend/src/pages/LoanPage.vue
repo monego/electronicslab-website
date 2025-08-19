@@ -164,6 +164,13 @@ async function registerLoan() {
         message: 'Empréstimo registrado com successo.',
         timeout: notifTimeout,
       });
+
+      /* Clear all fields after loan is succesfully registered. */
+      loanId.value = null;
+      matricula.value = null;
+      obs.value = null;
+      newItems.value = [''];
+
       await getLoans();
     } else {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
