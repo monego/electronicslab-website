@@ -116,6 +116,7 @@ const columns: Column[] = [
     label: 'Retirada',
     field: ((row: Loan) => row.retirada),
     format: (val: Loan) => format(`${val}`, 'yyyy-MM-dd HH:mm:ss'),
+    sortable: true,
   },
   {
     name: 'devolucao',
@@ -489,7 +490,7 @@ onMounted(() => {
           ]" />
 
           <q-table flat bordered title="Empréstimos" :rows="rows" :columns="columns" :filter=filter
-            row-key="identificador">
+            row-key="identificador" :rows-per-page-options="[50, 100, 150, 0]">
 
             <template v-slot:top-right>
               <q-input borderless dense debounce="300" v-model="filter" placeholder="Pesquisar">

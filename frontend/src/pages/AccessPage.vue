@@ -237,7 +237,7 @@ onMounted(() => {
 
         <q-tab-panel name="saida">
           <q-table flat bordered title="Registros" selection="multiple" :rows="rows" :columns="columns"
-            row-key="pessoa_matricula" v-model:selected="selected" />
+            row-key="pessoa_matricula" v-model:selected="selected" :rows-per-page-options="[0]" />
           <div style="padding-top: 20px;">
             <q-btn @click="releaseStudents(selected)" label="Liberar" type="submit" color="positive"
               icon="mdi-turnstile-outline" />
