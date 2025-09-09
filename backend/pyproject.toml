@@ -9,7 +9,7 @@ description = "Site novo do NUPEDEE"
 authors = [
     { name = "Vinicius Monego", email = "monego@posteo.net" }
 ]
-license = "AGPLv3+"
+license = "AGPL-3.0-or-later"
 dependencies = [
     # Task queues
     "redis",
