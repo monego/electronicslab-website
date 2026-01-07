@@ -1,0 +1,94 @@
+services:
+  backend:
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    container_name: backend
+    image: nupedee-backend
+    env_file: backend/.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    volumes:
+      - /srv/backups/django:/backups:rw
+    restart: unless-stopped
+
+  qcluster:
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    container_name: qcluster
+    image: nupedee-qcluster
+    command: poetry run python manage.py qcluster -n ${QCLUSTER_NAME:-nupedee}
+    env_file: backend/.env
+    depends_on:
+      - db
+      - valkey
+
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+      args:
+        - API_URL=http://localhost/api
+    container_name: frontend
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./frontend:/app           # Monta seu código local na pasta /app do container
+      - /app/node_modules        # Protege o node_modules interno do container
+    image:
+      nupedee-frontend-dev
+    command: quasar dev -m spa --hostname 0.0.0.0 --port 9000
+
+  db:
+    image: postgres:16
+    container_name: db
+    environment:
+      POSTGRES_USER_FILE: /run/secrets/db_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+      POSTGRES_DB_FILE: /run/secrets/db_db
+    secrets:
+      - db_user
+      - db_password
+      - db_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  valkey:
+    image: valkey/valkey
+    container_name: valkey
+    restart: unless-stopped
+    command: ["valkey-server", "--appendonly", "yes"]
+    volumes:
+      - valkey_data:/data
+
+  webserver:
+    image: caddy/caddy
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+      - frontend
+
+volumes:
+  pgdata:
+  valkey_data:
+  caddy_data:
+  caddy_config:
+
+secrets:
+  db_user:
+    file: ./secrets/db_user
+  db_password:
+    file: ./secrets/db_password
+  db_db:
+    file: ./secrets/db_db

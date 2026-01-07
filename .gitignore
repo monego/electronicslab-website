@@ -6,3 +6,4 @@ backend/.env
 backend/**/__pycache__
 backend/**/migrations
 frontend/**/node_modules
+/secrets/

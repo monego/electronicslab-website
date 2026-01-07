@@ -163,7 +163,7 @@ Q_CLUSTER = {
     'cpu_affinity': 1,
     'label': 'Django Q',
     'redis': {
-        'host': '127.0.0.1',
+        'host': 'valkey',
         'port': 6379,
         'db': 0, }
 }
