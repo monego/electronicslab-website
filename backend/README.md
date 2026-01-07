@@ -40,19 +40,23 @@ CPD_URL='http://...' # URL of CPD to mirror the classes API
 DOMAIN_NAME_SLASH='http://.../' # URL of the domain it is being hosted on, with a trailing slash
 ```
 
-Install [Hatch](https://hatch.pypa.io/) and then install the dependencies in the environment:
+Install [Poetry](https://python-poetry.org/) and then install the dependencies in the environment:
+
+``` sh
+poetry install
+```
 
 Make the Django migrations and migrate to the database:
 
 ``` sh
-hatch run python manage.py makemigrations
-hatch run python manage.py migrate
+poetry run python manage.py makemigrations
+poetry run python manage.py migrate
 ```
 
 Lastly, create a Django superuser with:
 
 ``` sh
-hatch run python manage.py createsuperuser
+poetry run python manage.py createsuperuser
 ```
 
 And log in to the admin interface in `/admin` on the address where the server is running. Some of the models may be managed there.

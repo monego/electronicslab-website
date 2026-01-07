@@ -1,63 +1,42 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[project]
-name = "nupedee"
+[tool.poetry]
+name = "nupedee-backend"
 version = "0.1.0"
-description = "Site novo do NUPEDEE"
-authors = [
-    { name = "Vinicius Monego", email = "monego@posteo.net" }
-]
-license = "AGPL-3.0-or-later"
-dependencies = [
-    # Task queues
-    "redis",
+description = "Backend do site do NUPEDEE"
+authors = ["Vinicius Monego <vinicius.monego@ufsm.br>"]
+license = "AGPLv3+"
+readme = "README.md"
+package-mode = false
 
-    # Django base
-    "django>=4,<5",
-    "djangorestframework>=3.14.0",
-    "django-cors-headers>=3.13.0",
-    "django-dbbackup",
-    "django-environ",
-    "django-filter",
-    "django-q2",
-    "psycopg>=3.1.8",
-    "whitenoise",
+[tool.poetry.dependencies]
+python = "^3.12"
 
-    # Deployment
-    "granian>=1,<2",
-    "httpx",
+# Task queues
+redis = "*"
 
-    # Extra functionality
-    "ipython>=8.18.1",
-    "Pillow>=9.4.0",
-    "python-barcode",
-    "reportlab>=4,<5",
+# Django base
+django = ">=4,<5"
+djangorestframework = ">=3.14.0"
+django-cors-headers = ">=3.13.0"
+django-dbbackup = "*"
+django-environ = "*"
+django-filter = "*"
+django-q2 = "*"
+psycopg = ">=3.1.8"
+whitenoise = "*"
 
-    # Database import
-    "pandas>=2.1",
-]
+# Deployment
+granian = ">=1,<2"
+httpx = "*"
 
-[tool.hatch.version]
-path = "{{ project_name }}/__version__.py"
+# Extra functionality
+ipython = ">=8.18.1"
+Pillow = ">=9.4.0"
+python-barcode = "*"
+reportlab = ">=4,<5"
 
-# Default environment
-[tool.hatch.envs.default]
-dependencies = [
-    "django-types",
-    "ipdb",
-    "model-bakery",
-    "pytest",
-    "pytest-django",
-    "pytest-mock",
-]
+# Database import
+pandas = ">=2.1"
 
-[tool.hatch.envs.pypy]
-type = "virtual"
-python = "pypy3.10"
-
-[tool.ruff]
-line-length = 88
-select = ["E", "W", "F", "C90"]
-exclude = ["__pycache__", ".git", "old", "build", "dist"]
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
