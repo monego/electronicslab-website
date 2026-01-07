@@ -28,7 +28,7 @@ class HorarioTrabalho(models.Model):
         ('quarta', 'Quarta-feira'),
         ('quinta', 'Quinta-feira'),
         ('sexta', 'Sexta-feira'),
-    ])
+    ], default='segunda')
     inicio = models.TimeField()
     fim = models.TimeField()
     inicio_intervalo = models.TimeField(null=True, blank=True)
