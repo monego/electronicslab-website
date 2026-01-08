@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { AxiosInstance } from 'axios';
 import { useQuasar } from 'quasar';
 import { api } from 'boot/axios';
 import { ref, onMounted } from 'vue';
 import { format } from 'date-fns';
+import type { AxiosResponse } from 'axios';
 
 // Data properties
 const tab = ref('consultar');
@@ -125,23 +125,22 @@ const manutencoes = ref<RowManutencao[]>([]);
 
 async function getEquipments() {
   try {
-    const response = await (api as AxiosInstance).get('/controle/equipamento/');
+    const response: AxiosResponse<Row[]> = await api.get('/controle/equipamento/');
 
     if (response.status === 200) {
-      const accessList = response.data
-        .map(async (item: Row) => ({
-          nome: item.nome,
-          patrimonio: item.patrimonio,
-          sala: item.sala_numero,
-          defeito: item.defeito,
-          num_manutencao: item.num_manutencao,
-          num_emprestimo: item.num_emprestimo,
-          foto: item.foto,
-          manual: item.manual,
-        }));
-      rows.value = await Promise.all(accessList);
+      const accessList: Row[] = response.data.map((item: Row) => ({
+        nome: item.nome,
+        patrimonio: item.patrimonio,
+        sala_numero: item.sala_numero,
+        defeito: item.defeito,
+        num_manutencao: item.num_manutencao,
+        num_emprestimo: item.num_emprestimo,
+        foto: item.foto,
+        manual: item.manual,
+      }));
+      rows.value = accessList;
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro no servidor ao buscar equipamentos.',
@@ -152,24 +151,24 @@ async function getEquipments() {
 
 async function getManutencao(patr: string) {
   try {
-    const response = await (api as AxiosInstance).get('/controle/manutencao/', {
+    const response: AxiosResponse<RowManutencao[]> = await api.get('/controle/manutencao/', {
       params: {
         patrimonio: patr,
       },
     });
 
     if (response.status === 200) {
-      const manutencaoList = response.data
-        .map(async (item: RowManutencao) => ({
+      const manutencaoList: RowManutencao[] = response.data.map((item: RowManutencao) => ({
           id: item.id,
           descricao: item.descricao,
           data: item.data,
           equipamento_nome: item.equipamento_nome,
           funcionario_nome: item.funcionario_nome,
         }));
-      manutencoes.value = await Promise.all(manutencaoList);
+
+      manutencoes.value = manutencaoList;
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro no servidor ao buscar manutenções.',
@@ -185,7 +184,7 @@ async function registerManutencao(desc: string, patr: string) {
   };
 
   try {
-    const response = await (api as AxiosInstance).post('/controle/manutencao/', payload);
+    const response = await api.post('/controle/manutencao/', payload);
 
     if (response.status === 201) {
       $q.notify({
@@ -198,7 +197,7 @@ async function registerManutencao(desc: string, patr: string) {
     } else {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro no servidor ao registrar manutenção.',
@@ -212,7 +211,8 @@ const openImage = (imageUrl: string) => {
 };
 
 onMounted(() => {
-  getEquipments();
+  getEquipments()
+  .catch(err => console.error('Falhou ao buscar equipamentos:', err));
 });
 </script>
 

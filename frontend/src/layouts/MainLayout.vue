@@ -22,7 +22,7 @@ const links = ref([
       <q-toolbar>
         <q-item to="/">
           <q-avatar square>
-            <img src="/Icone.ico">
+            <img src="/Icone.png">
           </q-avatar>
         </q-item>
         <q-space />

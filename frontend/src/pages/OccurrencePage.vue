@@ -2,7 +2,6 @@
 import { ref, onMounted } from 'vue';
 import { format } from 'date-fns';
 import { api } from 'boot/axios';
-import type { AxiosInstance } from 'axios';
 import { useQuasar } from 'quasar';
 
 const today = new Date();
@@ -35,7 +34,7 @@ const horarios = ref<Jornada>({
 
 async function getHorarios() {
   try {
-    const response = await (api as AxiosInstance).get('/controle/horarios');
+    const response = await api.get('/controle/horarios');
 
     if (response.status === 200) {
       Object.keys(horarios.value).forEach((day, index) => {
@@ -48,7 +47,7 @@ async function getHorarios() {
     } else {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro no servidor ao buscar horários.',
@@ -59,7 +58,7 @@ async function getHorarios() {
 
 async function patchHorarios(day: string, hour: (string | null)[]) {
   try {
-    const response = await (api as AxiosInstance).patch('/controle/horarios/byday/', {
+    const response = await api.patch('/controle/horarios/byday/', {
       dia: day,
       inicio: hour[0],
       inicio_intervalo: hour[1],
@@ -70,7 +69,7 @@ async function patchHorarios(day: string, hour: (string | null)[]) {
     await getHorarios();
 
     return response.data;
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro no servidor ao registrar horário.',
@@ -99,7 +98,7 @@ async function setAusencia(time: DateModel, reason: string) {
       motivo: reason,
     };
 
-    const response = await (api as AxiosInstance).post('/controle/ausencia/', data);
+    const response = await api.post('/controle/ausencia/', data);
 
     if (response.status === 201) {
       $q.notify({
@@ -110,7 +109,7 @@ async function setAusencia(time: DateModel, reason: string) {
     } else {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro no servidor ao registrar ausência.',
@@ -120,7 +119,8 @@ async function setAusencia(time: DateModel, reason: string) {
 }
 
 onMounted(() => {
-  getHorarios();
+  getHorarios()
+  .catch(err => console.error('Falhou ao buscar horários:', err));
 });
 </script>
 

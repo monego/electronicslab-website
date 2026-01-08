@@ -5,13 +5,14 @@ defineOptions({
 
 import { format, minutesToMilliseconds } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, provide } from 'vue';
 
 const currentTime = ref(new Date());
 const formattedTime = ref('');
 
 function getAndFormatTime() {
   currentTime.value = new Date();
+  provide('currentTime', currentTime.value);
   formattedTime.value = format(currentTime.value, 'HH:mm EEEE yyyy-MM-dd', { locale: pt });
 }
 

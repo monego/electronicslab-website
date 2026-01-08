@@ -34,7 +34,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import type { AxiosInstance, AxiosError } from 'axios';
+import type { AxiosError } from 'axios';
 import { axios, api } from 'boot/axios';
 import { useQuasar } from 'quasar';
 
@@ -67,7 +67,7 @@ const telefonePessoa = ref<string>('');
 
 async function getPersonData(numeroMatricula: string) {
   try {
-    const response = await (api as AxiosInstance).get('/root/pessoas', {
+    const response = await api.get('/root/pessoas', {
       params: {
         matricula: numeroMatricula,
       },
@@ -98,7 +98,7 @@ async function getPersonData(numeroMatricula: string) {
 
 async function patchPersonData() {
   try {
-    const response = await (api as AxiosInstance).patch('/root/pessoas/mailphone/', {
+    const response = await api.patch('/root/pessoas/mailphone/', {
       matricula: matriculaPessoa.value,
       email: emailPessoa.value,
       telefone: telefonePessoa.value,
@@ -113,7 +113,7 @@ async function patchPersonData() {
 
       return response.data;
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro ao atualizar cadastro.',

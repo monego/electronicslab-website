@@ -1,6 +1,7 @@
 import { boot } from 'quasar/wrappers';
 import axios from 'axios';
-import type { AxiosInstance } from 'axios';
+import type { AxiosInstance, AxiosError } from 'axios';
+import { useRouter } from 'vue-router';
 
 declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {
@@ -22,6 +23,19 @@ const api = axios.create({
   withCredentials: true,
   withXSRFToken: true,
 });
+
+axios.interceptors.response.use(
+  response => response,
+  async (error: unknown) => {
+    const axiosError = error as AxiosError;
+    if (axios.isAxiosError(axiosError) && axiosError.response?.status === 403) {
+      // Redirect to login page if session expired
+      const router = useRouter();
+      await router.push('/login');
+    }
+    return Promise.reject(axiosError);
+  },
+);
 
 export default boot(({ app }) => {
   // for use inside Vue files (Options API) through this.$axios and this.$api

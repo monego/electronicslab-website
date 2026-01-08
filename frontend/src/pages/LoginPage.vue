@@ -20,7 +20,6 @@
 
 <script setup lang="ts">
 import { api } from 'boot/axios';
-import type { AxiosInstance } from 'axios';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from 'stores/auth';
@@ -34,10 +33,10 @@ const authStore = useAuthStore();
 
 const login = async () => {
   try {
-    const csrfResponse = await (api as AxiosInstance).get('/auth/csrf/');
+    const csrfResponse = await api.get('/auth/csrf/');
     const csrfToken = csrfResponse.data.csrftoken;
 
-    const response = await (api as AxiosInstance).post('/auth/login/', {
+    const response = await api.post('/auth/login/', {
       username: username.value,
       password: password.value,
     }, {
@@ -49,7 +48,8 @@ const login = async () => {
     if (response.status === 200) {
       if (response.data.authenticated) {
         authStore.login(response.data.username);
-        router.push('/admin');
+        router.push('/admin')
+        .catch(err => console.error('Falhou ao fazer login:', err));
       } else {
         $q.notify({
           type: 'negative',
@@ -58,7 +58,7 @@ const login = async () => {
         });
       }
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro no servidor ao tentar entrar.',

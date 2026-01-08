@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
-import type { AxiosInstance } from 'axios';
 import { api } from 'boot/axios';
 import { format } from 'date-fns';
 import { useQuasar } from 'quasar';
@@ -32,15 +31,24 @@ interface Loan {
   devolucao: string;
 }
 
-interface LoanItem {
-  emprestimo: string,
-  equipamento: number | string,
-  equipamento_patrimonio: string,
-  nome: string,
-  recebente_nome: string,
-  devolvido: boolean,
-  devolucao: string,
-}
+type LoanItem =
+  | {
+      equipamento_nome: string;
+      equipamento_patrimonio: string;
+      emprestimo: string;
+      equipamento: number | string;
+      recebente_nome: string;
+      devolvido: boolean;
+      devolucao: string;
+    }
+  | {
+      nome: string;
+      emprestimo: string;
+      equipamento: number | string;
+      recebente_nome: string;
+      devolvido: boolean;
+      devolucao: string;
+    };
 
 const loanItems = ref<LoanItem[]>([]);
 const newItems = ref<string[]>([]);
@@ -63,7 +71,7 @@ interface Column {
   field: string | ((row: Loan) => string);
   required?: boolean;
   align?: 'left' | 'right' | 'center';
-  format?: (val: Loan) => string;
+  format?: (val: string | number) => string;
   sortable?: boolean;
 }
 
@@ -74,7 +82,7 @@ const columns: Column[] = [
     label: 'Identificador',
     align: 'left',
     field: ((row: Loan) => row.identificador),
-    format: (val: Loan) => `${val}`,
+    format: (val: string | number) => `${val}`,
     sortable: true,
   },
   {
@@ -82,7 +90,7 @@ const columns: Column[] = [
     align: 'center',
     label: 'Responsável',
     field: ((row: Loan) => row.responsavel_nome),
-    format: (val: Loan) => capitalizeEachWord(`${val}`),
+    format: (val: string | number) => capitalizeEachWord(`${val}`),
     sortable: true,
   },
   {
@@ -90,7 +98,7 @@ const columns: Column[] = [
     align: 'center',
     label: 'Matrícula',
     field: ((row: Loan) => row.responsavel_matricula),
-    format: (val: Loan) => `${val}`,
+    format: (val: string | number) => `${val}`,
     sortable: false,
   },
   {
@@ -115,7 +123,7 @@ const columns: Column[] = [
     name: 'retirada',
     label: 'Retirada',
     field: ((row: Loan) => row.retirada),
-    format: (val: Loan) => format(`${val}`, 'yyyy-MM-dd HH:mm:ss'),
+    format: (val: string | number) => format(`${val}`, 'yyyy-MM-dd HH:mm:ss'),
     sortable: true,
   },
   {
@@ -135,7 +143,7 @@ async function getLoans() {
       allLoans = '?all=true';
     }
 
-    const response = await (api as AxiosInstance).get(`/controle/emprestimos${allLoans}`);
+    const response = await api.get(`/controle/emprestimos${allLoans}`);
 
     if (response.status === 200) {
       rows.value = response.data.map((loan: Loan) => ({
@@ -150,7 +158,7 @@ async function getLoans() {
     } else {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro no servidor ao buscar empréstimos.',
@@ -168,7 +176,7 @@ async function registerLoan() {
   };
 
   try {
-    const response = await (api as AxiosInstance).post('/controle/emprestimos/', payload);
+    const response = await api.post('/controle/emprestimos/', payload);
 
     if (response.status === 201) {
       $q.notify({
@@ -187,7 +195,7 @@ async function registerLoan() {
     } else {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro no servidor ao registrar empréstimo.',
@@ -198,7 +206,7 @@ async function registerLoan() {
 
 async function returnItem(loan: string, name: string, index: number) {
   try {
-    const response = await (api as AxiosInstance).patch('/controle/items/return/', {
+    const response = await api.patch('/controle/items/return/', {
       emprestimo: loan,
       nome: name,
     });
@@ -208,7 +216,7 @@ async function returnItem(loan: string, name: string, index: number) {
         loanItems.value[index].devolvido = true;
       }
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro no servidor ao registrar devolução do item.',
@@ -220,7 +228,7 @@ async function returnItem(loan: string, name: string, index: number) {
 
 async function returnLoan(loan: string) {
   try {
-    const response = await (api as AxiosInstance).patch('/controle/emprestimos/byidentifier/', {
+    const response = await api.patch('/controle/emprestimos/byidentifier/', {
       identificador: loan,
     });
 
@@ -233,7 +241,7 @@ async function returnLoan(loan: string) {
         timeout: notifTimeout,
       });
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro no servidor ao registrar devolução.',
@@ -245,17 +253,24 @@ async function returnLoan(loan: string) {
 
 function returnAllItems(id: string) {
   loanItems.value.forEach((item, index) => {
-    if (!item.devolvido) {
-      returnItem(
-        item.emprestimo,
-        item.equipamento ? item.equipamento_patrimonio : item.nome,
-        index,
-      );
-    }
+    if (item.devolvido) return;
+
+    const nomeOuPatrimonio = 'equipamento_patrimonio' in item
+    ? item.equipamento_patrimonio
+    : item.nome;
+
+    returnItem(item.emprestimo, nomeOuPatrimonio, index).catch(err =>
+      console.error('Falhou ao devolver item:', err)
+    );
   });
-  returnLoan(id);
+
+  returnLoan(id)
+  .catch(err => console.error('Falhou ao registrar devolução:', err));
+
   dialog.value = false;
-  getLoans();
+
+  getLoans()
+  .catch(err => console.error('Falhou ao buscar empréstimos:', err));
 }
 
 function addItem() {
@@ -267,13 +282,11 @@ function removeItem(index: number) {
 }
 
 function getNome(item: LoanItem) {
-  let nome: string;
   if ('equipamento_nome' in item) {
-    nome = `${item.equipamento_nome} (${item.equipamento_patrimonio})`;
+    return `${item.equipamento_nome} (${item.equipamento_patrimonio})`;
   } else {
-    nome = item.nome;
+    return item.nome;
   }
-  return nome;
 }
 
 function formatReturn(item: LoanItem) {
@@ -282,7 +295,7 @@ function formatReturn(item: LoanItem) {
 
 function getPatrOrNome(item: LoanItem) {
   let patrOrNome: string;
-  if (item.equipamento) {
+  if ('equipamento_patrimonio' in item) {
     patrOrNome = item.equipamento_patrimonio;
   } else {
     patrOrNome = item.nome;
@@ -296,12 +309,12 @@ async function getItems(identifier: string, taker: string, takerMatricula: strin
   selectedMatricula.value = takerMatricula;
 
   try {
-    const responseItems = await (api as AxiosInstance).get('/controle/items/', {
+    const responseItems = await api.get('/controle/items/', {
       params: {
         emprestimo: identifier,
       },
     });
-    const responseEmprestimo = await (api as AxiosInstance).get('/controle/emprestimos/?all=true', {
+    const responseEmprestimo = await api.get('/controle/emprestimos/?all=true', {
       params: {
         identificador: identifier,
       },
@@ -314,7 +327,7 @@ async function getItems(identifier: string, taker: string, takerMatricula: strin
     } else {
       throw new Error('Request failed');
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro no servidor ao buscar itens.',
@@ -326,7 +339,7 @@ async function getItems(identifier: string, taker: string, takerMatricula: strin
 
 async function printCodes(start: number | undefined, nPages: number | undefined) {
   try {
-    const response = await (api as AxiosInstance).get('/controle/emprestimos/printsheet', {
+    const response = await api.get('/controle/emprestimos/printsheet', {
       params: {
         inicio: start,
         paginas: nPages,
@@ -341,7 +354,7 @@ async function printCodes(start: number | undefined, nPages: number | undefined)
     } else {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro no servidor ao calcular códigos de empréstimo.',
@@ -352,7 +365,7 @@ async function printCodes(start: number | undefined, nPages: number | undefined)
 
 async function identificadorExists() {
   try {
-    const response = await (api as AxiosInstance).get('/controle/emprestimos', {
+    const response = await api.get('/controle/emprestimos', {
       params: {
         identificador: loanId.value,
       },
@@ -361,7 +374,7 @@ async function identificadorExists() {
     if (response.status === 200 && response.data.length > 0) {
       idExists.value = true;
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro no servidor ao registrar empréstimo.',
@@ -379,11 +392,13 @@ function validatePlace() {
 }
 
 watch(loanStatus, () => {
-  getLoans();
+  getLoans()
+  .catch(err => console.error('Falhou ao buscar empréstimos:', err));
 });
 
 onMounted(() => {
-  getLoans();
+  getLoans()
+  .catch(err => console.error('Falhou ao buscar empréstimos:', err));
 });
 </script>
 

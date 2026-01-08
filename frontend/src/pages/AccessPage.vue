@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import type { Ref } from 'vue';
+import type { AxiosResponse } from 'axios';
 import { useQuasar } from 'quasar';
 import { format } from 'date-fns';
-import type { AxiosInstance } from 'axios';
 import { api } from 'boot/axios';
 import MatriculaButton from 'components/MatriculaButton.vue';
 
@@ -93,7 +93,7 @@ const rows = ref<Turnstile[]>([]);
 
 async function getSalas() {
   try {
-    const response = await (api as AxiosInstance).get('/root/salas');
+    const response = await api.get('/root/salas');
 
     if (response.status === 200) {
       options.value = response.data.map((item: { nome: string, numero: string }) => ({
@@ -103,7 +103,7 @@ async function getSalas() {
     } else {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro ao buscar salas no servidor.',
@@ -112,21 +112,21 @@ async function getSalas() {
   }
 }
 
-async function getRegistered() {
+async function getRegistered(): Promise<void> {
   try {
-    const response = await (api as AxiosInstance).get('/controle/registros/');
+    const response: AxiosResponse<Row[]> = await api.get('/controle/registros/');
 
     if (response.status === 200) {
-      const accessList = response.data
-        .map(async (item: Row) => ({
-          pessoa_nome: item.pessoa_nome,
-          pessoa_matricula: item.pessoa_matricula,
-          sala_numero: item.sala_numero,
-          hora_entrada: item.hora_entrada,
-        }));
-      rows.value = await Promise.all(accessList);
+      const accessList: Turnstile[] = response.data.map((item: Row) => ({
+        nome: item.pessoa_nome,
+        matricula: item.pessoa_matricula,
+        numero: item.sala_numero,
+        hora_entrada: item.hora_entrada,
+      }));
+
+      rows.value = accessList;
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro no servidor ao buscar acessos registrados.',
@@ -142,7 +142,7 @@ async function registerAccess() {
   };
 
   try {
-    const response = await (api as AxiosInstance).post('/controle/registros/', payload);
+    const response = await api.post('/controle/registros/', payload);
 
     if (response.status === 201) {
       $q.notify({
@@ -155,7 +155,7 @@ async function registerAccess() {
 
       return response.data;
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro na comunicação com servidor ao registrar acesso.',
@@ -167,7 +167,7 @@ async function registerAccess() {
 
 async function releaseStudent(numeroMatricula: string) {
   try {
-    const response = await (api as AxiosInstance).patch('/controle/registros/bymatricula/', {
+    const response = await api.patch('/controle/registros/bymatricula/', {
       matricula: numeroMatricula,
     });
 
@@ -184,7 +184,7 @@ async function releaseStudent(numeroMatricula: string) {
 
       return response.data;
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro no servidor ao liberar acesso.',
@@ -196,23 +196,26 @@ async function releaseStudent(numeroMatricula: string) {
 
 function releaseStudents(studentList: Row[]) {
   studentList.forEach((student: Row) => {
-    releaseStudent(student.pessoa_matricula);
+    releaseStudent(student.pessoa_matricula)
+    .catch(err => console.error('Falhou ao liberar alunos:', err));
   });
 }
 
-onMounted(() => {
-  (async () => {
-    try {
-      await getSalas();
-      await getRegistered();
-    } catch (error: unknown) {
+async function loadData() {
+  try {
+    await getSalas();
+    await getRegistered();
+  } catch {
       $q.notify({
-        type: 'negative',
-        message: 'Erro ao buscar salas ou registros no servidor.',
-        timeout: 2500,
-      });
-    }
-  })();
+      type: 'negative',
+      message: 'Erro ao buscar salas ou registros no servidor.',
+      timeout: 2500,
+    });
+  }
+}
+
+onMounted(() => {
+  void loadData();
 });
 </script>
 

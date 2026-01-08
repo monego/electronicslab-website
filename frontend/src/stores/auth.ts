@@ -1,6 +1,6 @@
 // stores/auth.ts
 import { defineStore } from 'pinia';
-import type { AxiosInstance, AxiosError } from 'axios';
+import type { AxiosError } from 'axios';
 import { axios, api } from 'boot/axios';
 import { useQuasar } from 'quasar';
 
@@ -26,7 +26,7 @@ export const useAuthStore = defineStore('auth', {
     },
     async getAuthStatus() {
       try {
-        const response = await (api as AxiosInstance).get('/auth/authenticate/');
+        const response = await api.get('/auth/authenticate/');
         if (response.status === 200) {
           if (response.data.authenticated) {
             this.isAuthenticated = true;
@@ -55,7 +55,8 @@ export const useAuthStore = defineStore('auth', {
       }
 
       if (!this.isAuthenticated) {
-        this.router.push('/login');
+        this.router.push('/login')
+        .catch(err => console.error('Falhou ao voltar à página de login:', err));;
       }
     },
   },

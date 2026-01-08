@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { AxiosInstance } from 'axios';
 import { api } from 'boot/axios';
 import { ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
+import type { AxiosResponse } from 'axios';
 
 interface Row {
   nome: string,
@@ -66,20 +66,19 @@ const rows = ref<Row[]>([]);
 
 async function getEquipments() {
   try {
-    const response = await (api as AxiosInstance).get('/controle/materiais/');
+    const response: AxiosResponse<Row[]> = await api.get('/controle/materiais/');
 
     if (response.status === 200) {
-      const accessList = response.data
-        .map(async (item: Row) => ({
-          nome: item.nome,
-          patrimonio: item.patrimonio,
-          sala: item.sala_numero,
-          foto: item.foto,
-          manual: item.manual,
-        }));
-      rows.value = await Promise.all(accessList);
+      const accessList: Row[] = response.data.map((item: Row) => ({
+        nome: item.nome,
+        patrimonio: item.patrimonio,
+        sala_numero: item.sala_numero,
+        foto: item.foto,
+        manual: item.manual,
+      }));
+      rows.value = accessList;
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro no servidor ao buscar os materiais.',
@@ -93,7 +92,8 @@ const openImage = (imageUrl: string) => {
 };
 
 onMounted(() => {
-  getEquipments();
+  getEquipments()
+  .catch(err => console.error('Falhou ao buscar equipamentos:', err));
 });
 </script>
 

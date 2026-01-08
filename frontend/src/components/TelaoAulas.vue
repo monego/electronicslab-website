@@ -17,11 +17,15 @@ defineOptions({
   name: 'TelaoAulas',
 });
 
-import { ref, onMounted, watch } from 'vue';
-import type { AxiosInstance } from 'axios';
+import {
+  ref, onMounted, watch, inject,
+} from 'vue';
+import type { Ref } from 'vue';
 import { api } from 'boot/axios';
 import { useQuasar } from 'quasar';
-import { parseISO, format, minutesToMilliseconds } from 'date-fns';
+import {
+  parseISO, format, minutesToMilliseconds, getMinutes,
+} from 'date-fns';
 import '@fontsource-variable/inter';
 import '@fontsource/lato';
 
@@ -74,6 +78,9 @@ function rowLevelBg(row: Aula, cellWidth: string) {
 const $q = useQuasar();
 const filter = ref<string>('');
 const aulas = ref<Aula[]>([]);
+
+const currentTime = inject('currentTime') as Ref<Date>;
+const currentTimeMinutes = getMinutes(currentTime.value);
 
 const columns: Column[] = [
   {
@@ -138,7 +145,7 @@ const rows = ref<Aula[]>(aulas.value);
 
 async function getUserList() {
   try {
-    const response = await (api as AxiosInstance).get('/aulas/aulas/hoje', {
+    const response = await api.get('/aulas/aulas/hoje', {
       withCredentials: false,
     });
     if (response.status === 200) {
@@ -162,7 +169,7 @@ async function getUserList() {
         }));
       }
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro na comunicação com o servidor. Consulte o desenvolvedor.',
@@ -172,11 +179,14 @@ async function getUserList() {
 }
 
 onMounted(() => {
-  getUserList();
+  getUserList()
+  .catch(err => console.error('Falhou ao buscar aulas:', err));
   setInterval(() => {
     aulas.value = [];
-    getUserList();
-  }, minutesToMilliseconds(30));
+    getUserList()
+    .catch(err => console.error('Falhou ao buscar aulas:', err));
+    console.log(currentTimeMinutes);
+  }, minutesToMilliseconds(1));
 });
 
 watch(aulas, (newAulas) => {

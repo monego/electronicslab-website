@@ -43,7 +43,6 @@ import { ref, onMounted } from 'vue';
 import { useAuthStore } from 'stores/auth';
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
-import type { AxiosInstance } from 'axios';
 import { api } from 'boot/axios';
 import Cookie from 'js-cookie';
 import EssentialLink from 'components/EssentialLink.vue';
@@ -104,7 +103,7 @@ const logout = async () => {
   try {
     const csrfToken = Cookie.get('csrfToken');
 
-    const response = await (api as AxiosInstance).post('/auth/logout/', {
+    const response = await api.post('/auth/logout/', {
     }, {
       headers: {
         'x-csrftoken': csrfToken,
@@ -113,9 +112,10 @@ const logout = async () => {
 
     if (response.status === 200) {
       authStore.logout();
-      router.push('/login');
+      router.push('/login')
+      .catch(err => console.error('Falhou ao deslogar:', err));
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro ao encerrar a sessão.',
@@ -125,6 +125,7 @@ const logout = async () => {
 };
 
 onMounted(() => {
-  authStore.getAuthStatus();
+  authStore.getAuthStatus()
+  .catch(err => console.error('Falhou ao buscar estado de autenticação:', err));
 });
 </script>

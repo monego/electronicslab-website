@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import type { AxiosInstance } from 'axios';
 import { api } from 'boot/axios';
 import { format } from 'date-fns';
 import { useQuasar } from 'quasar';
+import type { AxiosResponse } from 'axios';
 
 const $q = useQuasar();
 const notifTimeout = 30;
@@ -132,22 +132,21 @@ const columns: Column[] = [
 
 async function getCompras() {
   try {
-    const response = await (api as AxiosInstance).get('/controle/compras/');
+    const response: AxiosResponse<Row[]> = await api.get('/controle/compras/');
     if (response.status === 200) {
-      const purchaseList = response.data
-        .map(async (item: Row) => ({
-          data: item.data,
-          origem: item.origem,
-          tipo: item.tipo,
-          titulo: item.titulo,
-          estado: item.estado,
-          justificativa: item.justificativa,
-          quantidade: item.quantidade,
-          funcionario_nome: item.funcionario_nome,
-        }));
-      rows.value = await Promise.all(purchaseList);
+      const purchaseList = response.data.map((item: Row) => ({
+        data: item.data,
+        origem: item.origem,
+        tipo: item.tipo,
+        titulo: item.titulo,
+        estado: item.estado,
+        justificativa: item.justificativa,
+        quantidade: item.quantidade,
+        funcionario_nome: item.funcionario_nome,
+      }));
+      rows.value = purchaseList;
     }
-  } catch (error) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro ao buscar a lista de compras.',
@@ -167,14 +166,14 @@ async function createNewCompra() {
   };
 
   try {
-    await (api as AxiosInstance).post('/controle/compras/', payload);
+    await api.post('/controle/compras/', payload);
     $q.notify({
       type: 'positive',
       message: 'Solicitação de compra registrada com successo.',
       timeout: notifTimeout,
     });
     await getCompras();
-  } catch (error) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro ao registrar empréstimo',
@@ -185,7 +184,8 @@ async function createNewCompra() {
 }
 
 onMounted(() => {
-  getCompras();
+  getCompras()
+  .catch(err => console.error('Falhou ao buscar compras:', err));
 });
 </script>
 

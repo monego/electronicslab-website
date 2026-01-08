@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import type { AxiosInstance } from 'axios';
 import { api } from 'boot/axios';
 import { useQuasar } from 'quasar';
 import { parseISO, format } from 'date-fns';
@@ -33,6 +32,7 @@ function capitalizeEachWord(str: string): string {
 const $q = useQuasar();
 const filter = ref<string>('');
 const aulas = ref<Aula[]>([]);
+const salaStatus = ref<string>('todas');
 
 const columns: Column[] = [
   {
@@ -71,7 +71,7 @@ const rows = ref<Aula[]>(aulas.value);
 
 async function getUserList() {
   try {
-    const response = await (api as AxiosInstance).get('/aulas/aulas/hoje', {
+    const response = await api.get('/aulas/aulas/hoje', {
       withCredentials: false,
     });
     if (response.status === 200) {
@@ -95,7 +95,7 @@ async function getUserList() {
     } else {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro na comunicação com o servidor. Consulte o desenvolvedor.',
@@ -111,6 +111,13 @@ onMounted(async () => {
 
 <template>
   <div class="q-pa-md">
+    <q-option-group v-model="salaStatus" inline class="q-mb-md" :options="[
+      { label: 'Todas', value: 'todas' },
+      { label: '1º andar', value: 'andar1' },
+      { label: '2º andar', value: 'andar2'},
+      { label: 'Informática', value: 'informatica'},
+    ]" />
+
     <q-table :grid="$q.screen.xs" flat bordered title="Aulas de hoje" :rows="rows" :columns="columns" row-key="startEnd"
       :filter="filter" :rows-per-page-options="[0]">
       <template v-slot:top-right>

@@ -3,7 +3,7 @@
     <q-header elevated>
         <q-toolbar>
           <q-avatar square>
-            <img src="/Icone.ico">
+            <img src="/Icone.png">
           </q-avatar>
           <q-toolbar-title>
                 NUPEDEE

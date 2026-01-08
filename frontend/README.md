@@ -2,9 +2,9 @@
 
 Frontend for the NUPEDEE website.
 
-Install [pnpm](https://pnpm.io/) and:
+Install npm and:
 
 ``` bash
-$ pnpm install
-$ pnpm run dev
+$ npm install
+$ npm run dev
 ```

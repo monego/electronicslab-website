@@ -4,7 +4,6 @@ import { createCurrentTimePlugin } from '@schedule-x/current-time';
 import { ref, watch, onMounted } from 'vue';
 import { createEventsServicePlugin } from '@schedule-x/events-service';
 import { createCalendarControlsPlugin } from '@schedule-x/calendar-controls';
-import type { AxiosInstance } from 'axios';
 import { api } from 'boot/axios';
 import { useQuasar } from 'quasar';
 import { parseISO, format } from 'date-fns';
@@ -62,7 +61,7 @@ function capitalizeWords(str: string): string {
 
 async function getSalas() {
   try {
-    const response = await (api as AxiosInstance).get('/root/salas');
+    const response = await api.get('/root/salas');
 
     if (response.status === 200) {
       salas.value = response.data.map((obj: SalaResponse) => ({
@@ -72,7 +71,7 @@ async function getSalas() {
     } else {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro na comunicação com o servidor. Consulte o desenvolvedor.',
@@ -92,7 +91,7 @@ async function getUserList(roomId: string, range: Range) {
 
   try {
     const aulas: Aula[] = [];
-    const response = await (api as AxiosInstance).get('/aulas/aulas/calendario', {
+    const response = await api.get('/aulas/aulas/calendario', {
       params: {
         codigo: roomId,
         inicio: rangeStart,
@@ -129,7 +128,7 @@ async function getUserList(roomId: string, range: Range) {
     } else {
       throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
     }
-  } catch (error: unknown) {
+  } catch {
     $q.notify({
       type: 'negative',
       message: 'Erro na comunicação com o servidor. Consulte o desenvolvedor.',
@@ -145,7 +144,8 @@ const calendarApp = createCalendar({
   callbacks: {
     onRangeUpdate(range) {
       if (sala.value != null) {
-        getUserList(sala.value.code, range);
+        getUserList(sala.value.code, range)
+        .catch(err => console.error('Falhou ao buscar aulas:', err));
       }
     },
   },
@@ -166,7 +166,8 @@ const calendarApp = createCalendar({
 
 watch(sala, (newValue) => {
   if (newValue != null) {
-    getUserList(newValue.code, calendarControlsPlugin.getRange() as Range);
+    getUserList(newValue.code, calendarControlsPlugin.getRange() as Range)
+    .catch(err => console.error('Falhou ao buscar aulas:', err));
   }
 });
 
