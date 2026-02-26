@@ -23,6 +23,7 @@ class ComprasSerializer(serializers.ModelSerializer):
     class Meta:
         model = Compras
         fields = [
+            "id",
             "data",
             "titulo",
             "descricao",
@@ -31,7 +32,23 @@ class ComprasSerializer(serializers.ModelSerializer):
             "estado",
             "origem",
             "tipo",
-            "funcionario_nome"
+            "funcionario_nome",
+            "url_orcamento_1",
+            "fonte_orcamento_1",
+            "preco_orcamento_1",
+            "empresa_orcamento_1",
+            "data_orcamento_1",
+            "url_orcamento_2",
+            "fonte_orcamento_2",
+            "preco_orcamento_2",
+            "empresa_orcamento_2",
+            "data_orcamento_2",
+            "url_orcamento_3",
+            "fonte_orcamento_3",
+            "preco_orcamento_3",
+            "empresa_orcamento_3",
+            "data_orcamento_3",
+            "preco_maximo",
         ]
 
     def get_funcionario_nome(self, obj):

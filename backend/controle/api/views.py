@@ -42,6 +42,10 @@ from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.utils import ImageReader
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+from reportlab.lib.units import cm
 
 class AusenciaViewSet(ModelViewSet):
     queryset = Ausencia.objects.all()
@@ -75,6 +79,90 @@ class ComprasViewSet(ModelViewSet):
     queryset = Compras.objects.all()
     permission_classes = (IsAuthenticated,)
     serializer_class = ComprasSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(funcionario=self.request.user)
+
+    @action(detail=True, methods=['get'])
+    def demapa(self, request, pk=None):
+        obj = self.get_object()
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=20, leftMargin=20, topMargin=20, bottomMargin=20)
+        elements = []
+
+        styles = getSampleStyleSheet()
+        style_title = styles['Normal']
+        style_title.fontSize = 10
+        style_title.leading = 12
+
+        style_content = ParagraphStyle(
+            'Content',
+            parent=styles['Normal'],
+            fontSize=9,
+            leading=11
+        )
+
+        def check_source(source_val, target):
+            return "(x)" if source_val == target else "( )"
+
+        data = [
+            ["Nome do item", obj.titulo, "Quantidade", str(obj.quantidade), "Preço Máximo\n(R$)", f"R$ {obj.preco_maximo or '0,00'}"],
+            ["Descrição", Paragraph(obj.descricao.replace('\n', '<br/>'), style_content), "", "", "", ""],
+            ["Justificativa", Paragraph(obj.justificativa.replace('\n', '<br/>'), style_content), "", "", "", ""],
+            ["Empresa\nConsultada", "Data da Consulta", "Preço (R$)", "Fonte", "", ""],
+        ]
+
+        def add_budget_row(data_list, empresa, data_cons, preco, url, fonte):
+            source_options = [
+                f"{'(x)' if fonte == 'website' else '( )'} website",
+                f"{'(x)' if fonte == 'telefone' else '( )'} telefone",
+                f"{'(x)' if fonte == 'email' else '( )'} email"
+            ]
+            source_str = " ".join(source_options)
+            data_list.append([empresa, data_cons.strftime('%d/%m/%Y') if data_cons else "", f"R$ {preco or '0,00'}", source_str, "", ""])
+            data_list.append(["", Paragraph(f"<b>Fonte:</b> {url or ''}", style_content), "", "", "", ""])
+
+        add_budget_row(data, obj.empresa_orcamento_1, obj.data_orcamento_1, obj.preco_orcamento_1, obj.url_orcamento_1, obj.fonte_orcamento_1)
+        add_budget_row(data, obj.empresa_orcamento_2, obj.data_orcamento_2, obj.preco_orcamento_2, obj.url_orcamento_2, obj.fonte_orcamento_2)
+        add_budget_row(data, obj.empresa_orcamento_3, obj.data_orcamento_3, obj.preco_orcamento_3, obj.url_orcamento_3, obj.fonte_orcamento_3)
+
+        col_widths = [2.5*cm, 5.5*cm, 2.5*cm, 2.5*cm, 3.5*cm, 2.5*cm]
+
+        table = Table(data, colWidths=col_widths)
+
+        table_style = TableStyle([
+            ('GRID', (0,0), (-1,-1), 0.5, colors.black),
+            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
+            ('FONTSIZE', (0,0), (-1,-1), 9),
+
+            ('BACKGROUND', (0,0), (0,0), colors.whitesmoke),
+            ('BACKGROUND', (2,0), (2,0), colors.whitesmoke),
+            ('BACKGROUND', (4,0), (4,0), colors.whitesmoke),
+
+            ('SPAN', (1,1), (5,1)), # Descrição content
+            ('SPAN', (1,2), (5,2)), # Justificativa content
+            ('SPAN', (3,3), (5,3)), # Fonte header
+            ('SPAN', (0,4), (0,5)), # Budget 1 name
+            ('SPAN', (1,5), (5,5)), # Budget 1 URL
+            ('SPAN', (3,4), (5,4)), # Budget 1 source selection
+            ('SPAN', (0,6), (0,7)), # Budget 2 name
+            ('SPAN', (1,7), (5,7)), # Budget 2 URL
+            ('SPAN', (3,6), (5,6)), # Budget 2 source selection
+            ('SPAN', (0,8), (0,9)), # Budget 3 name
+            ('SPAN', (1,9), (5,9)), # Budget 3 URL
+            ('SPAN', (3,8), (5,8)), # Budget 3 source selection
+
+            ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+            ('ALIGN', (2,0), (5,0), 'CENTER'),
+            ('ALIGN', (0,0), (0,-1), 'CENTER'), # Labels col 0
+        ])
+        table.setStyle(table_style)
+        elements.append(table)
+
+        doc.build(elements)
+        buffer.seek(0)
+        return FileResponse(buffer, as_attachment=True, filename=f"demapa_{obj.id}.pdf")
 
 class ControleAcessoViewSet(ModelViewSet):
     queryset = ControleAcesso.objects.all()

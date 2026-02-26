@@ -32,6 +32,26 @@ class Compras(models.Model):
     funcionario = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, related_name='solicitante'
     )
+    fonte_orcamento_1 = models.CharField(max_length=10, choices=[('website', 'Website'), ('telefone', 'Telefone'), ('email', 'E-mail')], default='website')
+    url_orcamento_1 = models.CharField(max_length=300, blank=True, null=True)
+    preco_orcamento_1 = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    empresa_orcamento_1 = models.CharField(max_length=100, blank=True, null=True)
+    data_orcamento_1 = models.DateField(blank=True, null=True)
+
+    fonte_orcamento_2 = models.CharField(max_length=10, choices=[('website', 'Website'), ('telefone', 'Telefone'), ('email', 'E-mail')], default='website')
+    url_orcamento_2 = models.CharField(max_length=300, blank=True, null=True)
+    preco_orcamento_2 = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    empresa_orcamento_2 = models.CharField(max_length=100, blank=True, null=True)
+    data_orcamento_2 = models.DateField(blank=True, null=True)
+
+    fonte_orcamento_3 = models.CharField(max_length=10, choices=[('website', 'Website'), ('telefone', 'Telefone'), ('email', 'E-mail')], default='website')
+    url_orcamento_3 = models.CharField(max_length=300, blank=True, null=True)
+    preco_orcamento_3 = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    empresa_orcamento_3 = models.CharField(max_length=100, blank=True, null=True)
+    data_orcamento_3 = models.DateField(blank=True, null=True)
+
+    preco_maximo = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+
 
     def __str__(self):
         return f"{self.titulo}"
