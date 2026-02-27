@@ -52,6 +52,12 @@ class AusenciaViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = AusenciaSerializer
 
+    def list(self, request, *args, **kwargs):
+        today = timezone.now().date()
+        queryset = self.get_queryset().filter(fim__gte=today).order_by('inicio')
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     def create(self, request):
         data = {
             'inicio': request.data.get('inicio'),
@@ -529,25 +535,19 @@ class HorarioTrabalhoViewSet(ModelViewSet):
         inicio_intervalo = request.data.get('inicio_intervalo')
         fim_intervalo = request.data.get('fim_intervalo')
         fim = request.data.get('fim')
-        user_pk = request.user.pk
 
-        try:
-            horario = HorarioTrabalho.objects.get(
-                dia_da_semana=dia, funcionario=user_pk
-            )
-        except HorarioTrabalho.DoesNotExist:
-            return Response({'detail': 'Não encontrado.'},
-                            status=status.HTTP_404_NOT_FOUND)
+        horario, created = HorarioTrabalho.objects.update_or_create(
+            dia_da_semana=dia,
+            funcionario=request.user,
+            defaults={
+                'inicio': inicio,
+                'inicio_intervalo': inicio_intervalo,
+                'fim_intervalo': fim_intervalo,
+                'fim': fim
+            }
+        )
 
-        horario.inicio = inicio
-        horario.inicio_intervalo = inicio_intervalo
-        horario.fim_intervalo = fim_intervalo
-        horario.fim = fim
-
-        serializer = self.get_serializer(horario, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-
+        serializer = self.get_serializer(horario)
         return Response(serializer.data)
 
 class ItemViewSet(ModelViewSet):

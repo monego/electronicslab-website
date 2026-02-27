@@ -12,10 +12,17 @@ from controle.models import (
 )
 
 class AusenciaSerializer(serializers.ModelSerializer):
+    funcionario_nome = serializers.SerializerMethodField()
 
     class Meta:
         model = Ausencia
         fields = '__all__'
+
+    def get_funcionario_nome(self, obj):
+        if fun := obj.funcionario:
+            return f"{fun.first_name} {fun.last_name}"
+        else:
+            return
 
 class ComprasSerializer(serializers.ModelSerializer):
     funcionario_nome = serializers.SerializerMethodField()
