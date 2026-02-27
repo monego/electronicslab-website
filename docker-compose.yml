@@ -11,8 +11,11 @@ services:
     depends_on:
       - db
     volumes:
+      - ./backend:/app
       - /srv/backups/django:/backups:rw
     restart: unless-stopped
+    stdin_open: true
+    tty: true
 
   qcluster:
     build:
@@ -22,6 +25,8 @@ services:
     image: nupedee-qcluster
     command: poetry run python manage.py qcluster -n ${QCLUSTER_NAME:-nupedee}
     env_file: backend/.env
+    volumes:
+      - ./backend:/app
     depends_on:
       - db
       - valkey
