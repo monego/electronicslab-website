@@ -49,6 +49,7 @@ class Sala(models.Model):
     ], default=1)
     codigo = models.CharField(max_length=5, null=True)
     imagem = models.ImageField("Imagem", null=True, blank=True)
+    e_informatica = models.BooleanField("É de Informática?", default=False)
 
     def __str__(self):
         return "[" + self.numero + "]" + " " + self.nome

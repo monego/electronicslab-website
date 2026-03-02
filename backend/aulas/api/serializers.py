@@ -11,6 +11,7 @@ class AulaSerializer(ModelSerializer):
     sala_codigo = serializers.SerializerMethodField()
     sala_numero = serializers.SerializerMethodField()
     sala_nome = serializers.SerializerMethodField()
+    sala_e_informatica = serializers.SerializerMethodField()
     filter_backends = [filters.SearchFilter]
     search_fields = ['disciplina', 'professor']
 
@@ -26,7 +27,11 @@ class AulaSerializer(ModelSerializer):
             "sala_nome",
             "sala_numero",
             "sala_andar",
+            "sala_e_informatica",
         ]
+
+    def get_sala_e_informatica(self, obj):
+        return getattr(obj.sala, 'e_informatica', False) if obj.sala else False
 
     def get_sala_andar(self, obj):
         return obj.sala.andar if obj.sala else None

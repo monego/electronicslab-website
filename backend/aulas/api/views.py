@@ -54,7 +54,6 @@ class AulasViewSet(ModelViewSet):
         fim = localtime(now())
 
         aulas = Aula.objects.filter(
-            fim__gt=fim,
             fim__date=fim.date(),
         )
 
