@@ -23,11 +23,22 @@ class AulasViewSet(ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='calendario')
     def get_for_calendar(self, request, *args, **kwargs):
-        codigo = int(request.query_params.get('codigo'))
+        codigo = request.query_params.get('codigo')
         inicio = request.query_params.get('inicio')
         fim = request.query_params.get('fim')
 
+        if not all([codigo, inicio, fim]):
+            return Response(
+                {"detail": "Parâmetros 'codigo', 'inicio' e 'fim' são obrigatórios."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         sala = Sala.objects.filter(codigo=codigo).first()
+        if not sala:
+            return Response(
+                {"detail": "Sala não encontrada."},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         aulas = Aula.objects.filter(
             sala=sala,
@@ -36,7 +47,6 @@ class AulasViewSet(ModelViewSet):
         )
 
         serializer = self.get_serializer(aulas, many=True)
-
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='hoje')
