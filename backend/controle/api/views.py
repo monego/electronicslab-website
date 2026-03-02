@@ -520,9 +520,11 @@ class HorarioTrabalhoViewSet(ModelViewSet):
     def list(self, request):
         queryset = self.get_queryset()
 
-        user_pk = request.user.pk
+        all_schedules = request.query_params.get('all', None)
 
-        queryset = queryset.filter(funcionario=user_pk)
+        if not all_schedules:
+            user_pk = request.user.pk
+            queryset = queryset.filter(funcionario=user_pk)
 
         serializer = self.get_serializer(queryset, many=True)
 

@@ -176,10 +176,18 @@ class EquipamentoPublicoSerializer(serializers.ModelSerializer):
         return obj.sala.numero if obj.sala else None
 
 class HorarioTrabalhoSerializer(serializers.ModelSerializer):
+    funcionario_nome = serializers.SerializerMethodField()
 
     class Meta:
         model = HorarioTrabalho
         fields = '__all__'
+
+    def get_funcionario_nome(self, obj):
+        if fun := obj.funcionario:
+            return f"{fun.first_name} {fun.last_name}"
+        else:
+            return
+
 
 class ManutencaoSerializer(serializers.ModelSerializer):
     equipamento_nome = serializers.SerializerMethodField()
