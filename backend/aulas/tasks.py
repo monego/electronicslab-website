@@ -11,6 +11,12 @@ import json
 import httpx
 
 def update_aulas_task():
+
+    def title_split(titulo):
+        if '/' in titulo:
+            return titulo.split('/')
+        return titulo.split('-')
+
     url = settings.URL_CPD
     salas = Sala.objects.values_list('codigo', flat=True)
     data_atual = now()
@@ -53,9 +59,9 @@ def update_aulas_task():
             chaves_api.append(chave_aula)
 
             titulo = aula['title']
-            titulo_split = titulo.split(' - ')
-            disciplina = titulo_split[0]
-            professor = titulo_split[-1]
+            titulo_split = title_split(titulo)
+            disciplina = titulo_split[1]
+            professor = titulo_split[0]
 
             if chave_aula not in aulas_existentes_set:
 
