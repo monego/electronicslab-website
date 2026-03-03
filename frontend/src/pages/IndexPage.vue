@@ -120,7 +120,11 @@ async function fetchData() {
 // --- Computed Logic ---
 
 const filteredRows = computed(() => {
+  const now = currentTime.value;
   return aulas.value.filter(aula => {
+    // Ignore classes that already ended
+    if (Temporal.ZonedDateTime.compare(aula.end, now) <= 0) return false;
+
     // Search filter
     const matchesSearch = !filter.value ||
       aula.title.toLowerCase().includes(filter.value.toLowerCase()) ||
@@ -177,17 +181,22 @@ const itRoomsStatus = computed((): RoomStatus[] => {
   });
 });
 
-// --- Lifecycle ---
+let dataTimer: ReturnType<typeof setInterval>;
 
 onMounted(async () => {
   await fetchData();
   timer = setInterval(() => {
     currentTime.value = Temporal.Now.zonedDateTimeISO();
-  }, 30000); // Update every 30s
+  }, 30000); // Update every 30s for the UI clocks/status
+
+  dataTimer = setInterval(() => {
+    void fetchData();
+  }, 300000); // Refresh data from backend every 5 minutes
 });
 
 onUnmounted(() => {
   if (timer) clearInterval(timer);
+  if (dataTimer) clearInterval(dataTimer);
 });
 
 // --- Table Columns ---

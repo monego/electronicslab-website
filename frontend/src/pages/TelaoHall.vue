@@ -37,14 +37,20 @@ const fetchData = async () => {
 };
 
 // Computed
-const aulasAndar1 = computed(() => aulas.value.filter((a) => a.sala_andar === 1));
-const aulasAndar2 = computed(() => aulas.value.filter((a) => a.sala_andar === 2));
+const aulasAndar1 = computed(() => {
+  const now = currentTime.value;
+  return aulas.value.filter((a) => a.sala_andar === 1 && new Date(a.fim) > now);
+});
+const aulasAndar2 = computed(() => {
+  const now = currentTime.value;
+  return aulas.value.filter((a) => a.sala_andar === 2 && new Date(a.fim) > now);
+});
 
 onMounted(() => {
   void fetchData();
   dataInterval = window.setInterval(() => {
     void fetchData();
-  }, 60000);
+  }, 300000); // Update every 5 minutes
 });
 
 onUnmounted(() => {

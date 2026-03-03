@@ -66,8 +66,15 @@ const fetchData = async () => {
 };
 
 // Computed
-const aulasAndar1 = computed(() => aulas.value.filter((a) => a.sala_andar === 1));
-const aulasAndar2 = computed(() => aulas.value.filter((a) => a.sala_andar === 2));
+// Computed
+const aulasAndar1 = computed(() => {
+  const now = currentTime.value;
+  return aulas.value.filter((a) => a.sala_andar === 1 && parseISO(a.fim) > now);
+});
+const aulasAndar2 = computed(() => {
+  const now = currentTime.value;
+  return aulas.value.filter((a) => a.sala_andar === 2 && parseISO(a.fim) > now);
+});
 
 const dayOfWeekMap: Record<number, string> = {
   1: 'segunda',
@@ -117,7 +124,7 @@ onMounted(() => {
   void fetchData();
   dataInterval = window.setInterval(() => {
     void fetchData();
-  }, 60000);
+  }, 300000); // Update data from backend every 5 minutes
 });
 
 onUnmounted(() => {
