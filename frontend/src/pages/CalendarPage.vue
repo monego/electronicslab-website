@@ -204,6 +204,8 @@ onMounted(async () => {
 </template>
 
 <style lang="scss">
+@use "sass:color";
+
 .calendar-page {
   background-color: #f8f9fa;
   min-height: 100vh;
@@ -244,7 +246,7 @@ onMounted(async () => {
   background: var(--q-primary) !important;
   color: white !important;
   border-radius: 6px !important;
-  border-left: 4px solid darken(#1976D2, 10%) !important;
+  border-left: 4px solid color.adjust(#1976D2, $lightness: -10%) !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
 
