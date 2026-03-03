@@ -12,6 +12,13 @@ const showDialog = ref<boolean>(false);
 const showEditDialog = ref<boolean>(false);
 const $q = useQuasar();
 
+const pagination = ref({
+  sortBy: 'nome',
+  descending: false,
+  page: 1,
+  rowsPerPage: 20
+});
+
 
 interface Row {
   id?: number;
@@ -347,6 +354,7 @@ onMounted(() => {
                 :columns="columns"
                 :filter="search"
                 row-key="id"
+                v-model:pagination="pagination"
                 class="no-shadow"
               >
                 <template v-slot:top-right>

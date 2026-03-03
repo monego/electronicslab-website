@@ -14,6 +14,13 @@ const filter = ref('');
 const loadingLoans = ref(false);
 const checkingId = ref(false);
 
+const pagination = ref({
+  sortBy: 'data',
+  descending: true,
+  page: 1,
+  rowsPerPage: 20
+});
+
 // Form State
 const loanId = ref<string>('');
 const matricula = ref<string>('');
@@ -306,6 +313,7 @@ onMounted(() => getLoans());
                 :filter="filter"
                 row-key="identificador"
                 :loading="loadingLoans"
+                v-model:pagination="pagination"
                 class="no-shadow"
               >
                 <template v-slot:top>
