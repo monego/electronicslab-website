@@ -8,18 +8,34 @@ defineOptions({
 });
 
 const route = useRoute() as RouteLocationNormalized;
+const leftDrawerOpen = ref(false);
 
 const links = ref([
   { icon: 'mdi-calendar-clock', label: 'Calendário', to: '/calendario' },
   { icon: 'mdi-tools', label: 'Equipamentos', to: '/materiais' },
   { icon: 'mdi-login', label: 'Entrar', to: '/login' },
 ]);
+
+function toggleLeftDrawer() {
+  leftDrawerOpen.value = !leftDrawerOpen.value;
+}
 </script>
 
 <template>
   <q-layout view="lHh Lpr lFf" class="main-layout">
     <q-header class="main-header">
-      <q-toolbar class="q-px-xl container">
+      <q-toolbar class="q-px-md q-px-md-xl container">
+        <q-btn
+          flat
+          dense
+          round
+          icon="mdi-menu"
+          aria-label="Menu"
+          @click="toggleLeftDrawer"
+          class="lt-md q-mr-md"
+          color="primary"
+        />
+
         <q-item to="/" clickable flat class="brand-item q-pa-none">
           <q-avatar square size="40px">
             <img src="/Icone.png">
@@ -31,7 +47,7 @@ const links = ref([
 
         <q-space />
 
-        <div class="nav-links flex items-center q-gutter-x-md">
+        <div class="nav-links flex items-center q-gutter-x-md gt-sm">
           <q-btn
             v-for="link in links"
             :key="link.label"
@@ -49,6 +65,37 @@ const links = ref([
         </div>
       </q-toolbar>
     </q-header>
+
+    <q-drawer
+      v-model="leftDrawerOpen"
+      side="left"
+      bordered
+      overlay
+      behavior="mobile"
+      class="bg-white"
+    >
+      <q-list padding>
+        <q-item-label header class="text-weight-bolder text-primary text-uppercase tracking-wider q-pt-lg">
+          Navegação
+        </q-item-label>
+        <q-item
+          v-for="link in links"
+          :key="link.label"
+          clickable
+          v-ripple
+          :to="link.to"
+          class="q-mx-md q-mb-sm rounded-borders nav-drawer-item"
+          active-class="active-drawer-link"
+        >
+          <q-item-section avatar>
+            <q-icon :name="link.icon" size="24px" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label class="text-weight-bold">{{ link.label }}</q-item-label>
+          </q-item-section>
+        </q-item>
+      </q-list>
+    </q-drawer>
 
     <q-page-container>
       <router-view v-slot="{ Component }">
@@ -116,6 +163,24 @@ const links = ref([
 @keyframes slideUp {
   from { transform: translateY(2px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
+}
+
+.nav-drawer-item {
+  color: #64748b;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(59, 130, 246, 0.05);
+  }
+}
+
+.active-drawer-link {
+  color: var(--q-primary) !important;
+  background: rgba(59, 130, 246, 0.08) !important;
+
+  .q-icon {
+    color: var(--q-primary);
+  }
 }
 
 /* Page Transitions */
