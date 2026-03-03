@@ -11,6 +11,13 @@ from controle.models import (
     Orcamento,
 )
 
+def get_user_full_name(user):
+    if not user:
+        return ""
+    if user.first_name or user.last_name:
+        return f"{user.first_name} {user.last_name}".strip()
+    return user.username
+
 class AusenciaSerializer(serializers.ModelSerializer):
     funcionario_nome = serializers.SerializerMethodField()
 
@@ -19,10 +26,7 @@ class AusenciaSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_funcionario_nome(self, obj):
-        if fun := obj.funcionario:
-            return f"{fun.first_name} {fun.last_name}"
-        else:
-            return
+        return get_user_full_name(obj.funcionario)
 
 class ComprasSerializer(serializers.ModelSerializer):
     funcionario_nome = serializers.SerializerMethodField()
@@ -59,10 +63,7 @@ class ComprasSerializer(serializers.ModelSerializer):
         ]
 
     def get_funcionario_nome(self, obj):
-        if fun := obj.funcionario:
-            return f"{fun.first_name} {fun.last_name}"
-        else:
-            return
+        return get_user_full_name(obj.funcionario)
 
 class ControleAcessoSerializer(serializers.ModelSerializer):
     pessoa_nome = serializers.SerializerMethodField()
@@ -92,10 +93,7 @@ class ItemEmprestimoSerializer(serializers.ModelSerializer):
     recebente_nome = serializers.SerializerMethodField()
 
     def get_recebente_nome(self, obj):
-        if fun := obj.recebente:
-            return f"{fun.first_name} {fun.last_name}"
-        else:
-            return
+        return get_user_full_name(obj.recebente)
 
     class Meta:
         model = ItemEmprestimo
@@ -115,6 +113,7 @@ class EmprestimoSerializer(serializers.ModelSerializer):
     responsavel_matricula = serializers.SerializerMethodField()
     funcionario_nome = serializers.SerializerMethodField()
     items_nomes = serializers.SerializerMethodField()
+    quem_recebeu = serializers.SerializerMethodField()
 
     class Meta:
         model = Emprestimo
@@ -127,6 +126,8 @@ class EmprestimoSerializer(serializers.ModelSerializer):
             "local",
             "encerrado",
             "retirada",
+            "devolucao",
+            "quem_recebeu",
         ]
 
     def get_responsavel_nome(self, obj):
@@ -136,10 +137,13 @@ class EmprestimoSerializer(serializers.ModelSerializer):
         return obj.responsavel.matricula if obj.responsavel else None
 
     def get_funcionario_nome(self, obj):
-        if fun := obj.funcionario:
-            return f"{fun.first_name} {fun.last_name}"
-        else:
-            return
+        return get_user_full_name(obj.funcionario)
+
+    def get_quem_recebeu(self, obj):
+        item = ItemEmprestimo.objects.filter(emprestimo=obj, recebente__isnull=False).first()
+        if item:
+            return get_user_full_name(item.recebente)
+        return ""
 
     def get_items_nomes(self, obj):
         items = ItemEmprestimo.objects.filter(emprestimo=obj)
@@ -183,10 +187,7 @@ class HorarioTrabalhoSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_funcionario_nome(self, obj):
-        if fun := obj.funcionario:
-            return f"{fun.first_name} {fun.last_name}"
-        else:
-            return
+        return get_user_full_name(obj.funcionario)
 
 
 class ManutencaoSerializer(serializers.ModelSerializer):
@@ -201,10 +202,7 @@ class ManutencaoSerializer(serializers.ModelSerializer):
         return obj.equipamento.nome if obj.equipamento else None
 
     def get_funcionario_nome(self, obj):
-        if fun := obj.funcionario:
-            return f"{fun.first_name} {fun.last_name}"
-        else:
-            return
+        return get_user_full_name(obj.funcionario)
 
 class OrcamentoSerializer(serializers.ModelSerializer):
 

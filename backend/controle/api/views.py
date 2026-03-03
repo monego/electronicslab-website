@@ -374,14 +374,21 @@ class EmprestimoViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Não encontrado.'},
                             status=status.HTTP_404_NOT_FOUND)
 
+        # Mark all pending items as returned by the current user
+        now = timezone.now()
+        itens_pendentes = ItemEmprestimo.objects.filter(emprestimo=obj, devolvido=False)
+        for item in itens_pendentes:
+            item.devolvido = True
+            item.devolucao = now
+            item.recebente = request.user
+            item.save()
+
+        # Close the loan
         obj.encerrado = True
-        obj.devolucao = timezone.now()
+        obj.devolucao = now
         obj.save()
 
-        serializer = self.get_serializer(obj, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-
+        serializer = self.get_serializer(obj)
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'], url_path='printsheet')
@@ -489,10 +496,14 @@ class EquipamentoViewSet(ModelViewSet):
     serializer_class = EquipamentoSerializer
 
     def get_queryset(self):
-        return Equipamento.objects.annotate(
+        queryset = Equipamento.objects.annotate(
             num_manutencao=Count('manutencao', distinct=True),
             num_emprestimo=Count('item_emprestimo', distinct=True)
         )
+        patrimonio = self.request.query_params.get('patrimonio', None)
+        if patrimonio:
+            queryset = queryset.filter(patrimonio=patrimonio)
+        return queryset
 
     @action(detail=True, methods=['post'])
     def upload_foto(self, request, pk=None):
@@ -584,47 +595,55 @@ class ItemViewSet(ModelViewSet):
 
     @action(detail=False, methods=['patch'], url_path='return')
     def devolver(self, request, *args, **kwargs):
-
-        emprestimo = request.data.get('emprestimo', None)
+        identificador = request.data.get('emprestimo', None)
         nome = request.data.get('nome', None)
 
-        if not emprestimo:
-            return Response({'detail': 'Empréstimo não encontrado.'},
+        if not identificador or not nome:
+            return Response({'detail': 'Identificador do empréstimo e nome/patrimônio são necessários.'},
                             status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            equipamento = Equipamento.objects.get(patrimonio=nome)
-        except Equipamento.DoesNotExist:
-            pass
-
-        try:
-            obj_nome = ItemEmprestimo.objects.filter(
-                emprestimo=emprestimo, nome=nome, devolvido=False
-            ).exists()
-
-            if obj_nome:
-                obj = ItemEmprestimo.objects.get(
-                    emprestimo=emprestimo, nome=nome, devolvido=False
-                )
-                data = request.data
-            else:
-                obj = ItemEmprestimo.objects.get(
-                    emprestimo=emprestimo, equipamento=equipamento, devolvido=False
-                )
-                data = { 'emprestimo': emprestimo, 'equipamento': equipamento.pk }
-        except ItemEmprestimo.DoesNotExist:
-            return Response({'detail': 'Acesso não encontrado.'},
+            emprestimo_obj = Emprestimo.objects.get(identificador=identificador)
+        except Emprestimo.DoesNotExist:
+            return Response({'detail': 'Empréstimo não encontrado.'},
                             status=status.HTTP_404_NOT_FOUND)
 
+        # Try to find the item
+        obj = None
+
+        # 1. Try by name
+        obj = ItemEmprestimo.objects.filter(
+            emprestimo=emprestimo_obj, nome=nome, devolvido=False
+        ).first()
+
+        # 2. If not found by name, try by equipment patrimonio
+        if not obj:
+            try:
+                equipamento = Equipamento.objects.get(patrimonio=nome)
+                obj = ItemEmprestimo.objects.filter(
+                    emprestimo=emprestimo_obj, equipamento=equipamento, devolvido=False
+                ).first()
+            except (Equipamento.DoesNotExist, ValueError):
+                pass
+
+        if not obj:
+            return Response({'detail': 'Item não encontrado ou já devolvido.'},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        # Record return
         obj.recebente = request.user
         obj.devolucao = timezone.now()
         obj.devolvido = True
         obj.save()
 
-        serializer = self.get_serializer(obj, data=data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        # Check if all items are now returned to close the loan
+        items_pendentes = ItemEmprestimo.objects.filter(emprestimo=emprestimo_obj, devolvido=False).exists()
+        if not items_pendentes:
+            emprestimo_obj.encerrado = True
+            emprestimo_obj.devolucao = timezone.now()
+            emprestimo_obj.save()
 
+        serializer = self.get_serializer(obj)
         return Response(serializer.data)
 
 class ManutencaoViewSet(ModelViewSet):
