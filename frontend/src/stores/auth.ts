@@ -4,7 +4,6 @@ import type { AxiosError } from 'axios';
 import { axios, api } from 'boot/axios';
 import { useQuasar } from 'quasar';
 
-const $q = useQuasar();
 const notifTimeout = 30;
 
 export const useAuthStore = defineStore('auth', {
@@ -25,38 +24,32 @@ export const useAuthStore = defineStore('auth', {
       this.isAuthenticated = false;
     },
     async getAuthStatus() {
+      const $q = useQuasar();
       try {
         const response = await api.get('/auth/authenticate/');
         if (response.status === 200) {
           if (response.data.authenticated) {
             this.isAuthenticated = true;
           }
-        } else {
-          throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
         }
       } catch (error: unknown) {
+        this.isAuthenticated = false;
         if (axios.isAxiosError(error)) {
           const axiosError = error as AxiosError;
-          if (axiosError.response) {
+          // 401/403 are handled by interceptor, so we only notify for other errors
+          if (axiosError.response && ![401, 403].includes(axiosError.response.status)) {
             $q.notify({
               type: 'negative',
-              message: 'Falha desconhecida.',
+              message: 'Erro de conexão ou servidor.',
               timeout: notifTimeout,
             });
           }
-        } else {
-          $q.notify({
-            type: 'negative',
-            message: 'Falha desconhecida.',
-            timeout: notifTimeout,
-          });
         }
-        throw error; // Rethrow the error
+        throw error;
       }
 
       if (!this.isAuthenticated) {
-        this.router.push('/login')
-        .catch(err => console.error('Falhou ao voltar à página de login:', err));;
+        await this.router.push('/login');
       }
     },
   },

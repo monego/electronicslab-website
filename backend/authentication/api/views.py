@@ -30,14 +30,15 @@ def login_view(request):
                 'is_staff': user.is_staff,
             })
         else:
-            return JsonResponse({'success': False, 'error': 'Credenciais inválidas'})
+            return JsonResponse({'success': False, 'error': 'Credenciais inválidas'}, status=401)
     else:
-        return JsonResponse({'authenticated': False})
+        return JsonResponse({'authenticated': False}, status=401)
 
 def logout_view(request):
     logout(request)
     return JsonResponse({'authenticated': False})
 
-@login_required
 def authenticated_view(request):
-    return JsonResponse({'authenticated': True})
+    if request.user.is_authenticated:
+        return JsonResponse({'authenticated': True})
+    return JsonResponse({'authenticated': False}, status=401)
