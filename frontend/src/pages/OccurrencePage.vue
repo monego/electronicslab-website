@@ -82,7 +82,7 @@ const ausenciaColumns = [
 
 async function getAusencias() {
   try {
-    const response = await api.get('/controle/ausencia/');
+    const response = await api.get('/controle/ausencia/', { params: { mine: true } });
     ausencias.value = response.data;
   } catch {
     $q.notify({ type: 'negative', message: 'Erro ao buscar ocorrências.' });

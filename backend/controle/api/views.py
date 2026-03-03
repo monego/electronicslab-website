@@ -55,6 +55,11 @@ class AusenciaViewSet(ModelViewSet):
     def list(self, request, *args, **kwargs):
         today = timezone.now().date()
         queryset = self.get_queryset().filter(fim__gte=today).order_by('inicio')
+
+        mine = request.query_params.get('mine', None)
+        if mine:
+            queryset = queryset.filter(funcionario=request.user)
+
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
