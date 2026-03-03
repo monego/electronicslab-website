@@ -3,7 +3,6 @@ import { ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import { format, parseISO } from 'date-fns';
 import { api } from 'boot/axios';
-import MatriculaButton from 'components/MatriculaButton.vue';
 
 const $q = useQuasar();
 
@@ -14,6 +13,8 @@ const options = ref();
 const rows = ref<Row[]>([]);
 const selected = ref<Row[]>([]);
 const loading = ref<boolean>(false);
+const studentName = ref<string>('');
+const searchingStudent = ref<boolean>(false);
 
 function capitalizeEachWord(str: string): string {
   if (!str) return '';
@@ -67,6 +68,12 @@ const columns = [
     format: (val: string) => (val ? format(parseISO(val), 'dd/MM/yyyy HH:mm:ss') : '-'),
     sortable: true,
   },
+  {
+    name: 'acoes',
+    label: 'Ações',
+    align: 'center' as const,
+    field: 'acoes'
+  }
 ];
 
 async function getSalas() {
@@ -97,6 +104,26 @@ async function getRegistered() {
   }
 }
 
+async function lookupStudent() {
+  if (!matricula.value) {
+    studentName.value = '';
+    return;
+  }
+  searchingStudent.value = true;
+  try {
+    const response = await api.get('/root/pessoas/', { params: { matricula: matricula.value } });
+    if (response.data && response.data.length > 0) {
+      studentName.value = response.data[0].nome;
+    } else {
+      studentName.value = 'Aluno não encontrado';
+    }
+  } catch {
+    studentName.value = 'Erro ao buscar aluno';
+  } finally {
+    searchingStudent.value = false;
+  }
+}
+
 async function registerAccess() {
   if (!matricula.value || !sala.value) {
     $q.notify({ type: 'warning', message: 'Preencha a matrícula e a sala.' });
@@ -113,6 +140,7 @@ async function registerAccess() {
     if (response.status === 201) {
       $q.notify({ type: 'positive', message: 'Acesso registrado com sucesso.' });
       matricula.value = '';
+      studentName.value = '';
       await getRegistered();
     }
   } catch (error: unknown) {
@@ -156,6 +184,13 @@ async function releaseSelected() {
   }
 }
 
+async function handleSingleRelease(matriculaToRelease: string) {
+  const success = await releaseStudent(matriculaToRelease);
+  if (success) {
+    await getRegistered();
+  }
+}
+
 onMounted(async () => {
   await getSalas();
   await getRegistered();
@@ -194,7 +229,21 @@ onMounted(async () => {
                     </div>
 
                     <div class="q-gutter-y-md">
-                      <MatriculaButton v-model="matricula" />
+                      <q-input
+                        v-model="matricula"
+                        label="Matrícula"
+                        outlined
+                        dense
+                        @blur="lookupStudent"
+                        @keyup.enter="lookupStudent"
+                        :loading="searchingStudent"
+                        :hint="studentName"
+                        hide-bottom-space
+                      >
+                        <template v-slot:prepend>
+                          <q-icon name="mdi-account-card" />
+                        </template>
+                      </q-input>
 
                       <q-select
                         v-model="sala"
@@ -245,6 +294,21 @@ onMounted(async () => {
                 <template v-slot:body-cell-nome="props">
                   <q-td :props="props">
                     <div class="text-weight-bold text-primary">{{ props.value }}</div>
+                  </q-td>
+                </template>
+
+                <template v-slot:body-cell-acoes="props">
+                  <q-td :props="props" class="text-center">
+                    <q-btn
+                      flat
+                      round
+                      dense
+                      color="negative"
+                      icon="mdi-logout-variant"
+                      @click="handleSingleRelease(props.row.pessoa_matricula)"
+                    >
+                      <q-tooltip>Registrar Saída</q-tooltip>
+                    </q-btn>
                   </q-td>
                 </template>
 
