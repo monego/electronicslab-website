@@ -159,7 +159,7 @@ class EquipamentoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Equipamento
-        fields = ['nome', 'descricao', 'patrimonio', 'sala', 'sala_numero',
+        fields = ['id', 'nome', 'descricao', 'patrimonio', 'sala', 'sala_numero',
                   'defeito', 'foto', 'manual', 'num_manutencao', 'num_emprestimo']
 
     def get_sala_numero(self, obj):

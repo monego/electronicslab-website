@@ -30,9 +30,13 @@ class Equipamento(models.Model):
         """ Optimize image by converting to WebP, 80% quality """
 
         if self.foto:
-            foto_webp = Image.open(self.foto)
+            try:
+                orig_path = self.foto.path
+                has_orig = True
+            except ValueError:
+                has_orig = False
 
-            orig_path = self.foto.path
+            foto_webp = Image.open(self.foto)
 
             foto_io = io.BytesIO()
 
@@ -48,8 +52,10 @@ class Equipamento(models.Model):
             super().save(*args, **kwargs)
 
             # Remove the original, unoptimized image
-            if os.path.exists(orig_path):
+            if has_orig and os.path.exists(orig_path):
                 os.remove(orig_path)
+        else:
+            super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = 'Equipamento'
