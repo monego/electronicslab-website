@@ -126,7 +126,7 @@ watch(() => props.aulas, () => {
   <section class="quadrant q-pa-md">
     <h2 class="q-mb-sm flex items-center text-weight-bold" style="font-size: 2.5rem;">
       <q-icon
-        :name="andar === 1 ? 'mdi-stairs-up' : 'mdi-stairs-down'"
+        :name="andar === 1 ? 'mdi-stairs-down' : 'mdi-stairs-up'"
         class="q-mr-sm"
         :color="andar === 1 ? 'cyan' : 'orange'"
       />
