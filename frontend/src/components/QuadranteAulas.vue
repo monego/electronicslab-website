@@ -25,6 +25,32 @@ const isAulaActive = (aula: Aula) => {
   return isWithinInterval(props.currentTime, { start, end });
 };
 
+// Truncate text utility
+function truncateText(text: string, maxLength: number): string {
+  if (text.length > maxLength) {
+    return text.substring(0, maxLength - 3) + '...';
+  }
+  return text;
+}
+
+// Format professor name utility
+function formatProfessorName(name: string, maxLength: number): string {
+  if (name.length > maxLength) {
+    const parts = name.split(' ');
+    if (parts.length >= 2) {
+      const firstName = parts[0];
+      const lastName = parts[parts.length - 1];
+      const formatted = `${firstName} ${lastName}`;
+      if (formatted.length <= maxLength) {
+        return formatted;
+      }
+    }
+    // Fallback to truncation if first+last name is still too long or not enough parts
+    return truncateText(name, maxLength);
+  }
+  return name;
+}
+
 // Auto-scroll: calculate how far to scroll based on content overflow
 const contentListRef = useTemplateRef<HTMLElement>('contentListRef');
 const contentInnerRef = useTemplateRef<HTMLElement>('contentInnerRef');
@@ -51,7 +77,7 @@ watch(() => props.aulas, () => {
 
 <template>
   <section class="quadrant q-pa-md">
-    <h2 class="text-h5 q-mb-sm flex items-center">
+    <h2 class="q-mb-sm flex items-center text-weight-bold" style="font-size: 2.5rem;">
       <q-icon
         :name="andar === 1 ? 'mdi-stairs-up' : 'mdi-stairs-up'"
         class="q-mr-sm"
@@ -74,17 +100,17 @@ watch(() => props.aulas, () => {
             'orange-border': andar === 2 && !isAulaActive(aula)
           }"
         >
-          <div class="row items-center justify-between">
-            <div class="text-h6 text-weight-bold" :class="andar === 1 ? 'text-cyan' : 'text-orange'">
-              {{ aula.disciplina }}
-              <q-badge v-if="isAulaActive(aula)" :color="andar === 1 ? 'cyan' : 'orange'" label="AO VIVO" class="q-ml-sm" />
+          <div class="row items-start justify-between">
+            <div class="column">
+              <div class="text-weight-bold" style="font-size: 1.75rem;" :class="andar === 1 ? 'text-cyan' : 'text-orange'">
+                {{ truncateText(aula.disciplina, 25) }}
+                <q-badge v-if="isAulaActive(aula)" :color="andar === 1 ? 'cyan' : 'orange'" label="Agora" class="q-ml-sm" />
+              </div>
+              <div class="text-grey-4" style="font-size: 1.5rem;">{{ formatProfessorName(aula.professor, 30) }}</div>
             </div>
-            <div class="sala-badge text-h6 text-weight-bold">Sala {{ aula.sala_numero }}</div>
-          </div>
-          <div class="row justify-between items-center q-mt-xs">
-            <div class="text-subtitle1 text-grey-4">{{ aula.professor }}</div>
-            <div class="text-subtitle1 text-weight-bold text-white">
-              {{ format(parseISO(aula.inicio), 'HH:mm') }} - {{ format(parseISO(aula.fim), 'HH:mm') }}
+            <div class="flex items-center" style="font-size: 2rem;">
+              <div class="text-white text-weight-bold">{{ format(parseISO(aula.inicio), 'HH:mm') }} ~ {{ format(parseISO(aula.fim), 'HH:mm') }}</div>
+              <div class="q-ml-md q-px-md q-py-xs rounded-borders text-white bg-grey-8 text-weight-bold" style="font-size: 2rem;">{{ aula.sala_numero }}</div>
             </div>
           </div>
         </div>
