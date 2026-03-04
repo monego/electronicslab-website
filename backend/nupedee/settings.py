@@ -139,6 +139,18 @@ DATABASES = {
     'default': env.db()
 }
 
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'dbbackup': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        'OPTIONS': {
+            'location': env('DBBACKUP_LOCATION'),
+        },
+    },
+    'staticfiles': {
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -222,7 +234,3 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 URL_CPD = env('URL_CPD')
 
 DOMAIN_NAME_SLASH = env("DOMAIN_NAME_SLASH")
-
-DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
-DBBACKUP_STORAGE_OPTIONS = {'location': env('DBBACKUP_LOCATION')}
-DBBACKUP_DATABASES = ['default']
