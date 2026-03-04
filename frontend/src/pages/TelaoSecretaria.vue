@@ -176,10 +176,10 @@ onUnmounted(() => {
     <!-- Main Grid -->
     <main class="grid-container">
       <!-- (0,0) Andar 1 -->
-      <QuadranteAulas :aulas="aulasAndar1" :andar="1" :currentTime="currentTime" />
+      <QuadranteAulas :aulas="aulasAndar1" :andar="1" :currentTime="currentTime" :isSingleQuadrant="false" :isLargeLayout="false" :quadrantSizeMultiplier="1.0" />
 
       <!-- (0,1) Andar 2 -->
-      <QuadranteAulas :aulas="aulasAndar2" :andar="2" :currentTime="currentTime" />
+      <QuadranteAulas :aulas="aulasAndar2" :andar="2" :currentTime="currentTime" :isSingleQuadrant="false" :isLargeLayout="false" :quadrantSizeMultiplier="1.0" />
 
       <!-- (1,0) Escala de Trabalho -->
       <section class="quadrant q-pa-md">
