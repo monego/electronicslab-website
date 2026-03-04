@@ -52,13 +52,13 @@ const formattedDate = computed(() => {
 <template>
   <q-layout view="hHh Lpr fFf" class="telao-layout">
     <q-header class="top-bar flex justify-between items-center q-px-xl">
-      <div class="date-container text-h4 text-weight-medium">
+      <div class="date-container text-h4 text-weight-medium col text-left">
         {{ formattedDate }}
       </div>
       <div class="logo-container flex justify-center items-center">
         <img src="logo-claro.png" alt="NUPEDEE" style="height: 5rem; object-fit: contain;">
       </div>
-      <div class="clock-container text-h2 text-weight-bold">
+      <div class="clock-container text-h2 text-weight-bold col text-right">
         {{ format(currentTime, 'HH:mm:ss') }}
       </div>
     </q-header>
