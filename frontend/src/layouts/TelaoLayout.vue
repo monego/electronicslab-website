@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, provide, computed } from 'vue';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useRoute } from 'vue-router';
 
 defineOptions({
   name: 'TelaoLayout',
@@ -47,6 +48,11 @@ const formattedDate = computed(() => {
   }
   return dateString;
 });
+
+const route = useRoute();
+const shouldShowSeconds = computed(() => {
+  return route.query.segundos === undefined; // If 'segundos' param is NOT set, show seconds
+});
 </script>
 
 <template>
@@ -59,7 +65,7 @@ const formattedDate = computed(() => {
         <img src="logo-claro.png" alt="NUPEDEE" style="height: 5rem; object-fit: contain;">
       </div>
       <div class="clock-container text-h2 text-weight-bold col text-right">
-        {{ format(currentTime, 'HH:mm:ss') }}
+        {{ format(currentTime, shouldShowSeconds ? 'HH:mm:ss' : 'HH:mm') }}
       </div>
     </q-header>
 
