@@ -118,6 +118,20 @@ const getWidth = (start: string, end: string) => {
   return (duration / totalMinutes) * 100;
 };
 
+// Break position/width relative to parent work block
+const getBreakStyle = (workStart: string, workEnd: string, breakStart: string, breakEnd: string) => {
+  const workStartMin = timeToMinutes(workStart);
+  const workEndMin = timeToMinutes(workEnd);
+  const workDuration = workEndMin - workStartMin;
+  if (workDuration <= 0) return { left: '0%', width: '0%' };
+
+  const breakStartMin = timeToMinutes(breakStart);
+  const breakEndMin = timeToMinutes(breakEnd);
+  const leftPct = ((breakStartMin - workStartMin) / workDuration) * 100;
+  const widthPct = ((breakEndMin - breakStartMin) / workDuration) * 100;
+  return { left: `${leftPct}%`, width: `${widthPct}%` };
+};
+
 const hoursArray = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
 
 // Auto-scroll refs
@@ -178,11 +192,9 @@ onUnmounted(() => {
           <div class="gantt-header row no-wrap">
             <div class="name-col-header">Funcionário</div>
             <div class="chart-col-header row no-wrap relative-position">
-              <div class="hour-mark" :style="{ left: '0%' }">07:30</div>
               <div v-for="hour in hoursArray" :key="hour" class="hour-mark" :style="{ left: getPosition(`${hour < 10 ? '0'+hour : hour}:00:00`) + '%' }">
                 {{ hour }}:00
               </div>
-              <div class="hour-mark" :style="{ left: '100%' }">19:30</div>
             </div>
           </div>
 
@@ -215,10 +227,7 @@ onUnmounted(() => {
                     <div
                       v-if="h.inicio_intervalo && h.fim_intervalo"
                       class="break-block"
-                      :style="{
-                          left: getPosition(h.inicio_intervalo) - getPosition(h.inicio) + '%',
-                          width: getWidth(h.inicio_intervalo, h.fim_intervalo) + '%'
-                      }"
+                      :style="getBreakStyle(h.inicio, h.fim, h.inicio_intervalo, h.fim_intervalo)"
                     ></div>
                   </div>
                 </div>
