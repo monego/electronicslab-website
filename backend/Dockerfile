@@ -13,7 +13,8 @@ RUN apt-get update && \
         build-essential \
         libpq-dev \
         gcc \
-        ca-certificates && \
+        ca-certificates \
+        postgresql-client && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Poetry
