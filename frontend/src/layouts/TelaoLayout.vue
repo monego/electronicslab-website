@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, provide } from 'vue';
+import { ref, onMounted, onUnmounted, provide, computed } from 'vue';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useRoute } from 'vue-router';
 
 defineOptions({
   name: 'TelaoLayout',
@@ -26,19 +27,45 @@ onUnmounted(() => {
 
 // Provide current time to all nested components
 provide('currentTime', currentTime);
+
+const formattedDate = computed(() => {
+  let dateString = format(currentTime.value, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR });
+
+  // Uppercase first letter of the day (e.g., "quarta-feira" -> "Quarta-feira")
+  dateString = dateString.charAt(0).toUpperCase() + dateString.slice(1);
+
+  // Uppercase first letter of the month (e.g., "março" -> "Março")
+  const firstDeIndex = dateString.indexOf(' de ');
+  const secondDeIndex = dateString.indexOf(' de ', firstDeIndex + 4);
+
+  if (firstDeIndex !== -1 && secondDeIndex !== -1) {
+    const preMonth = dateString.substring(0, firstDeIndex + 4); // "Quarta-feira, 4 de "
+    let monthPart = dateString.substring(firstDeIndex + 4, secondDeIndex); // "março"
+    const postMonth = dateString.substring(secondDeIndex); // " de 2026"
+
+    monthPart = monthPart.charAt(0).toUpperCase() + monthPart.slice(1);
+    dateString = preMonth + monthPart + postMonth;
+  }
+  return dateString;
+});
+
+const route = useRoute();
+const shouldShowSeconds = computed(() => {
+  return route.query.segundos === undefined; // If 'segundos' param is NOT set, show seconds
+});
 </script>
 
 <template>
   <q-layout view="hHh Lpr fFf" class="telao-layout">
     <q-header class="top-bar flex justify-between items-center q-px-xl">
-      <div class="date-container text-h4 text-weight-medium">
-        {{ format(currentTime, "EEEE, d 'de' MMMM", { locale: ptBR }) }}
+      <div class="date-container text-h4 text-weight-medium col text-left">
+        {{ formattedDate }}
       </div>
-      <div class="logo-container">
-        <div class="text-h3 text-weight-bolder text-primary">NUPEDEE</div>
+      <div class="logo-container flex justify-center items-center">
+        <img src="logo-claro.png" alt="NUPEDEE" style="height: 5rem; object-fit: contain;">
       </div>
-      <div class="clock-container text-h2 text-weight-bold">
-        {{ format(currentTime, 'HH:mm:ss') }}
+      <div class="clock-container text-h2 text-weight-bold col text-right">
+        {{ format(currentTime, shouldShowSeconds ? 'HH:mm:ss' : 'HH:mm') }}
       </div>
     </q-header>
 
