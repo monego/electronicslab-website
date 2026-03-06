@@ -9,6 +9,7 @@ from root.models import Sala
 from zoneinfo import ZoneInfo
 import json
 import httpx
+from aulas.notificar_telegram import notify_aulas_task
 
 def update_aulas_task():
 
@@ -107,3 +108,7 @@ def update_aulas_task():
                 Q(fim__in=[k[1] for k in chaves_excluir]) &
                 Q(sala__in=[k[2] for k in chaves_excluir])
             ).delete()
+
+
+def notify_aulas_daily():
+    notify_aulas_task()
