@@ -9,11 +9,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 def notify_aulas_task():
-    telegram_bot_token = settings.NUPEDEE_TELEGRAM_BOT_TOKEN
+    telegram_bot_token = settings.TELEGRAM_BOT_TOKEN
     telegram_channel_id = settings.AULAS_TELEGRAM_CHANNEL
 
     if not telegram_bot_token:
-        logger.error("NUPEDEE_TELEGRAM_BOT_TOKEN is not set in Django settings.")
+        logger.error("TELEGRAM_BOT_TOKEN is not set in Django settings.")
         return
     if not telegram_channel_id:
         logger.error("AULAS_TELEGRAM_CHANNEL is not set in Django settings.")
