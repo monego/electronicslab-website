@@ -46,6 +46,7 @@ const salas = ref<Sala[]>([]);
 const filter = ref<string>('');
 const salaFilter = ref<string>('todas');
 const currentTime = ref(Temporal.Now.zonedDateTimeISO());
+const isShowingTomorrow = ref(false);
 let timer: ReturnType<typeof setInterval>;
 
 // --- Helper Functions ---
@@ -73,17 +74,24 @@ interface AulaAPI {
 
 // --- Data Fetching ---
 
-async function fetchData() {
+async function fetchSalas() {
   try {
-    const [salasRes, aulasRes] = await Promise.all([
-      api.get('/root/salas/'),
-      api.get('/aulas/aulas/hoje'),
-    ]);
-
+    const salasRes = await api.get('/root/salas/');
     if (salasRes.status === 200) {
       salas.value = salasRes.data as Sala[];
     }
+  } catch (error) {
+    console.error('Error fetching salas:', error);
+    $q.notify({
+      type: 'negative',
+      message: 'Não foi possível carregar as informações das salas.',
+    });
+  }
+}
 
+async function fetchAulas(url: string) {
+  try {
+    const aulasRes = await api.get(url);
     if (aulasRes.status === 200) {
       aulas.value = (aulasRes.data as AulaAPI[]).map((a) => ({
         title: a.disciplina,
@@ -109,11 +117,27 @@ async function fetchData() {
       }));
     }
   } catch (error) {
-    console.error('Error fetching data:', error);
+    console.error('Error fetching aulas:', error);
     $q.notify({
       type: 'negative',
-      message: 'Não foi possível carregar as informações.',
+      message: 'Não foi possível carregar as informações das aulas.',
     });
+  }
+}
+
+async function fetchData() {
+  await fetchSalas();
+  await fetchAulas('/aulas/aulas/hoje'); // Fetch today's classes first
+
+  const nowTime = currentTime.value.toPlainTime();
+
+  // Check if there are no remaining classes today (after filtering out past classes)
+  // and it's past 19:30 (19:00 in 24h format)
+  if (filteredRows.value.length === 0 && nowTime.hour >= 19 && nowTime.minute >= 30) {
+    isShowingTomorrow.value = true;
+    await fetchAulas('/aulas/aulas/amanha'); // Fetch tomorrow's classes
+  } else {
+    isShowingTomorrow.value = false;
   }
 }
 
@@ -223,7 +247,10 @@ const columns: {
       <q-card-section class="q-pb-none">
         <div class="row items-center q-col-gutter-md">
           <div class="col-12 col-md-auto">
-            <h1 class="text-h5 text-weight-bolder text-slate-900 q-my-none">Programação de Hoje</h1>
+            <h1 class="text-h5 text-weight-bolder text-slate-900 q-my-none">
+              <span v-if="isShowingTomorrow">Programação de Amanhã</span>
+              <span v-else>Programação de Hoje</span>
+            </h1>
           </div>
           <q-space />
           <div class="col-12 col-md-auto row q-col-gutter-md items-center">
@@ -256,6 +283,13 @@ const columns: {
             </q-input>
           </div>
         </div>
+        <q-chip v-if="isShowingTomorrow"
+          class="q-mb-md q-pa-sm italic text-body1"
+          color="orange-2"
+          text-color="orange-9"
+          label="Nenhuma aula restante hoje"
+          dense
+        />
       </q-card-section>
 
       <q-card-section class="q-pa-none q-mt-md">
