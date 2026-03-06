@@ -1,5 +1,6 @@
 from .serializers import AulaSerializer
 from django.utils.timezone import now, localtime
+from datetime import timedelta
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -55,6 +56,18 @@ class AulasViewSet(ModelViewSet):
 
         aulas = Aula.objects.filter(
             fim__date=fim.date(),
+        )
+
+        serializer = self.get_serializer(aulas, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='amanha')
+    def get_for_tomorrow(self, request, *args, **kwargs):
+        tomorrow = localtime(now()).date() + timedelta(days=1)
+
+        aulas = Aula.objects.filter(
+            fim__date=tomorrow,
         )
 
         serializer = self.get_serializer(aulas, many=True)
