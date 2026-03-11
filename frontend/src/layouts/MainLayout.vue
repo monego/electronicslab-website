@@ -13,6 +13,13 @@ const leftDrawerOpen = ref(false);
 const links = ref([
   { icon: 'mdi-calendar-clock', label: 'Calendário', to: '/calendario' },
   { icon: 'mdi-tools', label: 'Equipamentos', to: '/materiais' },
+  {
+    icon: 'mdi-dots-grid',
+    label: 'Utilidades',
+    sublinks: [
+      { icon: 'mdi-calculator', label: 'Calculador de Resistores', to: '/resistores' },
+    ],
+  },
   { icon: 'mdi-login', label: 'Entrar', to: '/login' },
 ]);
 
@@ -48,20 +55,56 @@ function toggleLeftDrawer() {
         <q-space />
 
         <div class="nav-links flex items-center q-gutter-x-md gt-sm">
-          <q-btn
-            v-for="link in links"
-            :key="link.label"
-            flat
-            no-caps
-            rounded
-            :to="link.to"
-            :class="{ 'active-link': route.path === link.to }"
-            class="nav-btn"
-          >
-            <q-icon :name="link.icon" size="20px" class="q-mr-sm" />
-            <span class="text-weight-bold">{{ link.label }}</span>
-            <div class="active-indicator" v-if="route.path === link.to"></div>
-          </q-btn>
+          <template v-for="link in links" :key="link.label">
+            <q-btn-dropdown
+              v-if="link.sublinks"
+              flat
+              no-caps
+              rounded
+              class="nav-btn"
+              :class="{ 'active-link': link.sublinks.some(sub => route.path === sub.to) }"
+            >
+              <template v-slot:label>
+                <div class="row items-center no-wrap">
+                  <q-icon :name="link.icon" size="20px" class="q-mr-sm" />
+                  <span class="text-weight-bold">{{ link.label }}</span>
+                </div>
+                <div class="active-indicator" v-if="link.sublinks.some(sub => route.path === sub.to)"></div>
+              </template>
+
+              <q-list class="q-py-sm dropdown-list">
+                <q-item
+                  v-for="sub in link.sublinks"
+                  :key="sub.label"
+                  clickable
+                  v-close-popup
+                  :to="sub.to"
+                  class="dropdown-item"
+                >
+                  <q-item-section avatar>
+                    <q-icon :name="sub.icon" size="20px" color="primary" />
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label class="text-weight-bold text-grey-9">{{ sub.label }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-btn-dropdown>
+
+            <q-btn
+              v-else
+              flat
+              no-caps
+              rounded
+              :to="link.to"
+              :class="{ 'active-link': route.path === link.to }"
+              class="nav-btn"
+            >
+              <q-icon :name="link.icon" size="20px" class="q-mr-sm" />
+              <span class="text-weight-bold">{{ link.label }}</span>
+              <div class="active-indicator" v-if="route.path === link.to"></div>
+            </q-btn>
+          </template>
         </div>
       </q-toolbar>
     </q-header>
@@ -78,22 +121,50 @@ function toggleLeftDrawer() {
         <q-item-label header class="text-weight-bolder text-primary text-uppercase tracking-wider q-pt-lg">
           Navegação
         </q-item-label>
-        <q-item
-          v-for="link in links"
-          :key="link.label"
-          clickable
-          v-ripple
-          :to="link.to"
-          class="q-mx-md q-mb-sm rounded-borders nav-drawer-item"
-          active-class="active-drawer-link"
-        >
-          <q-item-section avatar>
-            <q-icon :name="link.icon" size="24px" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label class="text-weight-bold">{{ link.label }}</q-item-label>
-          </q-item-section>
-        </q-item>
+
+        <template v-for="link in links" :key="link.label">
+          <q-expansion-item
+            v-if="link.sublinks"
+            :icon="link.icon"
+            :label="link.label"
+            class="q-mx-md q-mb-sm rounded-borders nav-drawer-item"
+            header-class="text-weight-bold"
+            :default-opened="link.sublinks.some(sub => route.path === sub.to)"
+          >
+            <q-item
+              v-for="sub in link.sublinks"
+              :key="sub.label"
+              clickable
+              v-ripple
+              :to="sub.to"
+              class="q-ml-lg q-mr-md q-mb-sm rounded-borders nav-drawer-item"
+              active-class="active-drawer-link"
+            >
+              <q-item-section avatar>
+                <q-icon :name="sub.icon" size="20px" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label class="text-weight-bold">{{ sub.label }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-expansion-item>
+
+          <q-item
+            v-else
+            clickable
+            v-ripple
+            :to="link.to"
+            class="q-mx-md q-mb-sm rounded-borders nav-drawer-item"
+            active-class="active-drawer-link"
+          >
+            <q-item-section avatar>
+              <q-icon :name="link.icon" size="24px" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label class="text-weight-bold">{{ link.label }}</q-item-label>
+            </q-item-section>
+          </q-item>
+        </template>
       </q-list>
     </q-drawer>
 
