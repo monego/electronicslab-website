@@ -593,6 +593,74 @@ class ItemViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save()
 
+    def destroy(self, request, *args, **kwargs):
+        return Response(
+            {'detail': 'Não é permitido excluir itens de empréstimo. Apenas a devolução é permitida.'},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    def update(self, request, *args, **kwargs):
+        return Response(
+            {'detail': 'Não é permitido editar itens de empréstimo.'},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    @action(detail=False, methods=['post'], url_path='add')
+    def add_items(self, request, *args, **kwargs):
+        """Add new items to an existing, non-settled loan."""
+        identificador = request.data.get('emprestimo', None)
+        items = request.data.get('items', [])
+
+        if not identificador:
+            return Response(
+                {'detail': 'Identificador do empréstimo é necessário.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not items:
+            return Response(
+                {'detail': 'É necessário informar ao menos um item.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            emprestimo_obj = Emprestimo.objects.get(identificador=identificador)
+        except Emprestimo.DoesNotExist:
+            return Response(
+                {'detail': 'Empréstimo não encontrado.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if emprestimo_obj.encerrado:
+            return Response(
+                {'detail': 'Não é possível adicionar itens a um empréstimo já quitado.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        created_items = []
+        for item in items:
+            item = item.strip()
+            if not item:
+                continue
+            try:
+                equipamento = Equipamento.objects.get(patrimonio=item)
+                data = {
+                    'emprestimo': emprestimo_obj.pk,
+                    'equipamento': equipamento.pk,
+                }
+            except Equipamento.DoesNotExist:
+                data = {
+                    'emprestimo': emprestimo_obj.pk,
+                    'nome': item,
+                }
+
+            item_serializer = ItemEmprestimoSerializer(data=data)
+            item_serializer.is_valid(raise_exception=True)
+            item_serializer.save()
+            created_items.append(item_serializer.data)
+
+        return Response(created_items, status=status.HTTP_201_CREATED)
+
     @action(detail=False, methods=['patch'], url_path='return')
     def devolver(self, request, *args, **kwargs):
         identificador = request.data.get('emprestimo', None)

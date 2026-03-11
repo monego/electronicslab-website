@@ -29,6 +29,13 @@ const newItems = ref<string[]>(['']);
 const startCode = ref<number | undefined>();
 const pagesCount = ref<number | undefined>();
 
+// Add Items Dialog State
+const addItemsDialog = ref(false);
+const addItemsLoanId = ref('');
+const supplementaryItems = ref<string[]>(['']);
+const supplementaryEquipmentLookup = ref<Record<string, string>>({});
+const addingItems = ref(false);
+
 // Validation
 const idExists = ref(false);
 
@@ -141,8 +148,9 @@ async function returnSingleItem(loanIdentifier: string, itemName: string) {
 
     if (response.status === 200) {
       $q.notify({ type: 'positive', message: 'Item devolvido.' });
-      if (itemsMap.value[loanIdentifier]) {
-        itemsMap.value[loanIdentifier].items = [];
+      const entry = itemsMap.value[loanIdentifier];
+      if (entry) {
+        entry.items = [];
       }
       await fetchLoanItems(loanIdentifier);
       await getLoans();
@@ -151,6 +159,70 @@ async function returnSingleItem(loanIdentifier: string, itemName: string) {
     const errorWithResponse = error as { response?: { data?: { detail?: string } } };
     const msg = errorWithResponse.response?.data?.detail || 'Erro ao devolver item.';
     $q.notify({ type: 'negative', message: msg });
+  }
+}
+
+function openAddItemsDialog(loanIdentifier: string) {
+  addItemsLoanId.value = loanIdentifier;
+  supplementaryItems.value = [''];
+  supplementaryEquipmentLookup.value = {};
+  addItemsDialog.value = true;
+}
+
+function addSupplementaryItemInput() {
+  supplementaryItems.value.push('');
+}
+
+function removeSupplementaryItemInput(index: number) {
+  const val = supplementaryItems.value[index];
+  if (val) delete supplementaryEquipmentLookup.value[val];
+  supplementaryItems.value.splice(index, 1);
+}
+
+async function lookupSupplementaryEquipment(val: string) {
+  if (!val || val.length < 2) return;
+  if (supplementaryEquipmentLookup.value[val]) return;
+
+  try {
+    const response = await api.get('/controle/equipamento/', { params: { patrimonio: val } });
+    if (response.data && response.data.length > 0) {
+      supplementaryEquipmentLookup.value[val] = response.data[0].nome;
+    }
+  } catch { /* Silent fail */ }
+}
+
+async function submitAddItems() {
+  const validItems = supplementaryItems.value.filter(i => i.trim() !== '');
+  if (validItems.length === 0) {
+    $q.notify({ type: 'warning', message: 'Informe ao menos um item.' });
+    return;
+  }
+
+  addingItems.value = true;
+  try {
+    const response = await api.post('/controle/items/add/', {
+      emprestimo: addItemsLoanId.value,
+      items: validItems,
+    });
+
+    if (response.status === 201) {
+      $q.notify({ type: 'positive', message: 'Itens adicionados com sucesso!' });
+      addItemsDialog.value = false;
+
+      // Refresh items list for this loan
+      const entry = itemsMap.value[addItemsLoanId.value];
+      if (entry) {
+        entry.items = [];
+      }
+      await fetchLoanItems(addItemsLoanId.value);
+      await getLoans();
+    }
+  } catch (error: unknown) {
+    const errorWithResponse = error as { response?: { data?: { detail?: string } } };
+    const msg = errorWithResponse.response?.data?.detail || 'Erro ao adicionar itens.';
+    $q.notify({ type: 'negative', message: msg });
+  } finally {
+    addingItems.value = false;
   }
 }
 
@@ -169,8 +241,9 @@ function returnAllItems(loanIdentifier: string) {
 
         if (response.status === 200) {
           $q.notify({ type: 'positive', message: 'Empréstimo finalizado com sucesso.' });
-          if (itemsMap.value[loanIdentifier]) {
-            itemsMap.value[loanIdentifier].items = [];
+          const entry = itemsMap.value[loanIdentifier];
+          if (entry) {
+            entry.items = [];
           }
           await getLoans();
         }
@@ -391,7 +464,15 @@ onMounted(() => getLoans());
                       <div class="row items-center q-mb-sm">
                         <div class="text-subtitle2 text-primary">Itens do Empréstimo</div>
                         <q-space />
-                        <div class="text-caption text-grey-7">Local: {{ slotProps.row.local || 'Não informado' }}</div>
+                        <div class="text-caption text-grey-7 q-mr-md">Local: {{ slotProps.row.local || 'Não informado' }}</div>
+                        <q-btn
+                          v-if="!slotProps.row.encerrado"
+                          flat dense
+                          color="primary"
+                          icon="add_circle"
+                          label="Adicionar Itens"
+                          @click="openAddItemsDialog(slotProps.row.identificador)"
+                        />
                       </div>
 
                       <q-list bordered separator dense class="bg-white rounded-borders">
@@ -553,6 +634,67 @@ onMounted(() => getLoans());
         </q-card>
       </div>
     </div>
+
+    <!-- DIALOG: Adicionar Itens a Empréstimo Existente -->
+    <q-dialog v-model="addItemsDialog" persistent>
+      <q-card style="min-width: 500px">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6 flex items-center">
+            <q-icon name="add_circle" color="primary" class="q-mr-sm" />
+            Adicionar Itens — {{ addItemsLoanId }}
+          </div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+
+        <q-card-section>
+          <div class="text-subtitle2 q-mb-sm text-grey-8">Novos itens:</div>
+          <div class="q-gutter-y-sm">
+            <div v-for="(_, index) in supplementaryItems" :key="index">
+              <div class="row q-col-gutter-sm items-center">
+                <div class="col">
+                  <q-input
+                    v-model="supplementaryItems[index]"
+                    label="Nome do Item ou Patrimônio"
+                    outlined dense
+                    bg-color="blue-grey-1"
+                    @blur="supplementaryItems[index] && lookupSupplementaryEquipment(supplementaryItems[index]!)"
+                  />
+                </div>
+                <div class="col-auto">
+                  <q-btn
+                    flat round dense
+                    color="negative" icon="delete"
+                    @click="removeSupplementaryItemInput(index)"
+                    :disable="supplementaryItems.length === 1"
+                  />
+                </div>
+              </div>
+              <div v-if="supplementaryItems[index] && supplementaryEquipmentLookup[supplementaryItems[index]!]" class="text-caption text-primary q-ml-sm q-mt-xs">
+                <q-icon name="check" /> {{ supplementaryEquipmentLookup[supplementaryItems[index]!] }}
+              </div>
+            </div>
+            <q-btn
+              flat dense color="primary"
+              icon="add_circle" label="Adicionar outro item"
+              @click="addSupplementaryItemInput"
+              class="q-mt-sm"
+            />
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Cancelar" color="grey" v-close-popup />
+          <q-btn
+            label="Confirmar"
+            color="primary"
+            rounded
+            :loading="addingItems"
+            @click="submitAddItems"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
