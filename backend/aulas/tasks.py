@@ -113,6 +113,17 @@ def update_aulas_task():
             ).delete()
 
 
+def escape_markdown_v2(text):
+    """
+    Escapes reserved characters for Telegram's MarkdownV2 parse mode.
+    """
+    if not text:
+        return ""
+    # Reserved characters in MarkdownV2: _ * [ ] ( ) ~ ` > # + - = | { } . !
+    escape_chars = r'_*[]()~`>#+-=|{}.!'
+    return "".join(f"\\{c}" if c in escape_chars else c for c in text)
+
+
 def notify_aulas_task():
     telegram_bot_token = settings.TELEGRAM_BOT_TOKEN
     telegram_channel_id = settings.AULAS_TELEGRAM_CHANNEL
@@ -143,7 +154,7 @@ def notify_aulas_task():
         aulas_by_andar[andar].append(aula)
 
     for andar in sorted(aulas_by_andar.keys()):
-        message_parts.append(f"*{andar}° Andar*\n")
+        message_parts.append(f"*{escape_markdown_v2(str(andar))}° Andar*\n")
         for aula in aulas_by_andar[andar]:
             # Professor name: first and last name
             professor_name_parts = aula.professor.split(' ')
@@ -156,7 +167,7 @@ def notify_aulas_task():
             disciplina_name = aula.disciplina
             if len(disciplina_name) > 15:
                 disciplina_name = disciplina_name[:15] + '...'
-            
+
             # Early/late class warning
             warning_emoji = ""
             start_time = aula.inicio.time()
@@ -165,14 +176,18 @@ def notify_aulas_task():
                end_time > datetime.strptime("17:30", "%H:%M").time():
                 warning_emoji = "⚠️ " # Emoji itself doesn't need escaping for MarkdownV2
 
+            # Escape dynamic content
+            professor_name = escape_markdown_v2(professor_name)
+            disciplina_name = escape_markdown_v2(disciplina_name)
+            sala_codigo = escape_markdown_v2(aula.sala.codigo)
+
             message_parts.append(
-                f"   {warning_emoji}\[{aula.inicio.strftime('%H:%M')}\-{aula.fim.strftime('%H:%M')}\]"
-                f"\[{aula.sala.codigo}\] {professor_name} \\- {disciplina_name}\n"
+                f"   {warning_emoji}\\[{aula.inicio.strftime('%H:%M')}\\-{aula.fim.strftime('%H:%M')}\\]"
+                f"\\[{sala_codigo}\\] {professor_name} \\- {disciplina_name}\n"
             )
         message_parts.append("\n") # Add a new line after each andar
 
     message_text = "".join(message_parts)
-    
     # Telegram requires escaping certain characters for MarkdownV2
     # The following characters must be escaped: _, *, [, ], (, ), ~, `, >, #, +, -, =, |, {, }, ., !
     # Emojis don't need escaping.
