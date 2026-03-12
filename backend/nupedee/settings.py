@@ -232,5 +232,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 URL_CPD = env('URL_CPD')
+TELEGRAM_BOT_TOKEN = env('TELEGRAM_BOT_TOKEN')
+AULAS_TELEGRAM_CHANNEL = env('AULAS_TELEGRAM_CHANNEL')
 
 DOMAIN_NAME_SLASH = env("DOMAIN_NAME_SLASH")
