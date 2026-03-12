@@ -214,9 +214,15 @@ function calcRes(rd: number, state: CalculatorState): ResistorResult[] {
 // --- Formatting ---
 
 function formatValue(value: number): string {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toPrecision(3)} MΩ`;
-  if (value >= 1_000) return `${(value / 1_000).toPrecision(3)} kΩ`;
-  return `${value.toPrecision(3)} Ω`;
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1).replace(/\.0$/, '')}k`;
+  return `${value.toFixed(1).replace(/\.0$/, '')}`;
+}
+
+function formatValueWithUnit(value: number): string {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')}MΩ`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1).replace(/\.0$/, '')}kΩ`;
+  return `${value.toFixed(1).replace(/\.0$/, '')}Ω`;
 }
 
 function parseResistance(value: string): number {
@@ -437,7 +443,9 @@ function drawAssociation(r1: number, r2: number, op: string): void {
   canvas.height = displayH * dpr;
   ctx.scale(dpr, dpr);
 
-  ctx.clearRect(0, 0, displayW, displayH);
+  // Background color based on association
+  ctx.fillStyle = op === '+' ? '#EBF5FF' : '#FFF4E6'; // Levemente azulado ou laranjado
+  ctx.fillRect(0, 0, displayW, displayH);
 
   const cw = displayW;
   const ch = displayH;
@@ -447,6 +455,10 @@ function drawAssociation(r1: number, r2: number, op: string): void {
     if (r2 === 0) {
       // Resistor único
       drawRealisticResistor(ctx, cw / 2, ch / 2, r1, scale);
+      ctx.fillStyle = '#555';
+      ctx.font = `bold ${12 * scale}px Inter, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(formatValue(r1), cw / 2, ch / 2 - 22 * scale);
     } else {
       // Série: dois resistores lado a lado
       const gap = 50 * scale;
@@ -472,12 +484,12 @@ function drawAssociation(r1: number, r2: number, op: string): void {
       ctx.lineTo(r2LeftX, cy);
       ctx.stroke();
 
-      // Label R1 / R2
+      // Label values
       ctx.fillStyle = '#555';
       ctx.font = `bold ${12 * scale}px Inter, sans-serif`;
       ctx.textAlign = 'center';
-      ctx.fillText('R1', cx1, cy - 22 * scale);
-      ctx.fillText('R2', cx2, cy - 22 * scale);
+      ctx.fillText(formatValue(r1), cx1, cy - 22 * scale);
+      ctx.fillText(formatValue(r2), cx2, cy - 22 * scale);
     }
   } else {
     // Paralelo: dois resistores empilhados com conexões
@@ -533,15 +545,18 @@ function drawAssociation(r1: number, r2: number, op: string): void {
     // Labels
     ctx.fillStyle = '#555';
     ctx.font = `bold ${12 * scale}px Inter, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.fillText('R1', cx, cy1 - 22 * scale);
-    ctx.fillText('R2', cx, cy2 + 30 * scale);
-    ctx.fillText('Terminal 1', leftWireEnd - extLen, termY + 16 * scale);
-    ctx.fillText('Terminal 2', rightWireEnd + extLen, termY + 16 * scale);
+    
+    // R1: label value on the left
+    ctx.textAlign = 'right';
+    ctx.fillText(formatValue(r1), cx - (40 + 36 + 10) * scale, cy1 + 5 * scale);
+    
+    // R2: label value on the right
+    ctx.textAlign = 'left';
+    ctx.fillText(formatValue(r2), cx + (40 + 36 + 10) * scale, cy2 + 5 * scale);
   }
 }
 
-/** Desenha resistor(es) em miniatura num canvas de resultado */
+/** Desenha resistor(es) num canvas de resultado */
 function drawResultMiniCanvas(canvas: HTMLCanvasElement, result: ResistorResult): void {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
@@ -553,13 +568,24 @@ function drawResultMiniCanvas(canvas: HTMLCanvasElement, result: ResistorResult)
   canvas.height = displayH * dpr;
   ctx.scale(dpr, dpr);
 
-  ctx.clearRect(0, 0, displayW, displayH);
+  // Background color based on association
+  ctx.fillStyle = result.op === '+' ? '#EBF5FF' : '#FFF4E6';
+  
+  // Draw rounded background
+  const r = 10;
+  roundRect(ctx, 0, 0, displayW, displayH, r);
+  ctx.fill();
 
   const scale = Math.min(displayW / 240, 0.8);
+  const textScale = Math.min(displayW / 240, 1.0);
 
   if (result.r2 === 0) {
     // Resistor único
     drawRealisticResistor(ctx, displayW / 2, displayH / 2, result.r1, scale);
+    ctx.fillStyle = '#555';
+    ctx.font = `bold ${11 * textScale}px Inter, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(formatValue(result.r1), displayW / 2, displayH / 2 - 20 * scale);
   } else if (result.op === '+') {
     // Série: dois lado a lado, menor
     const gap = 30 * scale;
@@ -567,6 +593,12 @@ function drawResultMiniCanvas(canvas: HTMLCanvasElement, result: ResistorResult)
     const cx2 = displayW / 2 + 40 * scale + gap / 2;
     drawRealisticResistor(ctx, cx1, displayH / 2, result.r1, scale * 0.85);
     drawRealisticResistor(ctx, cx2, displayH / 2, result.r2, scale * 0.85);
+
+    ctx.fillStyle = '#555';
+    ctx.font = `bold ${10 * textScale}px Inter, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(formatValue(result.r1), cx1, displayH / 2 - 18 * scale);
+    ctx.fillText(formatValue(result.r2), cx2, displayH / 2 - 18 * scale);
   } else {
     // Paralelo: empilhados com conexões
     const vGap = 28 * scale;
@@ -589,6 +621,17 @@ function drawResultMiniCanvas(canvas: HTMLCanvasElement, result: ResistorResult)
     ctx.moveTo(rightWireEnd, cy1);
     ctx.lineTo(rightWireEnd, cy2);
     ctx.stroke();
+
+    ctx.fillStyle = '#555';
+    ctx.font = `bold ${9 * textScale}px Inter, sans-serif`;
+    
+    // Label value on the left
+    ctx.textAlign = 'right';
+    ctx.fillText(formatValue(result.r1), leftWireEnd - 5 * scale, cy1 + 3 * scale);
+    
+    // Label value on the right
+    ctx.textAlign = 'left';
+    ctx.fillText(formatValue(result.r2), rightWireEnd + 5 * scale, cy2 + 3 * scale);
   }
 }
 
@@ -647,10 +690,6 @@ function selectResult(index: number): void {
 
 function getOperationLabel(op: string): string {
   return op === '+' ? 'Série' : 'Paralelo';
-}
-
-function getTolerancePercent(tolerance: number): string {
-  return `${(Math.abs(tolerance) * 100).toFixed(3)}%`;
 }
 
 function getBandLabel(value: number): string {
@@ -728,17 +767,7 @@ onMounted(() => {
 
       <!-- Results -->
       <div v-if="showResults && results.length > 0" class="results-section">
-        <div class="results-header">
-          <h2 class="section-title">Associações Possíveis</h2>
-          <div class="legend-row">
-            <span class="legend-item">
-              <span class="legend-dot legend-serie"></span> Série
-            </span>
-            <span class="legend-item">
-              <span class="legend-dot legend-paralelo"></span> Paralelo
-            </span>
-          </div>
-        </div>
+        <!-- Legend removed -->
 
         <!-- Result Cards with inline resistor drawings -->
         <div
@@ -758,23 +787,22 @@ onMounted(() => {
 
           <!-- Info -->
           <div class="result-info">
-            <div class="result-formula">
-              <span class="op-tag" :class="result.op === '+' ? 'op-serie' : 'op-paralelo'">
-                {{ getOperationLabel(result.op) }}
+            <div class="result-row">
+              <div class="formula-group">
+                <span class="op-tag" :class="result.op === '+' ? 'op-serie' : 'op-paralelo'">
+                  {{ getOperationLabel(result.op) }}
+                </span>
+                <span class="formula-text">
+                  {{ formatValue(result.r1) }}
+                  <span class="op-symbol">{{ result.op }}</span>
+                  <template v-if="result.r2 > 0">
+                    {{ formatValue(result.r2) }}
+                  </template>
+                </span>
+              </div>
+              <span class="result-value" :class="result.op === '+' ? 'text-serie' : 'text-paralelo'">
+                = {{ formatValueWithUnit(result.total) }}
               </span>
-              <span class="formula-text">
-                {{ formatValue(result.r1) }}
-                <span class="op-symbol">{{ result.op }}</span>
-                <template v-if="result.r2 > 0">
-                  {{ formatValue(result.r2) }}
-                </template>
-              </span>
-            </div>
-            <div class="result-value">
-              = {{ formatValue(result.total) }}
-            </div>
-            <div class="result-meta">
-              <span class="tolerance-text">Desvio: {{ getTolerancePercent(result.tolerance) }}</span>
             </div>
             <div class="band-labels">
               <span class="band-label-item">R1: {{ getBandLabel(result.r1) }}</span>
@@ -783,8 +811,8 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Main association canvas -->
-        <div class="association-section">
+        <!-- Main association canvas (HIDDEN) -->
+        <div v-if="false" class="association-section">
           <h3 class="section-subtitle">Diagrama da Associação</h3>
           <div class="main-canvas-wrapper">
             <canvas ref="canvasRef" class="main-canvas"></canvas>
@@ -811,7 +839,7 @@ onMounted(() => {
 
 .header-section {
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 
 .header-icon-row {
@@ -819,22 +847,24 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-bottom: 4px;
+  margin-bottom: -2px;
 }
 
 .page-title {
-  font-size: 1.4rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: var(--q-primary);
   margin: 0;
   text-transform: uppercase;
   letter-spacing: -0.02em;
+  line-height: 1;
 }
 
 .page-subtitle {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #94a3b8;
   margin: 0;
+  line-height: 1.2;
 }
 
 // --- Input ---
@@ -842,18 +872,18 @@ onMounted(() => {
 .input-section {
   background: #fff;
   border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 20px;
+  padding: 16px;
+  margin-bottom: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .input-label {
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   color: #64748b;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -862,7 +892,7 @@ onMounted(() => {
   :deep(.q-field__control) {
     border-radius: 12px;
     background-color: #f8fafc;
-    min-height: 56px;
+    min-height: 50px;
   }
   :deep(.q-field__control:focus-within) {
     background-color: #fff;
@@ -886,52 +916,12 @@ onMounted(() => {
   to { opacity: 1; transform: translateY(0); }
 }
 
-.results-header {
-  margin-bottom: 16px;
-}
-
-.section-title {
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: #1e293b;
-  margin: 0 0 8px 0;
-}
-
 .section-subtitle {
   font-size: 1rem;
   font-weight: 700;
   color: #475569;
   margin: 24px 0 12px 0;
   text-align: center;
-}
-
-.legend-row {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.85rem;
-  color: #64748b;
-  font-weight: 500;
-}
-
-.legend-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.legend-serie {
-  background: #2563eb;
-}
-
-.legend-paralelo {
-  background: #ea580c;
 }
 
 // --- Result cards ---
@@ -968,9 +958,11 @@ onMounted(() => {
 .mini-canvas-wrapper {
   width: 100%;
   height: 60px;
-  border-radius: 8px;
+  border-radius: 10px;
   background: #fafbfc;
   overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .mini-canvas {
@@ -985,20 +977,29 @@ onMounted(() => {
   gap: 4px;
 }
 
-.result-formula {
+.result-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.formula-group {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow: hidden;
 }
 
 .op-tag {
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 6px;
+  padding: 2px 6px;
+  border-radius: 4px;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   flex-shrink: 0;
 }
 
@@ -1013,38 +1014,66 @@ onMounted(() => {
 }
 
 .formula-text {
-  font-size: 1.05rem;
-  font-weight: 600;
+  font-size: 1.1rem;
+  font-weight: 700;
   color: #334155;
+  white-space: nowrap;
 }
 
 .op-symbol {
   color: #94a3b8;
-  margin: 0 2px;
+  margin: 0 4px;
 }
 
 .result-value {
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   font-weight: 800;
   color: var(--q-primary);
+  white-space: nowrap;
 }
 
-.result-meta {
+.text-serie {
+  color: #2563eb !important;
+}
+
+.text-paralelo {
+  color: #ea580c !important;
+}
+
+.legend-row {
   display: flex;
-  gap: 12px;
+  gap: 16px;
+  align-items: center;
 }
 
-.tolerance-text {
-  font-size: 0.8rem;
-  color: #94a3b8;
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #64748b;
   font-weight: 500;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-serie {
+  background: #2563eb;
+}
+
+.legend-paralelo {
+  background: #ea580c;
 }
 
 .band-labels {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  margin-top: 2px;
+  margin-top: 0;
 }
 
 .band-label-item {
