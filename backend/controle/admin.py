@@ -1,6 +1,7 @@
 from django.contrib import admin
 from controle.models import (
     Ausencia,
+    Componente,
     Compras,
     ControleAcesso,
     Emprestimo,
@@ -14,6 +15,10 @@ from controle.models import (
 class AusenciaAdmin(admin.ModelAdmin):
     list_display = ('funcionario', 'inicio', 'fim', 'motivo')
     search_fields = ('funcionario',)
+
+class ComponenteAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'quantidade', 'tipo', 'categoria')
+    search_fields = ('nome',)
 
 class ComprasAdmin(admin.ModelAdmin):
     list_display = ('titulo', 'data', 'origem', 'tipo', 'funcionario')
@@ -53,6 +58,7 @@ class OrcamentoAdmin(admin.ModelAdmin):
     search_fields = ('compra',)
 
 admin.site.register(Ausencia, AusenciaAdmin)
+admin.site.register(Componente, ComponenteAdmin)
 admin.site.register(Compras, ComprasAdmin)
 admin.site.register(ControleAcesso, ControleAcessoAdmin)
 admin.site.register(Emprestimo, EmprestimosAdmin)

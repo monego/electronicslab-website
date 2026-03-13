@@ -142,6 +142,12 @@ const privateList: EssentialLinkProps[] = [
     link: '/#/equipamentos',
   },
   {
+    title: 'Componentes',
+    caption: 'Estoque do Laboratório',
+    icon: 'mdi-chip',
+    link: '/#/componentes',
+  },
+  {
     title: 'Ocorrências',
     caption: 'Ponto e Registros',
     icon: 'mdi-calendar-check',

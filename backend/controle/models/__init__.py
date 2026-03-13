@@ -1,4 +1,5 @@
 from .acessos import ControleAcesso, ControleBolsistas
+from .componentes import Componente
 from .compras import Compras, Orcamento
 from .emprestimos import Emprestimo, ItemEmprestimo
 from .equipamentos import Equipamento, Manutencao

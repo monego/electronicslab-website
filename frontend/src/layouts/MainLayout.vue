@@ -13,6 +13,7 @@ const leftDrawerOpen = ref(false);
 const links = ref([
   { icon: 'mdi-calendar-clock', label: 'Calendário', to: '/calendario' },
   { icon: 'mdi-tools', label: 'Equipamentos', to: '/materiais' },
+  { icon: 'mdi-chip', label: 'Componentes', to: '/componentes-list' },
   {
     icon: 'mdi-dots-grid',
     label: 'Utilidades',

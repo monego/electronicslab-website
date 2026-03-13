@@ -5,6 +5,7 @@ from controle.models import (
     ControleAcesso,
     Emprestimo,
     Equipamento,
+    Componente,
     HorarioTrabalho,
     ItemEmprestimo,
     Manutencao,
@@ -209,3 +210,13 @@ class OrcamentoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Orcamento
         fields = '__all__'
+
+class ComponenteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Componente
+        fields = '__all__'
+
+class ComponentePublicoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Componente
+        fields = ['nome', 'quantidade', 'datasheet', 'categoria', 'tipo']

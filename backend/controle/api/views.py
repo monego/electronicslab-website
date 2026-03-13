@@ -5,6 +5,8 @@ from controle.api.serializers import (
     EmprestimoSerializer,
     EquipamentoSerializer,
     EquipamentoPublicoSerializer,
+    ComponenteSerializer,
+    ComponentePublicoSerializer,
     HorarioTrabalhoSerializer,
     ItemEmprestimoSerializer,
     ManutencaoSerializer,
@@ -28,6 +30,7 @@ from controle.models import (
     ControleAcesso,
     Emprestimo,
     Equipamento,
+    Componente,
     ItemEmprestimo,
     HorarioTrabalho,
     Manutencao,
@@ -795,3 +798,13 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             return Response({"username": user.username})
         except User.DoesNotExist:
             return Response({"error": "Usuário não encontrado"}, status=404)
+
+class ComponenteViewSet(ModelViewSet):
+    queryset = Componente.objects.all()
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ComponenteSerializer
+
+class ComponentePublicoViewSet(ModelViewSet):
+    queryset = Componente.objects.all()
+    permission_classes = []
+    serializer_class = ComponentePublicoSerializer

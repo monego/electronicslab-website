@@ -605,7 +605,7 @@ function drawResultMiniCanvas(canvas: HTMLCanvasElement, result: ResistorResult)
     const cy1 = displayH / 2 - vGap / 2;
     const cy2 = displayH / 2 + vGap / 2;
     const cx = displayW / 2;
-    
+
     drawRealisticResistor(ctx, cx, cy1, result.r1, scale * 0.75);
     drawRealisticResistor(ctx, cx, cy2, result.r2, scale * 0.75);
 
