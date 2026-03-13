@@ -10,7 +10,7 @@ import {
   createViewDay,
   createViewWeek,
 } from '@schedule-x/calendar';
-import 'temporal-polyfill/global';
+import '@js-temporal/polyfill';
 import '@schedule-x/theme-default/dist/index.css';
 
 // Schedule-X v3 uses Temporal objects natively
