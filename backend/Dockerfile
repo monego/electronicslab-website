@@ -14,7 +14,7 @@ RUN apt-get update && \
         libpq-dev \
         gcc \
         ca-certificates \
-        postgresql-client && \ # for dbbackup
+        postgresql-client && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Poetry
