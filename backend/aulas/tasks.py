@@ -14,6 +14,29 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+ROOM_ID_TO_NAME = {
+    "3143": "422",
+    "3144": "431",
+    "3145": "527",
+    "3146": "524",
+    "3255": "520",
+    "3256": "523",
+    "3257": "525",
+    "3258": "1-1",
+    "3259": "1-2",
+    "3260": "1-3",
+    "3261": "1-6",
+    "3262": "2-4",
+    "3263": "2-6",
+    "3122": "301",
+    "2275": "334",
+    "2276": "338",
+    "3577": "337",
+    "1584": "354A",
+    "1583": "361",
+    "3005": "215",
+}
+
 def update_aulas_task():
 
     def title_split(titulo):
@@ -141,6 +164,8 @@ def notify_aulas_task():
         'sala__andar', 'inicio', 'sala__codigo'
     ).select_related('sala')
 
+    logger.info(f"Found {aulas.count()} aulas for tomorrow ({tomorrow.strftime('%d/%m/%Y')}).")
+
     if not aulas:
         logger.info(f"No aulas found for tomorrow ({tomorrow.strftime('%d/%m/%Y')}). Not sending Telegram notification.")
         return
@@ -150,44 +175,51 @@ def notify_aulas_task():
 
     aulas_by_andar = defaultdict(list)
     for aula in aulas:
-        andar = aula.sala.andar
+        andar = getattr(aula.sala, 'andar', '?')
         aulas_by_andar[andar].append(aula)
 
-    for andar in sorted(aulas_by_andar.keys()):
+    for andar in sorted(aulas_by_andar.keys(), key=lambda x: str(x)):
         message_parts.append(f"*{escape_markdown_v2(str(andar))}° Andar*\n")
         for aula in aulas_by_andar[andar]:
             # Professor name: first and last name
-            professor_name_parts = aula.professor.split(' ')
+            professor_name = (aula.professor or "Desconhecido").title()
+            professor_name_parts = professor_name.split(' ')
             if len(professor_name_parts) >= 2:
-                professor_name = f"{professor_name_parts[0]} {professor_name_parts[-1]}"
+                professor_display = f"{professor_name_parts[0]} {professor_name_parts[-1]}"
             else:
-                professor_name = aula.professor # Fallback if only one name
+                professor_display = professor_name
 
             # Disciplina: limit to 15 characters
-            disciplina_name = aula.disciplina
+            disciplina_name = (aula.disciplina or "Sem Nome").title()
             if len(disciplina_name) > 15:
                 disciplina_name = disciplina_name[:15] + '...'
 
             # Early/late class warning
             warning_emoji = ""
-            start_time = aula.inicio.time()
-            end_time = aula.fim.time()
+            inicio_local = localtime(aula.inicio)
+            fim_local = localtime(aula.fim)
+            start_time = inicio_local.time()
+            end_time = fim_local.time()
             if start_time < datetime.strptime("08:30", "%H:%M").time() or \
-               end_time > datetime.strptime("17:30", "%H:%M").time():
+               end_time > datetime.strptime("18:30", "%H:%M").time():
                 warning_emoji = "⚠️ " # Emoji itself doesn't need escaping for MarkdownV2
 
             # Escape dynamic content
-            professor_name = escape_markdown_v2(professor_name)
+            professor_display = escape_markdown_v2(professor_display)
             disciplina_name = escape_markdown_v2(disciplina_name)
-            sala_codigo = escape_markdown_v2(aula.sala.codigo)
+            
+            sala_codigo_raw = str(aula.sala.codigo) if (aula.sala and aula.sala.codigo) else "???"
+            sala_codigo_translated = ROOM_ID_TO_NAME.get(sala_codigo_raw, sala_codigo_raw)
+            sala_codigo = escape_markdown_v2(sala_codigo_translated)
 
             message_parts.append(
-                f"   {warning_emoji}\\[{aula.inicio.strftime('%H:%M')}\\-{aula.fim.strftime('%H:%M')}\\]"
-                f"\\[{sala_codigo}\\] {professor_name} \\- {disciplina_name}\n"
+                f"   {warning_emoji}\\[{inicio_local.strftime('%H:%M')}\\-{fim_local.strftime('%H:%M')}\\]"
+                f"\\[{sala_codigo}\\] {professor_display} \\- {disciplina_name}\n"
             )
         message_parts.append("\n") # Add a new line after each andar
 
     message_text = "".join(message_parts)
+    logger.debug(f"Constructed message text: {message_text}")
     # Telegram requires escaping certain characters for MarkdownV2
     # The following characters must be escaped: _, *, [, ], (, ), ~, `, >, #, +, -, =, |, {, }, ., !
     # Emojis don't need escaping.
