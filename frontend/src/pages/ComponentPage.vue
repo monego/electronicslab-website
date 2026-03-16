@@ -32,6 +32,7 @@ interface TableColumn {
 
 const columns: TableColumn[] = [
   { name: 'nome', label: 'Nome', field: 'nome', align: 'left', sortable: true },
+  { name: 'descricao', label: 'Descrição', field: 'descricao', align: 'left' },
   { name: 'tipo', label: 'Tipo', field: 'tipo', align: 'left', sortable: true },
   { name: 'quantidade', label: 'Quantidade', field: 'quantidade', align: 'center', sortable: true },
   { name: 'categoria', label: 'Categoria', field: 'categoria', align: 'center', sortable: true },

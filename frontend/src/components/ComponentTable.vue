@@ -135,6 +135,7 @@ const pagination = ref({
             <div class="row items-center no-wrap">
               <div class="col">
                 <div class="text-h6 text-primary">{{ props.row.nome }}</div>
+                <div class="text-subtitle2 text-grey-8">{{ props.row.descricao }}</div>
                 <div class="text-caption text-grey-7">{{ props.row.tipo }}</div>
               </div>
               <div class="col-auto">

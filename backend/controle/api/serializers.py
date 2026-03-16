@@ -219,4 +219,4 @@ class ComponenteSerializer(serializers.ModelSerializer):
 class ComponentePublicoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Componente
-        fields = ['nome', 'quantidade', 'datasheet', 'categoria', 'tipo']
+        fields = ['nome', 'descricao', 'quantidade', 'datasheet', 'categoria', 'tipo']
