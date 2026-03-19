@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, provide, computed } from 'vue';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useRoute } from 'vue-router';
+import { Temporal } from '@js-temporal/polyfill';
 
 defineOptions({
   name: 'TelaoLayout',
@@ -13,6 +14,19 @@ const currentTime = ref(new Date());
 const updateClock = () => {
   currentTime.value = new Date();
 };
+
+const displayTime = computed(() => {
+  const instant = Temporal.Instant.fromEpochMilliseconds(currentTime.value.getTime());
+  const zoned = instant.toZonedDateTimeISO('America/Sao_Paulo');
+  return new Date(
+    zoned.year,
+    zoned.month - 1,
+    zoned.day,
+    zoned.hour,
+    zoned.minute,
+    zoned.second
+  );
+});
 
 let clockInterval: number;
 
@@ -29,7 +43,7 @@ onUnmounted(() => {
 provide('currentTime', currentTime);
 
 const formattedDate = computed(() => {
-  let dateString = format(currentTime.value, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR });
+  let dateString = format(displayTime.value, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR });
 
   // Uppercase first letter of the day (e.g., "quarta-feira" -> "Quarta-feira")
   dateString = dateString.charAt(0).toUpperCase() + dateString.slice(1);
@@ -65,7 +79,7 @@ const shouldShowSeconds = computed(() => {
         <img src="logo-claro.png" alt="NUPEDEE" style="height: 5rem; object-fit: contain;">
       </div>
       <div class="clock-container text-h2 text-weight-bold col text-right">
-        {{ format(currentTime, shouldShowSeconds ? 'HH:mm:ss' : 'HH:mm') }}
+        {{ format(displayTime, shouldShowSeconds ? 'HH:mm:ss' : 'HH:mm') }}
       </div>
     </q-header>
 
