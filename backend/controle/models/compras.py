@@ -6,7 +6,7 @@ from django.utils import timezone
 class Compras(models.Model):
     data = models.DateTimeField(default=timezone.now)
     titulo = models.CharField(max_length=100, default="")
-    descricao = models.TextField(max_length=500)
+    descricao = models.TextField(max_length=3000)
     quantidade = models.PositiveSmallIntegerField()
     justificativa = models.TextField(max_length=500)
     estado = models.CharField(max_length=15, choices=[
