@@ -119,8 +119,15 @@ class ComprasViewSet(ModelViewSet):
         def check_source(source_val, target):
             return "(x)" if source_val == target else "( )"
 
+        # Calculate max price (average + 20%)
+        prices = [p for p in [obj.preco_orcamento_1, obj.preco_orcamento_2, obj.preco_orcamento_3] if p is not None]
+        preco_maximo = obj.preco_maximo
+        if (preco_maximo is None or preco_maximo == 0) and prices:
+            avg = sum(prices) / 3
+            preco_maximo = round(float(avg) * 1.2, 2)
+
         data = [
-            ["Nome do item", Paragraph(obj.titulo, style_content), "Quantidade", str(obj.quantidade), "Preço Máximo\n(R$)", f"R$ {obj.preco_maximo or '0,00'}"],
+            ["Nome do item", Paragraph(obj.titulo, style_content), "Quantidade", str(obj.quantidade), "Preço Máximo\n(R$)", f"R$ {preco_maximo or '0,00'}"],
             ["Descrição", Paragraph(obj.descricao.replace('\n', '<br/>'), style_content), "", "", "", ""],
             ["Justificativa", Paragraph(obj.justificativa.replace('\n', '<br/>'), style_content), "", "", "", ""],
             ["Empresa\nConsultada", "Data da Consulta", "Preço (R$)", "Fonte", "", ""],
