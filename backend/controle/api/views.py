@@ -120,7 +120,7 @@ class ComprasViewSet(ModelViewSet):
             return "(x)" if source_val == target else "( )"
 
         data = [
-            ["Nome do item", obj.titulo, "Quantidade", str(obj.quantidade), "Preço Máximo\n(R$)", f"R$ {obj.preco_maximo or '0,00'}"],
+            ["Nome do item", Paragraph(obj.titulo, style_content), "Quantidade", str(obj.quantidade), "Preço Máximo\n(R$)", f"R$ {obj.preco_maximo or '0,00'}"],
             ["Descrição", Paragraph(obj.descricao.replace('\n', '<br/>'), style_content), "", "", "", ""],
             ["Justificativa", Paragraph(obj.justificativa.replace('\n', '<br/>'), style_content), "", "", "", ""],
             ["Empresa\nConsultada", "Data da Consulta", "Preço (R$)", "Fonte", "", ""],
