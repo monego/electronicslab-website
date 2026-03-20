@@ -94,8 +94,8 @@ const shouldShowSeconds = computed(() => {
 .telao-layout {
   background-color: #0b0e14;
   color: #e6edf3;
-  width: 1920px;
-  height: 1080px;
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }

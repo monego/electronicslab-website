@@ -197,7 +197,7 @@ onUnmounted(() => {
 .grid-container {
   display: grid;
   gap: 12px;
-  height: calc(1080px - 148px);
+  height: calc(100vh - 148px);
   width: 100%;
 }
 

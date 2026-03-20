@@ -285,7 +285,7 @@ onUnmounted(() => {
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
   gap: 12px;
-  height: calc(1080px - 148px);
+  height: calc(100vh - 148px);
   width: 100%;
 }
 
