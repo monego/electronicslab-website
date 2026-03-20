@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, computed, inject, watch, nextTick, useTemplateRef, type Ref } from 'vue';
 import { api } from 'boot/axios';
 import { format, parseISO } from 'date-fns';
+import { Temporal } from '@js-temporal/polyfill';
 import QuadranteAulas from 'src/components/QuadranteAulas.vue';
 
 // Types
@@ -37,6 +38,10 @@ interface HorarioTrabalho {
 
 // Injected State from Layout
 const currentTime = inject<Ref<Date>>('currentTime') || ref(new Date());
+
+const spNow = computed(() => {
+  return Temporal.Now.zonedDateTimeISO('America/Sao_Paulo');
+});
 
 // State
 const aulas = ref<Aula[]>([]);
@@ -82,11 +87,12 @@ const dayOfWeekMap: Record<number, string> = {
   3: 'quarta',
   4: 'quinta',
   5: 'sexta',
+  6: 'sabado',
+  7: 'domingo',
 };
 
 const processedHorarios = computed(() => {
-  const todayNum = currentTime.value.getDay();
-  const todayStr = dayOfWeekMap[todayNum] || 'segunda';
+  const todayStr = dayOfWeekMap[spNow.value.dayOfWeek] || 'segunda';
 
   return horarios.value
     .filter((h) => h.dia_da_semana === todayStr)
@@ -117,6 +123,15 @@ const getWidth = (start: string, end: string) => {
   const duration = Math.max(0, endMin - startMin);
   return (duration / totalMinutes) * 100;
 };
+
+const spTimeMarkerPos = computed(() => {
+  const now = spNow.value;
+  if (now.hour >= 7 && now.hour <= 19) {
+    const timeStr = now.toPlainTime().toString().slice(0, 8); // HH:mm:ss
+    return getPosition(timeStr);
+  }
+  return null;
+});
 
 // Break position/width relative to parent work block
 const getBreakStyle = (workStart: string, workEnd: string, breakStart: string, breakEnd: string) => {
@@ -210,9 +225,9 @@ onUnmounted(() => {
 
                   <!-- Current Time Marker -->
                   <div
-                      v-if="currentTime.getHours() >= 7 && currentTime.getHours() <= 19"
+                      v-if="spTimeMarkerPos !== null"
                       class="now-marker"
-                      :style="{ left: getPosition(format(currentTime, 'HH:mm:ss')) + '%' }"
+                      :style="{ left: spTimeMarkerPos + '%' }"
                   ></div>
 
                   <!-- Work Block -->

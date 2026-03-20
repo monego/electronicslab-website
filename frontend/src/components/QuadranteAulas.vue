@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { watch, nextTick, useTemplateRef, computed } from 'vue';
 import { format, parseISO, isWithinInterval } from 'date-fns';
+import { Temporal } from '@js-temporal/polyfill';
 
 interface Aula {
   id: number;
@@ -21,6 +22,18 @@ const props = defineProps<{
   isLargeLayout: boolean;
   quadrantSizeMultiplier: number;
 }>();
+
+const formatTimeSP = (isoString: string) => {
+  try {
+    return Temporal.Instant.from(isoString)
+      .toZonedDateTimeISO('America/Sao_Paulo')
+      .toPlainTime()
+      .toString()
+      .slice(0, 5);
+  } catch {
+    return format(parseISO(isoString), 'HH:mm');
+  }
+};
 
 const isAulaActive = (aula: Aula) => {
   const start = parseISO(aula.inicio);
@@ -156,7 +169,7 @@ watch(() => props.aulas, () => {
               <div class="text-grey-4" :style="{ fontSize: professorFontSize }">{{ formatProfessorName(aula.professor, 30) }}</div>
             </div>
             <div class="flex items-center" :style="{ fontSize: timeFontSize }">
-              <div class="text-white text-weight-bold sala-badge" :style="{ fontSize: timeFontSize }">{{ format(parseISO(aula.inicio), 'HH:mm') }} ~ {{ format(parseISO(aula.fim), 'HH:mm') }}</div>
+              <div class="text-white text-weight-bold sala-badge" :style="{ fontSize: timeFontSize }">{{ formatTimeSP(aula.inicio) }} ~ {{ formatTimeSP(aula.fim) }}</div>
               <div class="q-ml-md text-white text-weight-bold sala-badge" :style="{ fontSize: salaFontSize }">{{ aula.sala_numero }}</div>
             </div>
           </div>
