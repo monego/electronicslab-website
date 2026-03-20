@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { api } from 'boot/axios';
 import { format } from 'date-fns';
 import { useQuasar } from 'quasar';
@@ -54,7 +54,11 @@ const budgets = ref<[Budget, Budget, Budget]>([
   { url: '', source: 'website', price: 0, company: '', date: '' },
 ]);
 
-const precoMaximo = ref<number>(0);
+const precoMaximo = computed(() => {
+  const sum = budgets.value.reduce((acc, budget) => acc + (Number(budget.price) || 0), 0);
+  const avg = sum / 3;
+  return Number((avg * 1.2).toFixed(2));
+});
 
 const statusOptions: Record<string, string> = {
   Solicitado: 'solicitado',
@@ -240,7 +244,6 @@ function openEditDialog(row: Row) {
 
 function openBudgetDialog(row: Row) {
   selectedId.value = row.id;
-  precoMaximo.value = Number(row.preco_maximo) || 0;
   budgets.value = [
     { url: row.url_orcamento_1 || '', source: row.fonte_orcamento_1 || 'website', price: Number(row.preco_orcamento_1) || 0, company: row.empresa_orcamento_1 || '', date: row.data_orcamento_1 || '' },
     { url: row.url_orcamento_2 || '', source: row.fonte_orcamento_2 || 'website', price: Number(row.preco_orcamento_2) || 0, company: row.empresa_orcamento_2 || '', date: row.data_orcamento_2 || '' },
@@ -433,12 +436,12 @@ onMounted(() => {
 
         <q-card-section class="q-px-md">
           <q-input
-            v-model.number="precoMaximo"
-            type="number"
-            label="Preço Máximo Estimado (R$)"
+            :model-value="precoMaximo"
+            readonly
+            label="Preço Máximo Estimado (Média + 20%)"
             filled
             prefix="R$"
-            hint="Valor que aparecerá no cabeçalho do documento"
+            hint="Calculado automaticamente a partir dos orçamentos"
           />
         </q-card-section>
 
