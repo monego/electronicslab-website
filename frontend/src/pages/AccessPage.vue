@@ -6,15 +6,81 @@ import { api } from 'boot/axios';
 
 const $q = useQuasar();
 
-const sala = ref();
+interface Option {
+  label: string;
+  value: string;
+}
+
+const sala = ref<string | null>(null);
 const matricula = ref<string>('');
 const tab = ref<string>('entrada');
-const options = ref();
+const options = ref<Option[]>([]);
 const rows = ref<Row[]>([]);
 const selected = ref<Row[]>([]);
 const loading = ref<boolean>(false);
 const studentName = ref<string>('');
 const searchingStudent = ref<boolean>(false);
+
+interface Student {
+  nome: string;
+  matricula: string;
+  last_access: string | null;
+}
+
+const showSearchModal = ref(false);
+const searchName = ref('');
+const searchQueryResult = ref<Student[]>([]);
+const searchingByName = ref(false);
+
+function formatLastAccess(dateStr: string | null) {
+  if (!dateStr) return '';
+  return `ultimo registro em ${format(parseISO(dateStr), "dd/MM/yyyy 'às' HH:mm")}`;
+}
+
+const searchColumns = [
+  {
+    name: 'nome',
+    label: 'Nome',
+    field: 'nome',
+    align: 'left' as const,
+    format: (val: string) => capitalizeEachWord(val),
+    sortable: true
+  },
+  { name: 'matricula', label: 'Matrícula', field: 'matricula', align: 'left' as const, sortable: true },
+];
+
+let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+
+function debounceSearch() {
+  if (searchTimeout) clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    void performSearch();
+  }, 500);
+}
+
+async function performSearch() {
+  if (!searchName.value || searchName.value.length < 3) {
+    searchQueryResult.value = [];
+    return;
+  }
+  searchingByName.value = true;
+  try {
+    const response = await api.get('/root/pessoas/', { params: { nome: searchName.value } });
+    searchQueryResult.value = response.data;
+  } catch {
+    $q.notify({ type: 'negative', message: 'Erro ao buscar alunos.' });
+  } finally {
+    searchingByName.value = false;
+  }
+}
+
+function selectStudent(student: Student) {
+  matricula.value = student.matricula;
+  studentName.value = student.nome;
+  showSearchModal.value = false;
+  searchName.value = '';
+  searchQueryResult.value = [];
+}
 
 function capitalizeEachWord(str: string): string {
   if (!str) return '';
@@ -243,6 +309,12 @@ onMounted(async () => {
                         <template v-slot:prepend>
                           <q-icon name="mdi-account-card" />
                         </template>
+
+                        <template v-slot:append>
+                          <q-btn round dense flat icon="search" @click="showSearchModal = true">
+                            <q-tooltip>Buscar por Nome</q-tooltip>
+                          </q-btn>
+                        </template>
                       </q-input>
 
                       <q-select
@@ -338,6 +410,66 @@ onMounted(async () => {
         </q-card>
       </div>
     </div>
+
+    <!-- Modal de Busca por Nome -->
+    <q-dialog v-model="showSearchModal">
+      <q-card style="min-width: 400px; max-width: 90vw;">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6">Buscar por Nome</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+
+        <q-card-section>
+          <q-input
+            v-model="searchName"
+            label="Digite o nome (mín. 3 caracteres)"
+            outlined
+            dense
+            autofocus
+            @update:model-value="debounceSearch"
+            :loading="searchingByName"
+          >
+            <template v-slot:append>
+              <q-icon name="search" />
+            </template>
+          </q-input>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-table
+            :rows="searchQueryResult"
+            :columns="searchColumns"
+            row-key="matricula"
+            flat
+            bordered
+            dense
+            :pagination="{ rowsPerPage: 10 }"
+            hide-pagination
+            no-data-label="Nenhum resultado encontrado"
+          >
+            <template v-slot:body="props">
+              <q-tr
+                :props="props"
+                @click="selectStudent(props.row)"
+                class="cursor-pointer"
+                :class="props.row.last_access ? 'bg-green-1' : ''"
+              >
+                <q-td key="nome" :props="props">
+                  {{ capitalizeEachWord(props.row.nome) }}
+                  <q-tooltip v-if="props.row.last_access">
+                    {{ formatLastAccess(props.row.last_access) }}
+                  </q-tooltip>
+                </q-td>
+                <q-td key="matricula" :props="props">
+                  {{ props.row.matricula }}
+                </q-td>
+              </q-tr>
+            </template>
+          </q-table>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 

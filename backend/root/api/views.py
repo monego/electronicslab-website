@@ -7,15 +7,25 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 
+from django.db.models import Max, F
+...
 class PessoaViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = PessoaSerializer
 
     def get_queryset(self):
-        queryset = Pessoa.objects.all()
+        queryset = Pessoa.objects.annotate(last_access=Max('controleacesso__hora_entrada'))
         matricula = self.request.query_params.get('matricula')
         if matricula is not None:
             queryset = queryset.filter(matricula=matricula)
+
+        nome = self.request.query_params.get('nome')
+        if nome is not None:
+            queryset = queryset.filter(nome__icontains=nome).order_by(
+                F('last_access').desc(nulls_last=True),
+                'nome'
+            )[:20]
+
         return queryset
 
     @action(detail=False, methods=['patch'], url_path='mailphone')

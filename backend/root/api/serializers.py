@@ -8,9 +8,10 @@ class PessoaSerializer(ModelSerializer):
     serializer_class = Pessoa
     filter_backends = [filters.SearchFilter]
     search_fields = ['matricula']
+    last_access = serializers.DateTimeField(read_only=True)
     class Meta:
         model = Pessoa
-        fields = ['id', 'nome', 'email', 'telefone', 'matricula', 'tipo']
+        fields = ['id', 'nome', 'email', 'telefone', 'matricula', 'tipo', 'last_access']
 
 class SalaSerializer(ModelSerializer):
     queryset = Sala.objects.all()
