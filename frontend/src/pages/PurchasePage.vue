@@ -12,6 +12,7 @@ const showDialog = ref<boolean>(false);
 const showBudgetDialog = ref<boolean>(false);
 const dialogMode = ref<'create' | 'edit'>('create');
 const selectedId = ref<number | null>(null);
+const selectedRows = ref<Row[]>([]);
 
 const selectTitle = ref<string>('');
 const selectOrigin = ref<string>('');
@@ -348,6 +349,41 @@ async function downloadDemapa(id: number) {
   }
 }
 
+async function downloadDemapaAgregado() {
+  if (selectedRows.value.length === 0) {
+    $q.notify({
+      type: 'warning',
+      message: 'Selecione ao menos um item para gerar o documento.',
+      timeout: notifTimeout,
+    });
+    return;
+  }
+
+  try {
+    const ids = selectedRows.value.map((row) => row.id);
+    const response = await api.post('/controle/compras/demapa_agregado/', { ids }, {
+      responseType: 'blob',
+    });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'demapa_agregado.pdf');
+    document.body.appendChild(link);
+    link.click();
+    $q.notify({
+      type: 'positive',
+      message: 'Documento agregado gerado com sucesso.',
+      timeout: notifTimeout,
+    });
+  } catch {
+    $q.notify({
+      type: 'negative',
+      message: 'Erro ao gerar documento agregado.',
+      timeout: notifTimeout,
+    });
+  }
+}
+
 onMounted(() => {
   getCompras()
   .catch(err => console.error('Falhou ao buscar compras:', err));
@@ -359,13 +395,22 @@ onMounted(() => {
 
     <div class="q-pa-md q-gutter-sm">
       <q-btn color="primary" label="Adicionar nova solicitação" @click="openCreateDialog" />
+      <q-btn
+        color="accent"
+        label="Gerar Documento DEMAPA"
+        icon="description"
+        :disable="selectedRows.length === 0"
+        @click="downloadDemapaAgregado"
+      />
     </div>
 
     <q-table
-    title="Solicitações de compra"
-    :rows="rows"
-    :columns="columns"
-    row-key="id"
+      title="Solicitações de compra"
+      :rows="rows"
+      :columns="columns"
+      row-key="id"
+      selection="multiple"
+      v-model:selected="selectedRows"
     >
       <template v-slot:body-cell-editar="props">
         <q-td :props="props">

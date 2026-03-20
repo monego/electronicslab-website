@@ -185,6 +185,95 @@ class ComprasViewSet(ModelViewSet):
         buffer.seek(0)
         return FileResponse(buffer, as_attachment=True, filename=f"demapa_{obj.id}.pdf")
 
+    @action(detail=False, methods=['post'])
+    def demapa_agregado(self, request):
+        ids = request.data.get('ids', [])
+        if not ids:
+            return Response({'detail': 'Nenhum ID fornecido.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        objs = Compras.objects.filter(id__in=ids).order_by('titulo')
+        if not objs:
+            return Response({'detail': 'Nenhum registro encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=20, leftMargin=20, topMargin=20, bottomMargin=20)
+        elements = []
+
+        styles = getSampleStyleSheet()
+        style_content = ParagraphStyle(
+            'Content',
+            parent=styles['Normal'],
+            fontSize=9,
+            leading=11
+        )
+
+        col_widths = [2.5*cm, 5.5*cm, 2.5*cm, 2.5*cm, 3.5*cm, 2.5*cm]
+
+        for i, obj in enumerate(objs):
+            # Calculate max price (average + 20%) if it's not set in the database but budgets exist
+            prices = [p for p in [obj.preco_orcamento_1, obj.preco_orcamento_2, obj.preco_orcamento_3] if p is not None]
+            preco_maximo = obj.preco_maximo
+            if (preco_maximo is None or preco_maximo == 0) and prices:
+                avg = sum(prices) / 3
+                preco_maximo = round(float(avg) * 1.2, 2)
+
+            data = [
+                ["Nome do item", Paragraph(obj.titulo, style_content), "Quantidade", str(obj.quantidade), "Preço Máximo\n(R$)", f"R$ {preco_maximo or '0,00'}"],
+                ["Descrição", Paragraph((obj.descricao or '').replace('\n', '<br/>'), style_content), "", "", "", ""],
+                ["Justificativa", Paragraph((obj.justificativa or '').replace('\n', '<br/>'), style_content), "", "", "", ""],
+                ["Empresa\nConsultada", "Data da Consulta", "Preço (R$)", "Fonte", "", ""],
+            ]
+
+            def add_budget_row(data_list, empresa, data_cons, preco, url, fonte):
+                source_options = [
+                    f"{'(x)' if fonte == 'website' else '( )'} website",
+                    f"{'(x)' if fonte == 'telefone' else '( )'} telefone",
+                    f"{'(x)' if fonte == 'email' else '( )'} email"
+                ]
+                source_str = " ".join(source_options)
+                data_list.append([empresa or "", data_cons.strftime('%d/%m/%Y') if data_cons else "", f"R$ {preco or '0,00'}", source_str, "", ""])
+                data_list.append(["", Paragraph(f"<b>Fonte:</b> {url or ''}", style_content), "", "", "", ""])
+
+            add_budget_row(data, obj.empresa_orcamento_1, obj.data_orcamento_1, obj.preco_orcamento_1, obj.url_orcamento_1, obj.fonte_orcamento_1)
+            add_budget_row(data, obj.empresa_orcamento_2, obj.data_orcamento_2, obj.preco_orcamento_2, obj.url_orcamento_2, obj.fonte_orcamento_2)
+            add_budget_row(data, obj.empresa_orcamento_3, obj.data_orcamento_3, obj.preco_orcamento_3, obj.url_orcamento_3, obj.fonte_orcamento_3)
+
+            table = Table(data, colWidths=col_widths, repeatRows=0)
+            table_style = TableStyle([
+                ('GRID', (0,0), (-1,-1), 0.5, colors.black),
+                ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+                ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
+                ('FONTSIZE', (0,0), (-1,-1), 9),
+                ('BACKGROUND', (0,0), (0,0), colors.whitesmoke),
+                ('BACKGROUND', (2,0), (2,0), colors.whitesmoke),
+                ('BACKGROUND', (4,0), (4,0), colors.whitesmoke),
+                ('SPAN', (1,1), (5,1)),
+                ('SPAN', (1,2), (5,2)),
+                ('SPAN', (3,3), (5,3)),
+                ('SPAN', (0,4), (0,5)),
+                ('SPAN', (1,5), (5,5)),
+                ('SPAN', (3,4), (5,4)),
+                ('SPAN', (0,6), (0,7)),
+                ('SPAN', (1,7), (5,7)),
+                ('SPAN', (3,6), (5,6)),
+                ('SPAN', (0,8), (0,9)),
+                ('SPAN', (1,9), (5,9)),
+                ('SPAN', (3,8), (5,8)),
+                ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+                ('ALIGN', (2,0), (5,0), 'CENTER'),
+                ('ALIGN', (0,0), (0,-1), 'CENTER'),
+                ('NOSPLIT', (0,0), (-1,-1)), # Keep each item together on one page
+            ])
+            table.setStyle(table_style)
+            elements.append(table)
+
+            if i < len(objs) - 1:
+                elements.append(Spacer(1, 1*cm)) # Add margin between items
+
+        doc.build(elements)
+        buffer.seek(0)
+        return FileResponse(buffer, as_attachment=True, filename="demapa_agregado.pdf")
+
 class ControleAcessoViewSet(ModelViewSet):
     queryset = ControleAcesso.objects.all()
     permission_classes = (IsAuthenticated,)
