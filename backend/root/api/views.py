@@ -7,14 +7,23 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 
-from django.db.models import Max, F
+from django.db.models import Max, F, Exists, OuterRef
+from controle.models import Emprestimo
 ...
 class PessoaViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = PessoaSerializer
 
     def get_queryset(self):
-        queryset = Pessoa.objects.annotate(last_access=Max('controleacesso__hora_entrada'))
+        queryset = Pessoa.objects.annotate(
+            last_access=Max('controleacesso__hora_entrada'),
+            has_active_loan=Exists(
+                Emprestimo.objects.filter(responsavel=OuterRef('pk'), encerrado=False)
+            ),
+            has_past_loan=Exists(
+                Emprestimo.objects.filter(responsavel=OuterRef('pk'), encerrado=True)
+            )
+        )
         matricula = self.request.query_params.get('matricula')
         if matricula is not None:
             queryset = queryset.filter(matricula=matricula)
@@ -22,6 +31,8 @@ class PessoaViewSet(ModelViewSet):
         nome = self.request.query_params.get('nome')
         if nome is not None:
             queryset = queryset.filter(nome__icontains=nome).order_by(
+                F('has_active_loan').desc(),
+                F('has_past_loan').desc(),
                 F('last_access').desc(nulls_last=True),
                 'nome'
             )[:20]
