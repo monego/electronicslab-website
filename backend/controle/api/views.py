@@ -36,6 +36,7 @@ from controle.models import (
     Manutencao,
     Orcamento,
 )
+from aulas.models import Aula
 from root.models import Pessoa, Sala
 
 from barcode import Code39
@@ -904,3 +905,84 @@ class ComponentePublicoViewSet(ModelViewSet):
     queryset = Componente.objects.all()
     permission_classes = []
     serializer_class = ComponentePublicoSerializer
+
+class PolareViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+
+    @action(detail=False, methods=['get'])
+    def reports(self, request):
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        period = request.query_params.get('period', 'ambos') # abertura, fechamento, ambos
+        floor = request.query_params.get('floor', 'ambos') # 1, 2, ambos
+
+        if not start_date or not end_date:
+            return Response({'detail': 'start_date and end_date are required.'}, status=400)
+
+        # Aulas Report
+        aulas_qs = Aula.objects.filter(inicio__date__gte=start_date, inicio__date__lte=end_date)
+        
+        if floor != 'ambos':
+            aulas_qs = aulas_qs.filter(sala__andar=floor)
+        
+        # Abertura: antes das 16:30
+        # Fechamento: das 10:30 em diante
+        if period == 'abertura':
+            aulas_qs = aulas_qs.filter(inicio__time__lt='16:30:00')
+        elif period == 'fechamento':
+            aulas_qs = aulas_qs.filter(inicio__time__gte='10:30:00')
+
+        aulas_report = []
+        # Group by date
+        dates = aulas_qs.dates('inicio', 'day')
+        for d in dates:
+            day_aulas = aulas_qs.filter(inicio__date=d).order_by('inicio')
+            entries = []
+            for a in day_aulas:
+                # Format: Professor Sobrenome - Disciplina
+                # Example: Mario Martins - Eletrônica Aplicada
+                entries.append(f"{a.professor} - {a.disciplina}")
+            
+            if entries:
+                date_str = d.strftime('%d/%m/%Y')
+                aulas_report.append(f"{date_str} | {', '.join(entries)}")
+
+        # Acessos Report
+        acessos_qs = ControleAcesso.objects.filter(hora_entrada__date__gte=start_date, hora_entrada__date__lte=end_date, hora_saida__isnull=False)
+        
+        if floor != 'ambos':
+            acessos_qs = acessos_qs.filter(sala__andar=floor)
+            
+        if period == 'abertura':
+            acessos_qs = acessos_qs.filter(hora_entrada__time__lt='16:30:00')
+        elif period == 'fechamento':
+            acessos_qs = acessos_qs.filter(hora_entrada__time__gte='10:30:00')
+
+        acessos_report = []
+        dates_acessos = acessos_qs.dates('hora_entrada', 'day')
+        for d in dates_acessos:
+            day_acessos = acessos_qs.filter(hora_entrada__date=d)
+            if not day_acessos.exists():
+                continue
+                
+            num_alunos = day_acessos.values('pessoa').distinct().count()
+            
+            # Duration in seconds
+            durations = []
+            for acc in day_acessos:
+                if acc.hora_saida and acc.hora_entrada:
+                    delta = acc.hora_saida - acc.hora_entrada
+                    durations.append(delta.total_seconds())
+            
+            if durations:
+                avg_seconds = sum(durations) / len(durations)
+                hours = int(avg_seconds // 3600)
+                minutes = int((avg_seconds % 3600) // 60)
+                
+                date_str = d.strftime('%d/%m/%Y')
+                acessos_report.append(f"{date_str} | {num_alunos} alunos, duração média de {hours} horas e {minutes} minutos")
+
+        return Response({
+            'aulas': aulas_report,
+            'acessos': acessos_report
+        })

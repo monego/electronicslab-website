@@ -159,6 +159,12 @@ const privateList: EssentialLinkProps[] = [
     icon: 'mdi-cart-outline',
     link: '/#/compras',
   },
+  {
+    title: 'Polare',
+    caption: 'Gerar Relatórios',
+    icon: 'mdi-file-chart',
+    link: '/#/polare',
+  },
 ];
 
 const leftDrawerOpen = ref(false);

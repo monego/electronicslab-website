@@ -31,6 +31,7 @@ const routes: RouteRecordRaw[] = [
       { path: '/equipamentos', component: () => import('pages/EquipmentPage.vue') },
       { path: '/componentes', component: () => import('pages/ComponentPage.vue') },
       { path: '/ocorrencias', component: () => import('pages/OccurrencePage.vue') },
+      { path: '/polare', component: () => import('pages/PolarePage.vue') },
       { path: '/compras', component: () => import('pages/PurchasePage.vue') },
     ],
   },
