@@ -45,8 +45,8 @@ const aulas = ref<Aula[]>([]);
 const salas = ref<Sala[]>([]);
 const filter = ref<string>('');
 const salaFilter = ref<string>('todas');
-const currentTime = ref(Temporal.Now.zonedDateTimeISO());
-const isShowingTomorrow = ref(false);
+const targetDate = ref(getInitialDate());
+const showDatePicker = ref(false);
 let timer: ReturnType<typeof setInterval>;
 
 // --- Helper Functions ---
@@ -127,21 +127,60 @@ async function fetchAulas(url: string) {
 
 async function fetchData() {
   await fetchSalas();
-  await fetchAulas('/aulas/aulas/hoje'); // Fetch today's classes first
-
-  const nowTime = currentTime.value.toPlainTime();
-
-  // Check if there are no remaining classes today (after filtering out past classes)
-  // and it's past 19:30 (19:00 in 24h format)
-  if (filteredRows.value.length === 0 && nowTime.hour >= 19 && nowTime.minute >= 30) {
-    isShowingTomorrow.value = true;
-    await fetchAulas('/aulas/aulas/amanha'); // Fetch tomorrow's classes
-  } else {
-    isShowingTomorrow.value = false;
-  }
+  await fetchAulas(`/aulas/aulas/data/?date=${targetDate.value}`);
 }
 
-// --- Computed Logic ---
+function getInitialDate() {
+  let d = Temporal.Now.plainDateISO();
+  const now = Temporal.Now.zonedDateTimeISO();
+
+  // Weekend logic: Sat/Sun -> Monday
+  if (d.dayOfWeek === 6) d = d.add({ days: 2 });
+  else if (d.dayOfWeek === 7) d = d.add({ days: 1 });
+  // Late evening logic: After 19:00 -> Tomorrow
+  else if (now.hour >= 19) {
+    d = d.add({ days: 1 });
+    // If tomorrow is weekend, move to Monday
+    if (d.dayOfWeek === 6) d = d.add({ days: 2 });
+    else if (d.dayOfWeek === 7) d = d.add({ days: 1 });
+  }
+
+  return d.toString();
+}
+
+function setDate(dateStr: string) {
+  targetDate.value = dateStr;
+  showDatePicker.value = false;
+  void fetchData();
+}
+
+function getNextWeekday(dayOfWeek: number) {
+  let d = Temporal.Now.plainDateISO();
+  while (d.dayOfWeek !== dayOfWeek) {
+    d = d.add({ days: 1 });
+  }
+  return d.toString();
+}
+
+const formattedDate = computed(() => {
+  return targetDate.value.split('-').reverse().join('/');
+});
+
+const isToday = computed(() => targetDate.value === Temporal.Now.plainDateISO().toString());
+const isTomorrow = computed(() => targetDate.value === Temporal.Now.plainDateISO().add({ days: 1 }).toString());
+
+const dateDescription = computed(() => {
+  const selected = Temporal.PlainDate.from(targetDate.value);
+  const today = Temporal.Now.plainDateISO();
+  const diff = today.until(selected).days;
+  const weekdays = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+  const dayName = weekdays[selected.dayOfWeek - 1];
+
+  if (diff >= 7 && diff < 14) return `Próxima ${dayName}`;
+  return dayName;
+});
+
+const currentTime = ref(Temporal.Now.zonedDateTimeISO());
 
 const filteredRows = computed(() => {
   const now = currentTime.value;
@@ -247,9 +286,25 @@ const columns: {
       <q-card-section class="q-pb-none">
         <div class="row items-center q-col-gutter-md">
           <div class="col-12 col-md-auto">
-            <h1 class="text-h5 text-weight-bolder text-slate-900 q-my-none">
-              <span v-if="isShowingTomorrow">Programação de Amanhã</span>
-              <span v-else>Programação de Hoje</span>
+            <h1 class="text-h5 text-weight-bolder text-slate-900 q-my-none flex items-center">
+              Programação de
+              <template v-if="isToday">
+                <span class="clickable-date pulse-animation q-ml-sm" @click="showDatePicker = true">Hoje</span>
+              </template>
+              <template v-else-if="isTomorrow">
+                <span class="clickable-date pulse-animation q-ml-sm" @click="showDatePicker = true">Amanhã</span>
+              </template>
+              <template v-else>
+                <span
+                  class="clickable-date pulse-animation q-ml-sm"
+                  @click="showDatePicker = true"
+                >
+                  {{ formattedDate }}
+                </span>
+                <span class="text-caption text-italic text-grey-7 q-ml-sm" style="font-size: 0.9rem;">
+                  ({{ dateDescription }})
+                </span>
+              </template>
             </h1>
           </div>
           <q-space />
@@ -283,13 +338,6 @@ const columns: {
             </q-input>
           </div>
         </div>
-        <q-chip v-if="isShowingTomorrow"
-          class="q-mb-md q-pa-sm italic text-body1"
-          color="orange-2"
-          text-color="orange-9"
-          label="Nenhuma aula restante hoje"
-          dense
-        />
       </q-card-section>
 
       <q-card-section class="q-pa-none q-mt-md">
@@ -364,7 +412,7 @@ const columns: {
           <template v-slot:no-data>
             <div class="full-width row flex-center q-pa-xl text-grey-6 q-gutter-sm">
               <q-icon name="mdi-calendar-blank" size="48px" />
-              <div class="text-h6">Nenhuma aula encontrada para hoje</div>
+              <div class="text-h6">Nenhuma aula encontrada para esta data</div>
             </div>
           </template>
         </q-table>
@@ -422,10 +470,93 @@ const columns: {
       </div>
     </div>
 
+    <!-- Date Picker Modal -->
+    <q-dialog v-model="showDatePicker" position="top">
+      <q-card class="date-picker-card">
+        <q-card-section class="q-pa-md">
+          <div class="text-h6 q-mb-sm text-weight-bold">Selecionar Data</div>
+          
+          <div class="row q-col-gutter-sm q-mb-sm">
+            <div class="col-6">
+              <q-btn flat dense no-caps label="Hoje" class="full-width quick-date-btn" @click="setDate(Temporal.Now.plainDateISO().toString())" />
+            </div>
+            <div class="col-6">
+              <q-btn flat dense no-caps label="Amanhã" class="full-width quick-date-btn" @click="setDate(Temporal.Now.plainDateISO().add({ days: 1 }).toString())" />
+            </div>
+          </div>
+          <div class="row q-col-gutter-sm q-mb-md">
+            <div class="col-4">
+              <q-btn flat dense no-caps label="Segunda" class="full-width quick-date-btn" @click="setDate(getNextWeekday(1))" />
+            </div>
+            <div class="col-4">
+              <q-btn flat dense no-caps label="Terça" class="full-width quick-date-btn" @click="setDate(getNextWeekday(2))" />
+            </div>
+            <div class="col-4">
+              <q-btn flat dense no-caps label="Quarta" class="full-width quick-date-btn" @click="setDate(getNextWeekday(3))" />
+            </div>
+            <div class="col-4">
+              <q-btn flat dense no-caps label="Quinta" class="full-width quick-date-btn" @click="setDate(getNextWeekday(4))" />
+            </div>
+            <div class="col-4">
+              <q-btn flat dense no-caps label="Sexta" class="full-width quick-date-btn" @click="setDate(getNextWeekday(5))" />
+            </div>
+          </div>
+
+          <q-date
+            v-model="targetDate"
+            flat
+            minimal
+            mask="YYYY-MM-DD"
+            @update:model-value="v => setDate(v)"
+          />
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
   </q-page>
 </template>
 
 <style lang="scss" scoped>
+.clickable-date {
+  cursor: pointer;
+  text-decoration: underline dotted;
+  color: var(--q-primary);
+  display: inline-block;
+  padding: 0 4px;
+  border-radius: 4px;
+  transition: background 0.3s;
+  &:hover {
+    background: rgba(25, 118, 210, 0.05);
+  }
+}
+
+.pulse-animation {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.02); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.date-picker-card {
+  width: 320px;
+  border-radius: 16px;
+}
+
+.quick-date-btn {
+  background: #f1f5f9;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+  border-radius: 8px;
+  &:hover {
+    background: #e2e8f0;
+    color: var(--q-primary);
+  }
+}
+
 .bg-page {
   background-color: #f8fafc;
 }

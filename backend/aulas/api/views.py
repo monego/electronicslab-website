@@ -73,3 +73,19 @@ class AulasViewSet(ModelViewSet):
         serializer = self.get_serializer(aulas, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+    @action(detail=False, methods=['get'], url_path='data')
+    def get_for_date(self, request, *args, **kwargs):
+        date_str = request.query_params.get('date')
+        if not date_str:
+            return Response(
+                {"detail": "Parâmetro 'date' é obrigatório."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        aulas = Aula.objects.filter(
+            inicio__date=date_str,
+        )
+
+        serializer = self.get_serializer(aulas, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
