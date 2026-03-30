@@ -303,6 +303,12 @@ const copyScript = (lines: string[]) => {
         icon: 'mdi-xml',
         timeout: 4000
       });
+    })
+    .catch(() => {
+      $q.notify({
+        message: 'Falha ao copiar script.',
+        color: 'negative'
+      });
     });
 };
 

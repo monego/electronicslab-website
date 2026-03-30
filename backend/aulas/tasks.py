@@ -37,8 +37,7 @@ ROOM_ID_TO_NAME = {
     "3005": "215",
 }
 
-def update_aulas_task():
-
+def _perform_aulas_sync(inicio_total, fim_total, should_delete_missing=False):
     def title_split(titulo):
         if '/' in titulo:
             return titulo.split('/')
@@ -47,14 +46,9 @@ def update_aulas_task():
     url = settings.URL_CPD
     salas = Sala.objects.values_list('codigo', flat=True)
     data_atual = now()
-    inicio_total = data_atual.strftime('%d/%m/%Y')
-    fim_total = data_atual.strftime('31/12/%Y')
 
     for sala in salas:
-
         chaves_api = []
-        aulas_modificadas = []
-
         data = {
             "espaco": sala,
             "inicio": inicio_total,
@@ -62,9 +56,15 @@ def update_aulas_task():
             "apenasDeferidos": True,
         }
 
-        response = json.loads(httpx.post(url, json=data).text)
+        try:
+            response = json.loads(httpx.post(url, json=data).text)
+        except Exception as e:
+            logger.error(f"Erro ao buscar aulas para sala {sala}: {e}")
+            continue
 
         sala_object = Sala.objects.filter(codigo=sala).first()
+        if not sala_object:
+            continue
 
         aulas_existentes = Aula.objects.filter(sala=sala_object).values(
             "inicio", "fim", "sala"
@@ -75,23 +75,21 @@ def update_aulas_task():
         )
 
         for aula in response:
-            inicio = datetime.strptime(aula['start'], "%Y-%m-%d %H:%M:%S")
-            fim = datetime.strptime(aula['end'], "%Y-%m-%d %H:%M:%S")
-
-            inicio = make_aware(inicio)
-            fim = make_aware(fim)
+            try:
+                inicio = make_aware(datetime.strptime(aula['start'], "%Y-%m-%d %H:%M:%S"))
+                fim = make_aware(datetime.strptime(aula['end'], "%Y-%m-%d %H:%M:%S"))
+            except ValueError:
+                continue
 
             chave_aula = (inicio, fim, sala_object.id)
-
             chaves_api.append(chave_aula)
 
             titulo = aula['title']
             titulo_split = title_split(titulo)
-            disciplina = titulo_split[1]
-            professor = titulo_split[0]
+            disciplina = titulo_split[1].strip()[:100] if len(titulo_split) > 1 else "Não informada"
+            professor = titulo_split[0].strip()[:100] if titulo_split[0] else "Desconhecido"
 
             if chave_aula not in aulas_existentes_set:
-
                 nova_aula = {
                     'inicio': inicio,
                     'fim': fim,
@@ -99,41 +97,64 @@ def update_aulas_task():
                     'professor': professor,
                     'disciplina': disciplina
                 }
-
                 serializer = AulaSerializer(data=nova_aula)
-
                 try:
                     serializer.is_valid(raise_exception=True)
                     serializer.save()
                 except IntegrityError:
                     pass
             else:
-                aula_existente = Aula.objects.get(
-                    inicio=inicio, fim=fim, sala=sala_object
+                Aula.objects.filter(inicio=inicio, fim=fim, sala=sala_object).update(
+                    professor=professor,
+                    disciplina=disciplina
                 )
-                aula_existente.professor = professor
-                aula_existente.disciplina = disciplina
-                aulas_modificadas.append(aula_existente)
 
-        sao_paulo_timezone = ZoneInfo("America/Sao_Paulo")
+        if should_delete_missing:
+            sao_paulo_timezone = ZoneInfo("America/Sao_Paulo")
+            aulas_existentes_set_sp = [
+                (
+                    item[0].astimezone(sao_paulo_timezone),
+                    item[1].astimezone(sao_paulo_timezone),
+                    item[2],
+                )
+                for item in aulas_existentes_set
+            ]
 
-        aulas_existentes_set_sp = [
-            (
-                item[0].astimezone(sao_paulo_timezone),
-                item[1].astimezone(sao_paulo_timezone),
-                item[2],
-            )
-            for item in aulas_existentes_set
-        ]
+            # Só deletar se estiver no range pesquisado e for do presente/futuro
+            chaves_excluir = {
+                k for k in (set(aulas_existentes_set_sp) - set(chaves_api))
+                if k[0].date() >= data_atual.date()
+            }
 
-        chaves_excluir = set(aulas_existentes_set_sp) - set(chaves_api)
+            if chaves_excluir:
+                Aula.objects.filter(
+                    Q(inicio__in=[k[0] for k in chaves_excluir]) &
+                    Q(fim__in=[k[1] for k in chaves_excluir]) &
+                    Q(sala__in=[k[2] for k in chaves_excluir])
+                ).delete()
 
-        if chaves_excluir:
-            Aula.objects.filter(
-                Q(inicio__in=[k[0] for k in chaves_excluir]) &
-                Q(fim__in=[k[1] for k in chaves_excluir]) &
-                Q(sala__in=[k[2] for k in chaves_excluir])
-            ).delete()
+
+def update_aulas_task():
+    data_atual = now()
+    inicio_total = data_atual.strftime('%d/%m/%Y')
+    fim_total = data_atual.strftime('31/12/%Y')
+
+    _perform_aulas_sync(inicio_total, fim_total, should_delete_missing=True)
+
+    # Limpeza de histórico antigo (> 1 ano / 365 dias)
+    limite_historico = data_atual - timedelta(days=365)
+    Aula.objects.filter(inicio__lt=limite_historico).delete()
+
+
+def sync_last_year_aulas_task():
+    data_atual = now()
+    # De 1 ano atrás até hoje
+    inicio_total = (data_atual - timedelta(days=365)).strftime('%d/%m/%Y')
+    fim_total = data_atual.strftime('%d/%m/%Y')
+
+    logger.info(f"Iniciando backfill de aulas de {inicio_total} até {fim_total}")
+    _perform_aulas_sync(inicio_total, fim_total, should_delete_missing=False)
+    logger.info("Backfill concluído.")
 
 
 def escape_markdown_v2(text):
