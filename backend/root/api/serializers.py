@@ -9,11 +9,12 @@ class PessoaSerializer(ModelSerializer):
     filter_backends = [filters.SearchFilter]
     search_fields = ['matricula']
     last_access = serializers.DateTimeField(read_only=True)
+    last_room_numero = serializers.CharField(read_only=True)
     has_active_loan = serializers.BooleanField(read_only=True)
     has_past_loan = serializers.BooleanField(read_only=True)
     class Meta:
         model = Pessoa
-        fields = ['id', 'nome', 'email', 'telefone', 'matricula', 'tipo', 'last_access', 'has_active_loan', 'has_past_loan']
+        fields = ['id', 'nome', 'email', 'telefone', 'matricula', 'tipo', 'last_access', 'last_room_numero', 'has_active_loan', 'has_past_loan']
 
 class SalaSerializer(ModelSerializer):
     queryset = Sala.objects.all()

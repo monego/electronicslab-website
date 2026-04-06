@@ -7,16 +7,18 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 
-from django.db.models import Max, F, Exists, OuterRef
-from controle.models import Emprestimo
+from django.db.models import Max, F, Exists, OuterRef, Subquery
+from controle.models import Emprestimo, ControleAcesso
 ...
 class PessoaViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = PessoaSerializer
 
     def get_queryset(self):
+        last_room = ControleAcesso.objects.filter(pessoa=OuterRef('pk')).order_by('-hora_entrada').values('sala__numero')[:1]
         queryset = Pessoa.objects.annotate(
             last_access=Max('controleacesso__hora_entrada'),
+            last_room_numero=Subquery(last_room),
             has_active_loan=Exists(
                 Emprestimo.objects.filter(responsavel=OuterRef('pk'), encerrado=False)
             ),
